@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Search, Plus, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,7 +29,7 @@ interface UserProfile {
 // Função para realçar o termo pesquisado
 const highlightText = (text: string, term: string) => {
   if (!term) return text;
-  const regex = new RegExp((${term}), "gi");
+  const regex = new RegExp(`${term}`, "gi"); // corrigido
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? <strong key={i} className="text-primary">{part}</strong> : part
@@ -88,7 +88,7 @@ const ConversationsList = () => {
           event: '*',
           schema: 'public',
           table: 'conversations',
-          filter: user_id=eq.${user.id}
+          filter: `user_id=eq.${user.id}`
         },
         () => {
           loadConversations();
@@ -125,7 +125,7 @@ const ConversationsList = () => {
         const { data: users, error: usersError } = await supabase
           .from("users")
           .select("id, full_name, avatar_url")
-          .ilike("full_name", %${term}%)
+          .ilike("full_name", `%${term}%`) // corrigido
           .neq("id", user.id)
           .limit(10);
 
@@ -172,7 +172,7 @@ const ConversationsList = () => {
         .maybeSingle();
 
       if (existing) {
-        navigate(/messages/${existing.id});
+        navigate(`/messages/${existing.id}`); // corrigido
         return;
       }
 
@@ -195,10 +195,10 @@ const ConversationsList = () => {
 
       toast({
         title: "Conversa criada",
-        description: Conversa com ${otherUserName} iniciada!
+        description: `Conversa com ${otherUserName} iniciada!`
       });
 
-      navigate(/messages/${created.id});
+      navigate(`/messages/${created.id}`); // corrigido
     } catch (err) {
       console.error("Erro ao iniciar conversa:", err);
       toast({
@@ -224,7 +224,7 @@ const ConversationsList = () => {
     } else if (days === 1) {
       return "Ontem";
     } else if (days < 7) {
-      return ${days}d atrás;
+      return `${days}d atrás`;
     } else {
       return date.toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -353,7 +353,7 @@ const ConversationsList = () => {
               {conversationResults.map((conv) => (
                 <Card
                   key={conv.id}
-                  onClick={() => navigate(/messages/${conv.id})}
+                  onClick={() => navigate(`/messages/${conv.id}`)}
                   className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <CardContent className="flex items-center justify-between p-3">

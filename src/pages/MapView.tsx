@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { MapPin, Filter, DollarSign, Calendar, Package, Search, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
+import axios from 'axios'
 
 interface Product {
   id: string
@@ -20,6 +21,8 @@ interface Product {
   image_url?: string
   location_lat: number | null
   location_lng: number | null
+  weatherData?: any
+  roadCondition?: string
 }
 
 const MapView = () => {
@@ -36,6 +39,8 @@ const MapView = () => {
   const [searchText, setSearchText] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+
+  const WEATHER_API_KEY = 'SUA_CHAVE_OPENWEATHERMAP' // Substitua pela sua chave
 
   useEffect(() => {
     if (user) fetchProducts()
@@ -63,7 +68,7 @@ const MapView = () => {
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-      // Geolocalização do utilizador
+      // Geolocalização do usuário
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -97,25 +102,43 @@ const MapView = () => {
     }
   }, [mapboxToken])
 
-  // Renderizar marcadores REAIS
+  // Renderizar marcadores com clima e estrada
   useEffect(() => {
     if (!map.current) return
     markers.current.forEach((m) => m.remove())
     markers.current = []
 
-    products.forEach((p) => {
+    products.forEach(async (p) => {
       if (p.location_lat && p.location_lng) {
         const el = document.createElement('div')
         el.innerHTML = '🧺'
-        el.style.fontSize = '24px'
+        el.style.fontSize = '28px'
         el.style.cursor = 'pointer'
 
         const marker = new mapboxgl.Marker(el)
           .setLngLat([p.location_lng, p.location_lat])
           .addTo(map.current!)
 
-        el.addEventListener('click', () => {
-          setSelectedProduct(p)
+        el.addEventListener('click', async () => {
+          // Dados climáticos via OpenWeatherMap
+          let weatherData = null
+          try {
+            const res = await axios.get(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${p.location_lat}&lon=${p.location_lng}&units=metric&appid=${WEATHER_API_KEY}&lang=pt`
+            )
+            weatherData = res.data
+          } catch (err) {
+            console.warn('Erro ao buscar clima:', err)
+          }
+
+          // Estado da estrada (simulado, trocar para API real se disponível)
+          const roadCondition = Math.random() > 0.5 ? 'Boa' : 'Regular'
+
+          setSelectedProduct({
+            ...p,
+            weatherData,
+            roadCondition,
+          })
         })
 
         markers.current.push(marker)
@@ -172,7 +195,7 @@ const MapView = () => {
 
   return (
     <div className="relative min-h-screen bg-background">
-      {/* ✅ AppBar restaurado */}
+      {/* AppBar */}
       <header className="absolute top-0 left-0 right-0 z-30 bg-green-600 text-white flex justify-between items-center px-5 py-3 shadow-md">
         <h1 className="text-lg font-semibold tracking-wide">MAPA AGRI LINK</h1>
         <div className="flex items-center gap-2">
@@ -186,7 +209,7 @@ const MapView = () => {
         </div>
       </header>
 
-      {/* 🔍 Barra de pesquisa elegante */}
+      {/* Barra de pesquisa */}
       <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-11/12 max-w-lg">
         <div className="bg-white/90 backdrop-blur-md shadow-lg rounded-2xl border border-gray-200 flex items-center px-3 py-2">
           <Search className="h-5 w-5 text-gray-500 mr-2" />
@@ -213,10 +236,10 @@ const MapView = () => {
         )}
       </div>
 
-      {/* 🗺️ Mapa */}
+      {/* Mapa */}
       <div ref={mapContainer} className="absolute inset-0 rounded-none" />
 
-      {/* 🧺 Modal com produto */}
+      {/* Modal produto */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex justify-center items-center px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
@@ -255,8 +278,24 @@ const MapView = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-red-500" /> Localização:{' '}
-                  {selectedProduct.location_lat?.toFixed(4)}, {selectedProduct.location_lng?.toFixed(4)}
+                  {selectedProduct.location_lat?.toFixed(4)},{' '}
+                  {selectedProduct.location_lng?.toFixed(4)}
                 </div>
+
+                {/* Dados climáticos */}
+                {selectedProduct.weatherData && (
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-700">
+                    🌡️ Temp: {selectedProduct.weatherData.main.temp}°C, ☁️{' '}
+                    {selectedProduct.weatherData.weather[0].description}
+                  </div>
+                )}
+
+                {/* Estado da estrada */}
+                {selectedProduct.roadCondition && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-700">
+                    🛣️ Estado da estrada: {selectedProduct.roadCondition}
+                  </div>
+                )}
               </div>
 
               <Button

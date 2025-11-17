@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell } from "lucide-react";
+import { ArrowLeft, Bell, Menu, X } from "lucide-react";
 import AgrilinkLogo from "@/assets/agrilink-logo.png";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import Map, { Marker } from "react-map-gl";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
   const [alertModalOpen, setAlertModalOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertTargetUser, setAlertTargetUser] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | "transactions" | "notifications">("dashboard");
 
@@ -92,17 +94,24 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="p-4 text-center text-gray-500">Carregando dashboard...</p>;
 
+  const tabs = ["dashboard","products","users","transactions","notifications"];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
-        <div className="flex items-center gap-4">
-          <img src={AgrilinkLogo} alt="Agrilink Logo" className="h-10" />
-          <span className="text-2xl font-bold text-gray-700">Admin Dashboard</span>
+      <nav className="flex flex-col md:flex-row items-center justify-between px-6 py-4 bg-white shadow-md sticky top-0 z-50">
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center gap-4">
+            <img src={AgrilinkLogo} alt="Agrilink Logo" className="h-10" />
+            <span className="text-2xl font-bold text-gray-700">Admin Dashboard</span>
+          </div>
+          <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <X className="h-6 w-6"/> : <Menu className="h-6 w-6"/>}
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          {["dashboard","products","users","transactions","notifications"].map(tab => (
-            <Button key={tab} variant={activeTab===tab?"default":"ghost"} onClick={() => setActiveTab(tab as any)}>
+        <div className={`flex-col md:flex-row md:flex items-center gap-2 mt-2 md:mt-0 ${menuOpen ? "flex" : "hidden md:flex"}`}>
+          {tabs.map(tab => (
+            <Button key={tab} variant={activeTab===tab?"default":"ghost"} size="sm" onClick={() => setActiveTab(tab as any)}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Button>
           ))}
@@ -113,7 +122,7 @@ const AdminDashboard = () => {
       </nav>
 
       <div className="max-w-7xl mx-auto p-4 space-y-6">
-        {/* DASHBOARD */}
+        {/* DASHBOARD METRICS */}
         {activeTab === "dashboard" && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[{title:"Total de Produtos", value: products.length},
@@ -121,7 +130,7 @@ const AdminDashboard = () => {
               {title:"Total Transações", value: transactions.length},
               {title:"Notificações", value: notifications.length}
             ].map((metric, idx) => (
-              <Card key={idx} className="shadow-md hover:shadow-lg transition-shadow">
+              <Card key={idx} className="shadow-md hover:shadow-lg transition-shadow rounded-lg">
                 <CardHeader>
                   <CardTitle>{metric.title}</CardTitle>
                   <p className="text-2xl font-bold mt-2">{metric.value}</p>
@@ -129,6 +138,29 @@ const AdminDashboard = () => {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* MAPA DE PRODUTOS */}
+        {activeTab === "dashboard" && (
+          <Card className="shadow-md">
+            <CardHeader><CardTitle>Mapa de Produtos</CardTitle></CardHeader>
+            <CardContent className="h-96">
+              <Map
+                initialViewState={{
+                  latitude: -8.839,
+                  longitude: 13.289,
+                  zoom: 6
+                }}
+                style={{ width: '100%', height: '100%' }}
+                mapStyle="mapbox://styles/mapbox/streets-v11"
+                mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+              >
+                {products.map(p => p.lat && p.lng && (
+                  <Marker key={p.id} latitude={p.lat} longitude={p.lng} color="red" />
+                ))}
+              </Map>
+            </CardContent>
+          </Card>
         )}
 
         {/* PRODUCTS */}
@@ -143,25 +175,32 @@ const AdminDashboard = () => {
                     <TableHead>Quantidade</TableHead>
                     <TableHead>Preço</TableHead>
                     <TableHead>Logística</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Telefone</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map(product => (
-                    <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
-                      <TableCell className="py-2">{product.product_type}</TableCell>
-                      <TableCell className="py-2">{product.quantity}</TableCell>
-                      <TableCell className="py-2">{product.price ? `${product.price} Kz/kg` : "-"}</TableCell>
-                      <TableCell className="py-2">{getLogisticsBadge(product.logistics_access)}</TableCell>
-                      <TableCell className="flex gap-2 py-2">
-                        <Button size="sm" variant="outline" onClick={() => openAlertModal(product.user_id)}>
-                          <Bell className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" onClick={() => handlePrePurchase(product.user_id, product.product_type)}>Pré-Compra</Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete("products", product.id, setProducts)}>Apagar</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {products.map(product => {
+                    const user = users.find(u => u.id === product.user_id);
+                    return (
+                      <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
+                        <TableCell>{product.product_type}</TableCell>
+                        <TableCell>{product.quantity}</TableCell>
+                        <TableCell>{product.price ? `${product.price} Kz/kg` : "-"}</TableCell>
+                        <TableCell>{getLogisticsBadge(product.logistics_access)}</TableCell>
+                        <TableCell>{user?.name || "-"}</TableCell>
+                        <TableCell>{user?.phone || "-"}</TableCell>
+                        <TableCell className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openAlertModal(product.user_id)}>
+                            <Bell className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" onClick={() => handlePrePurchase(product.user_id, product.product_type)}>Pré-Compra</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete("products", product.id, setProducts)}>Apagar</Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -178,6 +217,7 @@ const AdminDashboard = () => {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Telefone</TableHead>
                     <TableHead>Província</TableHead>
                     <TableHead>Município</TableHead>
                     <TableHead>Ações</TableHead>
@@ -186,81 +226,16 @@ const AdminDashboard = () => {
                 <TableBody>
                   {users.map(u => (
                     <TableRow key={u.id} className="hover:bg-gray-50 transition-colors">
-                      <TableCell className="py-2">{u.name}</TableCell>
-                      <TableCell className="py-2">{u.email}</TableCell>
-                      <TableCell className="py-2">{u.province_id}</TableCell>
-                      <TableCell className="py-2">{u.municipality_id}</TableCell>
-                      <TableCell className="flex gap-2 py-2">
+                      <TableCell>{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{u.phone || "-"}</TableCell>
+                      <TableCell>{u.province_id}</TableCell>
+                      <TableCell>{u.municipality_id}</TableCell>
+                      <TableCell className="flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => openAlertModal(u.id)}>
                           <Bell className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => handleDelete("users", u.id, setUsers)}>Apagar</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* TRANSACTIONS */}
-        {activeTab === "transactions" && (
-          <Card className="shadow-md">
-            <CardHeader><CardTitle>Transações</CardTitle></CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table className="border-collapse border border-gray-200">
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map(t => (
-                    <TableRow key={t.id} className="hover:bg-gray-50 transition-colors">
-                      <TableCell className="py-2">{t.id}</TableCell>
-                      <TableCell className="py-2">{t.type}</TableCell>
-                      <TableCell className="py-2">{t.status}</TableCell>
-                      <TableCell className="py-2">{t.amount}</TableCell>
-                      <TableCell className="py-2">
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete("transactions", t.id, setTransactions)}>Apagar</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* NOTIFICATIONS */}
-        {activeTab === "notifications" && (
-          <Card className="shadow-md">
-            <CardHeader><CardTitle>Notificações</CardTitle></CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table className="border-collapse border border-gray-200">
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Mensagem</TableHead>
-                    <TableHead>Lida</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {notifications.map(n => (
-                    <TableRow key={n.id} className="hover:bg-gray-50 transition-colors">
-                      <TableCell className="py-2">{n.id}</TableCell>
-                      <TableCell className="py-2">{n.title}</TableCell>
-                      <TableCell className="py-2">{n.message}</TableCell>
-                      <TableCell className="py-2">{n.read ? "Sim" : "Não"}</TableCell>
-                      <TableCell className="py-2">
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete("notifications", n.id, setNotifications)}>Apagar</Button>
                       </TableCell>
                     </TableRow>
                   ))}

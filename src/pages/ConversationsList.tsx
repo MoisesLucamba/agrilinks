@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { Search, Plus, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+
+// --- Tipos ---
 
 interface Conversation {
   id: string;
@@ -26,69 +29,91 @@ interface UserProfile {
   avatar_url: string | null;
 }
 
+// --- Funções Auxiliares ---
+
 // Função para realçar o termo pesquisado
 const highlightText = (text: string, term: string) => {
   if (!term) return text;
-  const regex = new RegExp(`${term}`, "gi"); // corrigido
+  // Escapa caracteres especiais para uso em RegExp
+  const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedTerm})`, "gi");
   const parts = text.split(regex);
+  
   return parts.map((part, i) =>
     regex.test(part) ? <strong key={i} className="text-primary">{part}</strong> : part
   );
 };
 
+// Função de debounce
+const debounce = (func: Function, delay = 300) => {
+  let timer: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
+
+// --- Componente Principal ---
+
 const ConversationsList = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [userResults, setUserResults] = useState<UserProfile[]>([]);
-  const [conversationResults, setConversationResults] = useState<Conversation[]>([]);
   const [allConversations, setAllConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(false);
   const [newConversationOpen, setNewConversationOpen] = useState(false);
   const [newConvSearchTerm, setNewConvSearchTerm] = useState("");
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
-  const navigate = useNavigate();
 
-  // Carregar conversas
-  useEffect(() => {
+  // --- Lógica de Conversas ---
+
+  // Função para carregar conversas
+  const loadConversations = useCallback(async () => {
     if (!user) return;
+    setLoading(true);
+    try {
+      // Busca todas as conversas onde o usuário é o user_id OU participant_id
+      const { data, error } = await supabase
+        .from("conversations")
+        .select("*")
+        .or(`user_id.eq.${user.id},participant_id.eq.${user.id}`)
+        .order("last_timestamp", { ascending: false });
 
-    const loadConversations = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("conversations")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("last_timestamp", { ascending: false });
+      if (error) throw error;
+      setAllConversations((data as Conversation[]) || []);
+    } catch (error) {
+      console.error("Erro ao carregar conversas:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as conversas",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, toast]);
 
-        if (error) throw error;
-        setAllConversations((data as Conversation[]) || []);
-        setConversationResults((data as Conversation[]) || []);
-      } catch (error) {
-        console.error("Erro ao carregar conversas:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as conversas",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  // Efeito para carregar conversas e configurar o Real-time
+  useEffect(() => {
     loadConversations();
 
-    // Real-time para novas mensagens
+    if (!user) return;
+
+    // Real-time para novas mensagens/atualizações de conversas
     const channel = supabase
-      .channel('conversations-updates')
+      .channel("conversations-updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
-          filter: `user_id=eq.${user.id}`
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          // Filtra por conversas onde o usuário é um dos participantes
+          filter: `user_id=eq.${user.id},participant_id=eq.${user.id}`, 
         },
         () => {
           loadConversations();
@@ -99,22 +124,15 @@ const ConversationsList = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, toast]);
+  }, [user, loadConversations]);
 
-  // Debounce para busca
-  const debounce = (func: Function, delay = 300) => {
-    let timer: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func(...args), delay);
-    };
-  };
+  // --- Lógica de Busca ---
 
+  // Função de busca principal (debounced)
   const search = useCallback(
     debounce(async (term: string) => {
       if (!user || term.trim() === "") {
         setUserResults([]);
-        setConversationResults(allConversations);
         return;
       }
 
@@ -125,7 +143,7 @@ const ConversationsList = () => {
         const { data: users, error: usersError } = await supabase
           .from("users")
           .select("id, full_name, avatar_url")
-          .ilike("full_name", `%${term}%`) // corrigido
+          .ilike("full_name", `%${term}%`)
           .neq("id", user.id)
           .limit(10);
 
@@ -134,12 +152,6 @@ const ConversationsList = () => {
         } else {
           setUserResults((users as UserProfile[]) || []);
         }
-
-        // Filtrar conversas localmente
-        const filtered = allConversations.filter(conv =>
-          conv.title.toLowerCase().includes(term.toLowerCase())
-        );
-        setConversationResults(filtered);
 
       } catch (err) {
         console.error("Erro na busca:", err);
@@ -152,63 +164,91 @@ const ConversationsList = () => {
 
       setLoading(false);
     }, 300),
-    [user, allConversations, toast]
+    [user, toast]
   );
 
+  // Efeito para disparar a busca quando o termo de busca muda
   useEffect(() => {
     search(searchTerm);
   }, [searchTerm, search]);
 
-  const startConversation = async (otherUserId: string, otherUserName: string, otherUserAvatar?: string | null) => {
+  // Filtrar conversas localmente (useMemo para otimização)
+  const conversationResults = useMemo(() => {
+    if (searchTerm.trim() === "") {
+      return allConversations;
+    }
+    return allConversations.filter(conv =>
+      conv.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allConversations, searchTerm]);
+
+  // --- Lógica de Ações ---
+
+  // Função para iniciar ou navegar para uma conversa
+  const startConversation = useCallback(async (
+    participantId: string, 
+    participantName: string, 
+    participantAvatar: string | null
+  ) => {
     if (!user) return;
-    
-    try {
-      // Verificar se já existe conversa usando participant_id
-      const { data: existing } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("participant_id", otherUserId)
-        .maybeSingle();
 
-      if (existing) {
-        navigate(`/messages/${existing.id}`); // corrigido
-        return;
-      }
+    // 1. Verificar se já existe uma conversa entre os dois
+    const { data: existingConv, error: searchError } = await supabase
+      .from("conversations")
+      .select("id")
+      .or(`and(user_id.eq.${user.id},participant_id.eq.${participantId}),and(user_id.eq.${participantId},participant_id.eq.${user.id})`)
+      .limit(1);
 
-      // Criar nova conversa com participant_id
-      const { data: created, error } = await supabase
-        .from("conversations")
-        .insert({
-          user_id: user.id,
-          participant_id: otherUserId,
-          title: otherUserName,
-          avatar: otherUserAvatar || null,
-          last_message: null,
-          last_timestamp: new Date().toISOString(),
-          unread_count: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Conversa criada",
-        description: `Conversa com ${otherUserName} iniciada!`
-      });
-
-      navigate(`/messages/${created.id}`); // corrigido
-    } catch (err) {
-      console.error("Erro ao iniciar conversa:", err);
+    if (searchError) {
+      console.error("Erro ao buscar conversa existente:", searchError);
       toast({
         title: "Erro",
-        description: "Não foi possível iniciar a conversa",
+        description: "Não foi possível verificar conversas existentes.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (existingConv && existingConv.length > 0) {
+      // Conversa existe, navega para ela
+      navigate(`/messages/${existingConv[0].id}`);
+      return;
+    }
+
+    // 2. Se não existir, cria uma nova conversa
+    try {
+      const newConvData = {
+        user_id: user.id,
+        participant_id: participantId,
+        title: participantName, // O título inicial é o nome do outro usuário
+        avatar: participantAvatar,
+        last_message: null,
+        last_timestamp: new Date().toISOString(),
+        unread_count: 0,
+      };
+
+      const { data: createdConv, error: createError } = await supabase
+        .from("conversations")
+        .insert([newConvData])
+        .select("id")
+        .single();
+
+      if (createError) throw createError;
+
+      // Navega para a nova conversa
+      navigate(`/messages/${createdConv.id}`);
+      
+    } catch (error) {
+      console.error("Erro ao criar nova conversa:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível iniciar uma nova conversa.",
         variant: "destructive"
       });
     }
-  };
+  }, [user, navigate, toast]);
 
+  // Função para formatar o tempo
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
@@ -233,6 +273,7 @@ const ConversationsList = () => {
     }
   };
 
+  // Função para abrir o modal de nova conversa e carregar usuários
   const openNewConversationDialog = async () => {
     if (!user) return;
     setNewConversationOpen(true);
@@ -261,9 +302,14 @@ const ConversationsList = () => {
     }
   };
 
-  const filteredUsers = allUsers.filter(usr =>
-    usr.full_name.toLowerCase().includes(newConvSearchTerm.toLowerCase())
-  );
+  // Usuários filtrados para o modal (useMemo para otimização)
+  const filteredUsers = useMemo(() => {
+    return allUsers.filter(usr =>
+      usr.full_name.toLowerCase().includes(newConvSearchTerm.toLowerCase())
+    );
+  }, [allUsers, newConvSearchTerm]);
+
+  // --- Renderização ---
 
   if (!user) {
     return (
@@ -300,14 +346,14 @@ const ConversationsList = () => {
 
       {/* Lista scrollável */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {loading && (
+        {loading && searchTerm.trim() !== "" && (
           <p className="text-sm text-muted-foreground text-center py-4">
             Buscando...
           </p>
         )}
 
         {/* Usuários encontrados */}
-        {userResults.length > 0 && (
+        {userResults.length > 0 && searchTerm.trim() !== "" && (
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide px-2">
               Usuários
@@ -331,7 +377,7 @@ const ConversationsList = () => {
                         {highlightText(usr.full_name, searchTerm)}
                       </span>
                       <p className="text-xs text-muted-foreground">
-                        Iniciar conversa
+                        Clique para iniciar conversa
                       </p>
                     </div>
                   </CardContent>
@@ -344,7 +390,7 @@ const ConversationsList = () => {
         {/* Conversas existentes */}
         {conversationResults.length > 0 && (
           <div>
-            {userResults.length > 0 && (
+            {userResults.length > 0 && searchTerm.trim() !== "" && (
               <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide px-2">
                 Conversas
               </p>
@@ -391,7 +437,7 @@ const ConversationsList = () => {
         )}
 
         {/* Estado vazio */}
-        {!loading && searchTerm && userResults.length === 0 && conversationResults.length === 0 && (
+        {!loading && searchTerm.trim() !== "" && userResults.length === 0 && conversationResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">Nenhum resultado encontrado</p>
@@ -401,7 +447,7 @@ const ConversationsList = () => {
           </div>
         )}
 
-        {!loading && !searchTerm && conversationResults.length === 0 && (
+        {!loading && searchTerm.trim() === "" && conversationResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">Nenhuma conversa ainda</p>
@@ -431,7 +477,7 @@ const ConversationsList = () => {
             <div className="max-h-[400px] overflow-y-auto space-y-2">
               {filteredUsers.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  {newConvSearchTerm ? "Nenhum usuário encontrado" : "Nenhum usuário disponível"}
+                  {newConvSearchTerm ? "Nenhum usuário encontrado" : "Carregue os usuários clicando no botão '+'"}
                 </p>
               ) : (
                 filteredUsers.map((usr) => (

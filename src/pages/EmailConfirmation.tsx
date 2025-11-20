@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,76 +7,39 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
 
 const EmailConfirmation = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const confirmEmail = async () => {
+      setStatus("loading");
+
       try {
-        // Primeiro, deixe o Supabase processar a URL (hash ou query) e criar a sessão
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+        // Supabase processa o link e cria a sessão automaticamente
+        const { data: { session }, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
 
-        if (sessionError) {
-          console.warn('getSessionFromUrl error:', sessionError);
-        }
+        if (error) console.warn("Erro ao obter sessão da URL:", error.message);
 
-        // Se o Supabase criou uma sessão, consideramos a confirmação como bem sucedida
-        if (sessionData?.session?.user) {
-          setStatus('success');
-          setMessage('E-mail confirmado com sucesso! Você será redirecionado automaticamente.');
-          setTimeout(() => navigate('/app'), 3000);
-          return;
-        }
-
-        // Fallback: alguns links podem expor o token no fragmento/hash ou na query como token/access_token
-        const url = new URL(window.location.href);
-        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-        const accessToken = hashParams.get('access_token') || url.searchParams.get('access_token') || url.searchParams.get('token') || hashParams.get('token');
-        const type = url.searchParams.get('type') || hashParams.get('type');
-        const email = url.searchParams.get('email') || hashParams.get('email') || undefined;
-
-        if (!accessToken) {
-          setStatus('error');
-          setMessage('Link de confirmação inválido. Token não encontrado.');
-          return;
-        }
-
-        // Tentar verificar via verifyOtp usando token extraído
-        const payload: any = {
-          token: accessToken,
-          type: type === 'recovery' ? 'recovery' : 'signup',
-        };
-        if (email) payload.email = email;
-
-        const { error } = await supabase.auth.verifyOtp(payload);
-        if (error) {
-          console.error('Erro ao confirmar e-mail (verifyOtp):', error);
-          setStatus('error');
-          setMessage(error.message || 'Erro ao confirmar e-mail. O link pode ter expirado.');
-          return;
-        }
-
-        // Sucesso - verificar se a sessão foi criada
-        const { data: checkSession } = await supabase.auth.getSession();
-        if (checkSession.session) {
-          setStatus('success');
-          setMessage('E-mail confirmado com sucesso! Você será redirecionado automaticamente.');
-          setTimeout(() => navigate('/app'), 3000);
+        if (session?.user) {
+          // Sessão criada com sucesso
+          setStatus("success");
+          setMessage("E-mail confirmado com sucesso! Você será redirecionado automaticamente.");
+          setTimeout(() => navigate("/app"), 3000);
         } else {
-          setStatus('error');
-          setMessage('E-mail confirmado, mas não foi possível estabelecer a sessão. Tente fazer login manualmente.');
+          // Sessão não criada, mas e-mail confirmado
+          setStatus("error");
+          setMessage("E-mail confirmado, mas não foi possível criar a sessão. Faça login manualmente.");
         }
       } catch (err) {
-        console.error('Erro inesperado:', err);
-        setStatus('error');
-        setMessage('Erro inesperado ao confirmar e-mail.');
+        console.error("Erro inesperado:", err);
+        setStatus("error");
+        setMessage("Erro inesperado ao confirmar e-mail.");
       }
     };
 
     confirmEmail();
-  }, [searchParams, navigate]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background p-4 flex items-center justify-center">
@@ -110,7 +73,7 @@ const EmailConfirmation = () => {
                     </p>
                     <p className="text-muted-foreground">{message}</p>
                     <p className="text-sm text-muted-foreground">
-                      Redirecionando para o login...
+                      Redirecionando para o app...
                     </p>
                   </div>
                 </>

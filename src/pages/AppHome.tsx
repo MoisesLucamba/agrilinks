@@ -11,6 +11,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useNavigate } from 'react-router-dom'
 import { ProductCard, Product } from '@/components/ProductCard'
+import { Bell, Phone } from 'lucide-react'
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY293Z2QwaGRwMmlyNGlwNW4xYXhwIn0.qOjQNe8kbbfmdK5G0MHWDA'
 
@@ -25,6 +26,8 @@ const AppHome = () => {
   const [orderData, setOrderData] = useState({ quantity: 1, location: '' })
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
+  const [preOrderLoading, setPreOrderLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate()
 
@@ -170,63 +173,66 @@ const AppHome = () => {
   }
 
   const handlePreOrderSubmit = async () => {
-    if (!selectedProduct || !user) return toast.error('Erro ao processar pré-compra')
+  if (!selectedProduct || !user) return toast.error("Erro ao processar pré-compra");
 
-    try {
-      const { error } = await supabase.from('pre_orders').insert({
+  setIsSubmitting(true);
+
+  try {
+    const { error } = await supabase.from("pre_orders").insert({
+      product_id: selectedProduct.id,
+      user_id: user.id,
+      quantity: orderData.quantity,
+      location: orderData.location,
+      status: "pending",
+    });
+
+    if (error) throw error;
+
+    await supabase.rpc("create_notification", {
+      p_user_id: selectedProduct.user_id,
+      p_type: "pre_order",
+      p_title: "Nova Pré-Compra",
+      p_message: `${user.email} quer comprar ${orderData.quantity}kg do seu produto ${selectedProduct.product_type}`,
+      p_metadata: {
         product_id: selectedProduct.id,
-        user_id: user.id,
+        buyer_id: user.id,
         quantity: orderData.quantity,
-        location: orderData.location,
-        status: 'pending'
-      })
+      },
+    });
 
-      if (error) throw error
+    const { data: agentUsers } = await supabase
+      .from("users")
+      .select("id")
+      .eq("user_type", "agente" as const);
 
-      // Criar notificação para o produtor
-      await supabase.rpc('create_notification', {
-        p_user_id: selectedProduct.user_id,
-        p_type: 'pre_order',
-        p_title: 'Nova Pré-Compra',
-        p_message: `${user.email} quer comprar ${orderData.quantity}kg do seu produto ${selectedProduct.product_type}`,
-        p_metadata: {
-          product_id: selectedProduct.id,
-          buyer_id: user.id,
-          quantity: orderData.quantity
-        }
-      })
-
-      // Buscar agentes (não há admin no sistema atual)
-      const { data: agentUsers } = await supabase
-        .from('users')
-        .select('id')
-        .eq('user_type', 'agente' as const)
-      
-      if (agentUsers && agentUsers.length > 0) {
-        for (const agent of agentUsers) {
-          await supabase.rpc('create_notification', {
-            p_user_id: agent.id,
-            p_type: 'pre_order',
-            p_title: 'Nova Pré-Compra no Sistema',
-            p_message: `${user.email} quer comprar ${orderData.quantity}kg de ${selectedProduct.product_type} de ${selectedProduct.farmer_name}`,
-            p_metadata: {
-              product_id: selectedProduct.id,
-              buyer_id: user.id,
-              seller_id: selectedProduct.user_id,
-              quantity: orderData.quantity
-            }
-          })
-        }
+    if (agentUsers?.length > 0) {
+      for (const agent of agentUsers) {
+        await supabase.rpc("create_notification", {
+          p_user_id: agent.id,
+          p_type: "pre_order",
+          p_title: "Nova Pré-Compra no Sistema",
+          p_message: `${user.email} quer comprar ${orderData.quantity}kg de ${selectedProduct.product_type} de ${selectedProduct.farmer_name}`,
+          p_metadata: {
+            product_id: selectedProduct.id,
+            buyer_id: user.id,
+            seller_id: selectedProduct.user_id,
+            quantity: orderData.quantity,
+          },
+        });
       }
-
-      toast.success('Pré-compra realizada com sucesso!')
-      setModalOpen(false)
-      setSelectedProduct(null)
-    } catch (error) {
-      console.error('Erro ao criar pré-compra:', error)
-      toast.error('Erro ao processar pré-compra')
     }
+
+    toast.success("Pré-compra realizada com sucesso!");
+    setModalOpen(false);
+    setSelectedProduct(null);
+  } catch (error) {
+    console.error("Erro ao criar pré-compra:", error);
+    toast.error("Erro ao processar pré-compra");
+  } finally {
+    setIsSubmitting(false);
   }
+};
+
 
   useEffect(() => {
     if (!mapModalOpen || !selectedProduct?.location_lat || !selectedProduct?.location_lng) return
@@ -296,66 +302,144 @@ const AppHome = () => {
         </div>
       </div>
       {/* MODAIS */}
-     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-  <DialogContent className="sm:max-w-md">
+<Dialog open={modalOpen} onOpenChange={setModalOpen}>
+  <DialogContent className="sm:max-w-md bg-white border border-green-200 shadow-lg rounded-xl p-6 max-h-[80vh] overflow-y-auto">
     <DialogHeader>
-      <DialogTitle className="text-xl">Pré-Compra de {selectedProduct?.product_type}</DialogTitle>
-      <DialogDescription>Preencha os dados para iniciar a negociação com o produtor</DialogDescription>
+      <DialogTitle className="text-xl flex items-center gap-2">
+        <span className="text-green-600">🛒</span>
+        Pré-Compra – {selectedProduct?.product_type}
+      </DialogTitle>
+
+      <DialogDescription className="text-sm text-gray-500 text-justify flex flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <Bell className="w-4 h-4 text-green-500 mt-1" />
+          A pré-compra é apenas uma demonstração de interesse. O agricultor receberá o pedido e verificará se consegue corresponder à sua solicitação, incluindo a localização.
+        </div>
+        <div className="flex items-start gap-2">
+          <Bell className="w-4 h-4 text-green-500 mt-1" />
+          Após alguns minutos, você será notificado aqui mesmo na plataforma com uma ligação e uma mensagem.
+        </div>
+        <div className="flex flex-col items-start gap-1">
+          <Phone className="w-4 h-4 text-black mt-1" />
+          Fique atento, pois os seguintes números podem entrar em contato quando alguém demonstrar interesse no produto:
+          <div className="ml-5 mt-1 space-y-1">
+            <div className="font-semibold">934 745 871</div>
+            <div className="font-semibold">935 358 417</div>
+            <div className="font-semibold">922 717 574</div>
+          </div>
+        </div>
+      </DialogDescription>
     </DialogHeader>
-    <div className="space-y-4 py-4">
+
+    <div className="space-y-5 py-4">
       {/* QUANTIDADE */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Quantidade (kg)</label>
+      <div className="space-y-1">
+        <label className="text-sm font-medium flex items-center gap-2">📦 Quantidade (kg)</label>
         <Input
           type="number"
-          placeholder="Digite a quantidade desejada"
           value={orderData.quantity || ''}
           onChange={(e) => setOrderData({ ...orderData, quantity: Number(e.target.value) })}
           min={1}
           max={selectedProduct?.quantity}
         />
-        <p className="text-xs text-muted-foreground">Disponível: {selectedProduct?.quantity.toLocaleString()} kg</p>
+        <p className="text-xs text-muted-foreground">
+          Disponível: {selectedProduct?.quantity.toLocaleString()} kg
+        </p>
       </div>
 
-      {/* LOCAL DE ENTREGA */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Local de Entrega</label>
+      {/* LOCAL */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium flex items-center gap-2">📍 Local de Entrega</label>
         <Input
-          placeholder="Ex: Luanda, Bairro Maianga"
+          placeholder="Ex: Luanda, Maianga"
           value={orderData.location}
           onChange={(e) => setOrderData({ ...orderData, location: e.target.value })}
         />
       </div>
 
-      {/* RESUMO DE PREÇO */}
-      <div className="bg-muted p-4 rounded-lg space-y-2">
+      {/* RESUMO */}
+      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg space-y-2">
         <div className="flex justify-between text-sm">
           <span>Subtotal:</span>
           <span>{formatPrice(orderData.quantity * (selectedProduct?.price || 0))}</span>
         </div>
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Taxa de Transporte (10%):</span>
-          <span>{formatPrice(orderData.quantity * (selectedProduct?.price || 0) * 0.10)}</span>
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Taxa de Logística (7,8%):</span>
+          <span>{formatPrice(orderData.quantity * (selectedProduct?.price || 0) * 0.078)}</span>
         </div>
-        <div className="border-t pt-2 flex justify-between font-bold">
+        <div className="border-t pt-2 flex justify-between font-bold text-lg">
           <span>Total:</span>
-          <span className="text-primary">{formatPrice(totalPrice)}</span>
+          <span className="text-green-600">{formatPrice(totalPrice)}</span>
         </div>
       </div>
     </div>
 
-    {/* FOOTER */}
-    <DialogFooter className="gap-2">
+    <DialogFooter className="flex justify-between">
       <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
       <Button
-        className="bg-primary hover:bg-primary/90"
+        className="bg-green-600 hover:bg-green-700 text-white"
         onClick={handlePreOrderSubmit}
+        disabled={isSubmitting || !orderData.location.trim()}
       >
-        Confirmar Pedido
+        {isSubmitting ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 rounded-full border-2 border-white border-b-transparent" />
+            Processando...
+          </div>
+        ) : (
+          'Confirmar Pedido'
+        )}
       </Button>
     </DialogFooter>
-</DialogContent>
+  </DialogContent>
 </Dialog>
+
+{isSubmitting && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
+    <div className="bg-white p-8 rounded-2xl shadow-2xl border border-green-200 flex flex-col items-center gap-4 animate-pulse">
+      
+      {/* Ícone animado */}
+      <div className="relative">
+        <div className="animate-spin h-14 w-14 border-4 border-green-600 border-b-transparent rounded-full"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Ícone de folhas (herbal/agricultura) */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-7 w-7 text-green-700"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path d="M12 20c4.418 0 8-4.03 8-9 0-5.523-3.582-9-8-9S4 5.477 4 11c0 4.97 3.582 9 8 9z" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Texto principal */}
+      <p className="text-green-700 text-lg font-semibold flex items-center gap-2">
+        Processando Pedido
+      </p>
+
+      {/* Subtexto com ícone */}
+      <p className="text-gray-500 text-sm flex items-center gap-1">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path d="M12 8v4l3 2" />
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        Aguarde um instante…
+      </p>
+    </div>
+  </div>
+)}
+
 
       <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
         <DialogContent className="sm:max-w-4xl">

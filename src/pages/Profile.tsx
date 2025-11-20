@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { 
   User, Edit, Package, MapPin, Phone, Mail, Calendar, BarChart3, 
-  Settings, LogOut, Trash2, Eye, Camera 
+  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart 
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
@@ -190,6 +190,10 @@ const Profile = () => {
   const activeProducts = userProducts.filter(p => p.status === 'active').length
   const totalViews = userProducts.reduce((sum, p) => sum + (p.views || 0), 0)
   const totalInterests = userProducts.reduce((sum, p) => sum + (p.interests || 0), 0)
+  // Simulação de estatísticas de comprador
+  const totalFichas = fichasRecebimento.length
+  const totalComprasConcluidas = Math.floor(Math.random() * 15)
+  const totalProdutosFavoritos = Math.floor(Math.random() * 25)
 
   if (loading) return <div className="pb-20 bg-background min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
@@ -222,7 +226,7 @@ const Profile = () => {
                   <input id="avatar-upload" type="file" accept="image/*" onChange={uploadAvatar} className="hidden"/>
                 </div>
               </div>
-              <CardTitle className="text-xl">{profileData.full_name}</CardTitle>
+              <CardTitle className="text-xl flex items-center justify-center gap-2">{profileData.full_name} <CheckCircle className="h-4 w-4 text-green-500" title="Perfil Verificado (Simulação)"/></CardTitle>
               <p className="text-sm text-muted-foreground">{userProfile?.user_type}</p>
             </CardHeader>
             <CardContent>
@@ -231,6 +235,14 @@ const Profile = () => {
                   <div className="flex items-center gap-3 text-sm"><Mail className="h-4 w-4 text-muted-foreground"/><span>{profileData.email}</span></div>
                   <div className="flex items-center gap-3 text-sm"><Phone className="h-4 w-4 text-muted-foreground"/><span>{profileData.phone}</span></div>
                   <div className="flex items-center gap-3 text-sm"><MapPin className="h-4 w-4 text-muted-foreground"/><span>{provinceName}, {municipalityName}</span></div>
+                  
+                  {/* Botões de Ação Rápida do Agente */}
+                  {userProfile?.user_type === 'agente' && (
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="secondary" size="sm" onClick={() => navigator.clipboard.writeText((userProfile as any).agent_code || '')}><ClipboardList className="h-4 w-4 mr-2"/>Copiar Código</Button>
+                      <Button variant="outline" size="sm" onClick={() => alert('Função de Partilha')}><Share2 className="h-4 w-4 mr-2"/>Partilhar</Button>
+                    </div>
+                  )}
                   
                   {/* Código do Agente */}
                   {userProfile?.user_type === 'agente' && (
@@ -260,11 +272,17 @@ const Profile = () => {
               <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-primary">{agentStats?.totalReferrals || 0}</div><p className="text-xs text-muted-foreground">Usuários Indicados</p></CardContent></Card>
               <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-accent">{agentStats?.totalPoints || 0}</div><p className="text-xs text-muted-foreground">Pontos Ganhos</p></CardContent></Card>
             </div>
+          ) : userProfile?.user_type === 'comprador' ? (
+            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+              <Card className="text-center"><CardContent className="pt-4"><ClipboardList className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{totalFichas}</div><p className="text-xs text-muted-foreground">Fichas Criadas</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><ShoppingCart className="h-6 w-6 mx-auto mb-1 text-green-600"/><div className="text-2xl font-bold text-green-600">{totalComprasConcluidas}</div><p className="text-xs text-muted-foreground">Compras Concluídas</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-yellow-500"/><div className="text-2xl font-bold text-yellow-500">{totalProdutosFavoritos}</div><p className="text-xs text-muted-foreground">Produtos Favoritos</p></CardContent></Card>
+            </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-primary">{activeProducts}</div><p className="text-xs text-muted-foreground">Produtos Ativos</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-business">{totalViews}</div><p className="text-xs text-muted-foreground">Visualizações</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-accent">{totalInterests}</div><p className="text-xs text-muted-foreground">Interesses</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Package className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{activeProducts}</div><p className="text-xs text-muted-foreground">Produtos Ativos</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Eye className="h-6 w-6 mx-auto mb-1 text-blue-500"/><div className="text-2xl font-bold text-blue-500">{totalViews}</div><p className="text-xs text-muted-foreground">Visualizações</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-red-500"/><div className="text-2xl font-bold text-red-500">{totalInterests}</div><p className="text-xs text-muted-foreground">Interesses</p></CardContent></Card>
             </div>
           )}
         </div>
@@ -283,14 +301,22 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {fichasRecebimento.map(ficha=>(
                     <Card key={ficha.id} className="shadow-soft border-card-border">
-                      <CardContent>
-                        <h3 className="font-semibold">{ficha.nomeFicha}</h3>
-                        <p>Produto: {ficha.produto}</p>
-                        <p>Qualidade: {ficha.qualidade}</p>
-                        <p>Embalagem: {ficha.embalagem}</p>
-                        <p>Locais: {ficha.locaisEntrega?.length || 0}</p>
-                        <p>Telefone: {ficha.telefone}</p>
-                        <p>Criado em: {formatDate(ficha.created_at)}</p>
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-lg text-primary">{ficha.nomeFicha}</h3>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" title="Editar Ficha"><Edit className="h-4 w-4 text-blue-500"/></Button>
+                            <Button variant="ghost" size="icon" title="Notificações"><Bell className="h-4 w-4 text-yellow-500"/></Button>
+                            <Button variant="ghost" size="icon" title="Remover Ficha"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                          </div>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <p className="flex items-center gap-2"><Package className="h-4 w-4 text-muted-foreground"/>Produto: <span className="font-semibold">{ficha.produto}</span></p>
+                          <p className="flex items-center gap-2"><Star className="h-4 w-4 text-muted-foreground"/>Qualidade: <span className="font-semibold">{ficha.qualidade}</span></p>
+                          <p className="flex items-center gap-2"><ClipboardList className="h-4 w-4 text-muted-foreground"/>Embalagem: <span className="font-semibold">{ficha.embalagem}</span></p>
+                          <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/>Locais de Entrega: <span className="font-semibold">{ficha.locaisEntrega?.length || 0}</span></p>
+                          <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground"/>Criado em: <span className="font-semibold">{formatDate(ficha.created_at)}</span></p>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -300,18 +326,25 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {userProducts.map(product=>(
                     <Card key={product.id} className="shadow-soft border-card-border">
-                      <CardContent className="p-4 flex justify-between">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2"><h3 className="font-semibold">{product.product_type}</h3>{getStatusBadge(product.status)}</div>
-                          <div className="text-sm text-muted-foreground"><span>{product.quantity.toLocaleString()} kg</span> • <span>{product.price.toLocaleString()} Kz</span></div>
-                          <div className="text-xs text-muted-foreground flex gap-2 items-center"><Calendar className="h-3 w-3"/>Colheita: {formatDate(product.harvest_date)}</div>
-                          <div className="text-xs text-muted-foreground flex gap-2 items-center"><MapPin className="h-3 w-3"/>Província: {product.province_id} | Município: {product.municipality_id}</div>
-                          <div className="flex gap-2 mt-2">
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground"><Eye className="h-3 w-3"/>{product.views}</div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground"><Package className="h-3 w-3"/>{product.interests}</div>
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2"><h3 className="font-bold text-lg text-primary">{product.product_type}</h3>{getStatusBadge(product.status)}</div>
+                            <div className="text-sm text-muted-foreground"><span>{product.quantity.toLocaleString()} kg</span> • <span className="font-bold text-green-600">{product.price.toLocaleString()} Kz</span></div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" title="Editar Produto"><Edit className="h-4 w-4 text-blue-500"/></Button>
+                            <Button variant="ghost" size="icon" title="Ver Estatísticas"><BarChart3 className="h-4 w-4 text-yellow-500"/></Button>
+                            <Button variant="ghost" size="icon" title="Promover/Partilhar"><Share2 className="h-4 w-4 text-primary"/></Button>
+                            {product.status !== 'removed' && <Button variant="ghost" size="icon" onClick={()=>deleteProduct(product.id)} title="Remover Produto"><Trash2 className="h-4 w-4 text-destructive"/></Button>}
                           </div>
                         </div>
-                        {product.status !== 'removed' && <Button variant="ghost" size="icon" onClick={()=>deleteProduct(product.id)}><Trash2 className="h-4 w-4 text-destructive"/></Button>}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-3 w-3"/>Colheita: <span className="font-semibold">{formatDate(product.harvest_date)}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3"/>Local: <span className="font-semibold">{product.municipality_id}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Eye className="h-3 w-3"/>Visualizações: <span className="font-semibold">{product.views}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Star className="h-3 w-3"/>Interesses: <span className="font-semibold">{product.interests}</span></div>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -325,23 +358,30 @@ const Profile = () => {
               <TabsContent value="referrals" className="space-y-4 mt-4">
                 <div className="space-y-4">
                   {agentStats && agentStats.recentReferrals && agentStats.recentReferrals.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="cursor-pointer">Todos</Badge>
+                    <Badge variant="outline" className="cursor-pointer">Agricultores</Badge>
+                    <Badge variant="outline" className="cursor-pointer">Compradores</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {agentStats.recentReferrals.map((referral: any, idx: number) => (
                         <Card key={idx} className="shadow-soft border-card-border">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <User className="h-6 w-6 text-primary"/>
                               <div className="space-y-1">
                                 <h3 className="font-semibold">{referral.user_name}</h3>
-                                <Badge variant="outline" className="text-xs">{referral.user_type}</Badge>
-                                <p className="text-sm text-muted-foreground">+{referral.points} pontos</p>
+                                <Badge variant="secondary" className="text-xs">{referral.user_type}</Badge>
                                 <p className="text-xs text-muted-foreground">{formatDate(referral.created_at)}</p>
                               </div>
-                              <div className="text-2xl font-bold text-primary">+{referral.points}</div>
                             </div>
+                            <div className="text-xl font-bold text-green-600 flex items-center gap-1"><Star className="h-4 w-4 fill-green-600 text-green-600"/>+{referral.points}</div>
                           </CardContent>
                         </Card>
                       ))}
                     </div>
+                  </div>
                   ) : (
                     <div className="text-center py-8">
                       <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50"/>
@@ -364,13 +404,17 @@ const Profile = () => {
                       <p className="text-sm text-muted-foreground mt-4">Cada usuário indicado vale 10 pontos!</p>
                     </div>
                   ) : userProfile?.user_type==='comprador' ? (
-                    <p>Total Fichas Recebimento: {fichasRecebimento.length}</p>
+                    <>
+                      <p className="flex justify-between"><span>Total Fichas Recebimento:</span><span className="font-bold">{totalFichas}</span></p>
+                      <p className="flex justify-between"><span>Compras Concluídas (Simulação):</span><span className="font-bold text-green-600">{totalComprasConcluidas}</span></p>
+                      <p className="flex justify-between"><span>Produtos Favoritos (Simulação):</span><span className="font-bold text-red-500">{totalProdutosFavoritos}</span></p>
+                    </>
                   ) : (
                     <>
-                      <p>Total Produtos: {userProducts.length}</p>
-                      <p>Produtos Ativos: {activeProducts}</p>
-                      <p>Total Visualizações: {totalViews}</p>
-                      <p>Total Interesses: {totalInterests}</p>
+                      <p className="flex justify-between"><span>Total Produtos Publicados:</span><span className="font-bold">{userProducts.length}</span></p>
+                      <p className="flex justify-between"><span>Produtos Ativos:</span><span className="font-bold text-primary">{activeProducts}</span></p>
+                      <p className="flex justify-between"><span>Total Visualizações:</span><span className="font-bold text-blue-500">{totalViews}</span></p>
+                      <p className="flex justify-between"><span>Total Interesses:</span><span className="font-bold text-red-500">{totalInterests}</span></p>
                     </>
                   )}
                 </CardContent>

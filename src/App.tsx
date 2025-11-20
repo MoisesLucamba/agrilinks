@@ -1,13 +1,14 @@
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+
+// Pages
 import Index from "./pages/Index";
-
 import LoginPage from "./pages/LoginPage";
-
 import Registration from "./pages/Registration";
 import Dashboard from "./pages/Dashboard";
 import TechnicalSheet from "./pages/TechnicalSheet";
@@ -26,7 +27,6 @@ import Wallet from "./pages/Wallet";
 import AppLayout from "./layouts/AppLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import FichaRecebimento from "./pages/FichaRecebimento";
-
 import SearchPage from "./pages/SearchPage";
 import EmailConfirmation from "./pages/EmailConfirmation";
 
@@ -35,7 +35,7 @@ const queryClient = new QueryClient();
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -46,18 +46,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
 
-  // Redirecionar root baseado no estado de autenticação
   const rootElement = loading ? (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
@@ -79,129 +78,183 @@ const AppRoutes = () => {
       <Route path="/cadastro" element={user ? <Navigate to="/app" replace /> : <Registration />} />
       <Route path="/confirmar-email" element={<EmailConfirmation />} />
       <Route path="/termos-publicidade" element={<TermsOfService />} />
-    
-      {/* App Routes - Main Application */}
-      <Route path="/app" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <AppHome />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/mapa" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <MapView />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/notificacoes" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Notifications />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/messages/:id" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Messages />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/listamensagens" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <ConversationsList />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/perfil" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Profile />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/suporte" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Support />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/mercado" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <MarketData />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/carteira" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Wallet />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-      
-      {/* Form Routes - No Layout */}
-      <Route path="/publicar-produto" element={
-        <ProtectedRoute>
-          <PublishProduct />
-        </ProtectedRoute>
-      } />
-      
-      {/* Admin Routes - No Layout */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/admindashboard" element={
-        <ProtectedRoute>
-          <AdminDashboard />
-        </ProtectedRoute>
-      } />
 
-      <Route path="/search" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <SearchPage />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
+      {/* App Routes */}
+      <Route
+        path="/app"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <AppHome />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mapa"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MapView />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notificacoes"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Notifications />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Messages />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/listamensagens"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ConversationsList />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/perfil"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/suporte"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Support />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mercado"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MarketData />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/carteira"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Wallet />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/publicar-produto"
+        element={
+          <ProtectedRoute>
+            <PublishProduct />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admindashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <SearchPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ficharecebimento"
+        element={
+          <ProtectedRoute>
+            <FichaRecebimento />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ficha-tecnica/:id"
+        element={
+          <ProtectedRoute>
+            <TechnicalSheet />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/ficharecebimento" element={
-        <ProtectedRoute>
-          <FichaRecebimento />
-        </ProtectedRoute>
-      } />
-      <Route path="/ficha-tecnica/:id" element={
-        <ProtectedRoute>
-          <TechnicalSheet />
-        </ProtectedRoute>
-      } />
-      
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    // Registrar Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then((registration) => {
+          console.log("✅ Service Worker registrado:", registration);
+        })
+        .catch((error) => {
+          console.error("❌ Erro ao registrar Service Worker:", error);
+        });
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

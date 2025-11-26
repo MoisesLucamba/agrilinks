@@ -228,19 +228,15 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  useEffect(() => {
-    // Registrar Service Worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then((registration) => {
-          console.log("✅ Service Worker registrado:", registration);
-        })
-        .catch((error) => {
-          console.error("❌ Erro ao registrar Service Worker:", error);
-        });
-    }
-  }, []);
+useEffect(() => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then((registration) => {
+      console.log("SW já ativo:", registration);
+    });
+  }
+}, []);
+
+
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -377,38 +377,21 @@ const Notifications = () => {
     };
   }, [user, showToastNotification]);
 
-  // Registrar Service Worker e Push Notifications
-  useEffect(() => {
-    if (!user) return;
-
-    const registerServiceWorker = async () => {
-      try {
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.register('/service-worker.js');
-          console.log('[App] Service Worker registrado:', registration);
-
-          // Verificar suporte a Push Notifications
-          if ('Notification' in window && 'PushManager' in window) {
-            const permission = Notification.permission;
-
-            if (permission === 'granted') {
-              setPushEnabled(true);
-            } else if (permission === 'default') {
-              // Pedir permissão
-              const result = await Notification.requestPermission();
-              if (result === 'granted') {
-                setPushEnabled(true);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('[App] Erro ao registrar Service Worker:', error);
+ useEffect(() => {
+  const registerServiceWorker = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('[App] Service Worker registrado:', registration);
       }
-    };
+    } catch (error) {
+      console.error('[App] Erro ao registrar Service Worker:', error);
+    }
+  };
 
-    registerServiceWorker();
-  }, [user]);
+  registerServiceWorker();
+}, []);  // <--- apenas 1 vez
+
 
   // Carregar notificações
   useEffect(() => {

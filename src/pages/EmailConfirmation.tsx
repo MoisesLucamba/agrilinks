@@ -46,7 +46,6 @@ const EmailConfirmation = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary">AgriLink</h1>
         </div>
 
         <Card className="border-0 shadow-xl rounded-2xl">

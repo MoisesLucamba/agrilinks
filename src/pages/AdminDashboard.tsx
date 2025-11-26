@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+// No topo do seu arquivo AdminDashboard.tsx
+import { Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {  Edit, Trash } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
@@ -145,13 +148,15 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   // Estados
+
+  const [orders, setOrders] = useState<Transaction[]>([]); // ou Order[]
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | "transactions" | "notifications">("dashboard");
+const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | "transactions" | "notifications" | "orders">("dashboard");
 
   // Modal de Notificação
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
@@ -193,7 +198,19 @@ const AdminDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, []);useEffect(() => {
+  const fetchOrders = async () => {
+    const { data, error } = await supabase
+      .from("pre_orders") // ← aqui, use o nome correto da tabela
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) setOrders(data || []);
+    else console.error("Erro ao buscar pedidos:", error);
+  };
+
+  fetchOrders();
+}, []);
 
   // --- Funções ---
 
@@ -447,7 +464,7 @@ const filteredUsers = useMemo(() => {
     );
   }
 
-  const tabs = ["dashboard", "products", "users", "transactions", "notifications"];
+const tabs = ["dashboard", "products", "users", "transactions", "notifications", "orders"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -648,6 +665,138 @@ const filteredUsers = useMemo(() => {
             </div>
           </>
         )}
+        {/* PEDIDOS */}
+{activeTab === "orders" && (
+  <Card className="shadow-md">
+    <CardHeader>
+      <CardTitle>Pedidos</CardTitle>
+    </CardHeader>
+    <CardContent className="overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-gray-50">
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Produto</TableHead>
+            <TableHead>Usuário</TableHead>
+            <TableHead>Telefone</TableHead>
+            <TableHead>Quantidade</TableHead>
+            <TableHead>Preço Total</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Data</TableHead>
+            <TableHead>Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => {
+            const user = users.find((u) => u.id === order.user_id);
+            const product = products.find((p) => p.id === order.product_id);
+
+            const updateStatus = async (newStatus) => {
+              const { error } = await supabase
+                .from("pre_orders")
+                .update({ status: newStatus })
+                .eq("id", order.id);
+
+              if (error) {
+                console.error("Erro ao atualizar status:", error);
+              } else {
+                setOrders((prev) =>
+                  prev.map((o) =>
+                    o.id === order.id ? { ...o, status: newStatus } : o
+                  )
+                );
+              }
+            };
+
+            return (
+              <TableRow key={order.id} className="hover:bg-gray-50">
+                <TableCell className="font-mono text-sm">
+                  {order.id.substring(0, 8)}...
+                </TableCell>
+                <TableCell>{product?.product_type || "-"}</TableCell>
+                <TableCell>{user?.name || "-"}</TableCell>
+                <TableCell>{user?.phone || "-"}</TableCell>
+                <TableCell>{order.quantity} kg</TableCell>
+                <TableCell>
+                  {product
+                    ? (order.quantity * product.price).toFixed(2) + " Kz"
+                    : "-"}
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-1 rounded text-white text-xs font-semibold ${
+                      order.status === "concluida"
+                        ? "bg-green-500"
+                        : order.status === "cancelado"
+                        ? "bg-red-500"
+                        : "bg-yellow-400"
+                    }`}
+                  >
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-sm text-gray-500">
+                  {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                </TableCell>
+                <TableCell className="flex gap-2">
+                  {/* Concluída */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`flex items-center gap-1 px-2 py-1 rounded ${
+                      order.status === "concluida"
+                        ? "bg-green-500 text-white border-green-500"
+                        : "bg-white text-green-500 border-green-500 hover:bg-green-100"
+                    }`}
+                    onClick={() => updateStatus("concluida")}
+                    disabled={order.status === "concluida"}
+                  >
+                    <Check className="w-4 h-4" />
+                    Concluída
+                  </Button>
+
+                  {/* Cancelada */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`flex items-center gap-1 px-2 py-1 rounded ${
+                      order.status === "cancelado"
+                        ? "bg-red-500 text-white border-red-500"
+                        : "bg-white text-red-500 border-red-500 hover:bg-red-100"
+                    }`}
+                    onClick={() => updateStatus("cancelado")}
+                    disabled={order.status === "cancelado"}
+                  >
+                    <X className="w-4 h-4" />
+                    Cancelada
+                  </Button>
+
+                  {/* Aguardando */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`flex items-center gap-1 px-2 py-1 rounded ${
+                      order.status === "aguardando"
+                        ? "bg-yellow-400 text-white border-yellow-400"
+                        : "bg-white text-yellow-500 border-yellow-400 hover:bg-yellow-100"
+                    }`}
+                    onClick={() => updateStatus("aguardando")}
+                    disabled={order.status === "aguardando"}
+                  >
+                    <Clock className="w-4 h-4" />
+                    Aguardando
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </CardContent>
+  </Card>
+)}
+
+
 
         {/* PRODUTOS */}
         {activeTab === "products" && (

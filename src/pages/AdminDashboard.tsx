@@ -464,7 +464,7 @@ const filteredUsers = useMemo(() => {
     );
   }
 
-const tabs = ["dashboard", "products", "users", "transactions", "notifications", "orders"];
+const tabs = ["dashboard", "products", "users", "transactions", "notifications", "Pedidos"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">

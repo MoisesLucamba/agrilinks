@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, User, Phone, CreditCard, Mail, MapPin, Users, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import { ArrowLeft, User, Phone, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "lucide-react";
 import { angolaProvinces } from "@/data/angola-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,13 +35,11 @@ const Registration = () => {
   const [validatingCode, setValidatingCode] = useState(false);
   const [agentCodeValid, setAgentCodeValid] = useState<boolean | null>(null);
 
-  // Validar código do agente usando RPC segura
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
       setAgentCodeValid(null);
       return;
     }
-
     setValidatingCode(true);
     try {
       const { data, error } = await supabase.rpc('validate_agent_code', { p_code: code });
@@ -57,7 +55,6 @@ const Registration = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (password !== confirmPassword) return;
     if (!email || !phone) return;
     if (wasReferred === 'sim' && !agentCodeValid) {
@@ -98,7 +95,33 @@ const Registration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background p-4 flex items-center justify-center">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-2xl relative">
+
+       {/* Overlay de carregamento verde */}
+        {loading && (
+          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999]">
+            <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center gap-3 animate-pulse">
+              <div className="animate-spin h-14 w-14 border-4 border-green-600 border-b-transparent rounded-full"></div>
+              <p className="text-green-700 font-semibold flex items-center gap-2">Processando...</p>
+              <p className="text-gray-500 text-sm flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path d="M12 8v4l3 2" />
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+                Aguarde um instante…
+              </p>
+            </div>
+          </div>
+        )}
+
+
         <div className="text-center mb-8">
           <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-primary">Cadastro AgriLink</h1>
@@ -232,11 +255,8 @@ const Registration = () => {
                         onChange={(e) => {
                           const value = e.target.value.toUpperCase();
                           setAgentCode(value);
-                          if (value.length === 6) {
-                            validateAgentCode(value);
-                          } else {
-                            setAgentCodeValid(null);
-                          }
+                          if (value.length === 6) validateAgentCode(value);
+                          else setAgentCodeValid(null);
                         }}
                         placeholder="Digite o código de 6 caracteres"
                         className="uppercase"
@@ -249,12 +269,8 @@ const Registration = () => {
                         </div>
                       )}
                     </div>
-                    {agentCodeValid === true && (
-                      <p className="text-sm text-green-600">✓ Código válido</p>
-                    )}
-                    {agentCodeValid === false && (
-                      <p className="text-sm text-destructive">✗ Código inválido</p>
-                    )}
+                    {agentCodeValid === true && <p className="text-sm text-green-600">✓ Código válido</p>}
+                    {agentCodeValid === false && <p className="text-sm text-destructive">✗ Código inválido</p>}
                   </div>
                 )}
               </div>
@@ -292,9 +308,7 @@ const Registration = () => {
                 <div className="text-destructive text-sm">As senhas não coincidem</div>
               )}
 
-              {errorMessage && (
-                <div className="text-destructive text-sm">{errorMessage}</div>
-              )}
+              {errorMessage && <div className="text-destructive text-sm">{errorMessage}</div>}
 
               {/* Localização */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,38 +318,18 @@ const Registration = () => {
                   {isMobile() ? (
                     <select
                       value={selectedProvince}
-                      onChange={(e) => {
-                        setSelectedProvince(e.target.value);
-                        setSelectedMunicipality("");
-                      }}
+                      onChange={(e) => { setSelectedProvince(e.target.value); setSelectedMunicipality(""); }}
                       className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary bg-background"
                       required
                     >
                       <option value="">Selecione a província</option>
-                      {angolaProvinces.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
+                      {angolaProvinces.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
                     </select>
                   ) : (
-                    <Select
-                      value={selectedProvince}
-                      onValueChange={(v) => {
-                        setSelectedProvince(v);
-                        setSelectedMunicipality("");
-                      }}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a província" />
-                      </SelectTrigger>
+                    <Select value={selectedProvince} onValueChange={(v) => { setSelectedProvince(v); setSelectedMunicipality(""); }} required>
+                      <SelectTrigger><SelectValue placeholder="Selecione a província" /></SelectTrigger>
                       <SelectContent>
-                        {angolaProvinces.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
+                        {angolaProvinces.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   )}
@@ -353,38 +347,17 @@ const Registration = () => {
                       required
                     >
                       <option value="">
-                        {selectedProvince
-                          ? "Selecione o município"
-                          : "Primeiro selecione a província"}
+                        {selectedProvince ? "Selecione o município" : "Primeiro selecione a província"}
                       </option>
-                      {availableMunicipalities.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.name}
-                        </option>
-                      ))}
+                      {availableMunicipalities.map((m) => (<option key={m.id} value={m.id}>{m.name}</option>))}
                     </select>
                   ) : (
-                    <Select
-                      value={selectedMunicipality}
-                      onValueChange={setSelectedMunicipality}
-                      required
-                      disabled={!selectedProvince}
-                    >
+                    <Select value={selectedMunicipality} onValueChange={setSelectedMunicipality} required disabled={!selectedProvince}>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            selectedProvince
-                              ? "Selecione o município"
-                              : "Primeiro selecione a província"
-                          }
-                        />
+                        <SelectValue placeholder={selectedProvince ? "Selecione o município" : "Primeiro selecione a província"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableMunicipalities.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
+                        {availableMunicipalities.map((m) => (<SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   )}

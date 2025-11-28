@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import agrilinkLogo from '@/assets/agrilink-logo.png'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -622,22 +623,24 @@ const MapView = () => {
       <div ref={mapContainer} className="absolute inset-0" />
 
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-30 bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Leaf className="h-8 w-8" />
-            <h1 className="text-2xl font-bold">AGRI LINK - Mapa de Produtos</h1>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-green-700 rounded-full"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+    <header className="absolute top-0 left-0 right-0 z-30 bg-white text-gray-800 shadow-lg">
+  <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      {/* Componente logotipo */}
+          <img src={agrilinkLogo} alt="AgriLink" className="h-12" />
+      <h1 className="text-2xl font-bold"> Mapa de Produtos</h1>
+    </div>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-300"
+      onClick={() => setShowFilters(!showFilters)}
+    >
+      <Filter className="h-5 w-5" />
+    </Button>
+  </div>
+</header>
+
 
       {/* Barra de Pesquisa */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 w-11/12 max-w-2xl">

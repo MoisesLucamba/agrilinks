@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Shield, AlertTriangle, Calendar, MapPin, Scale, Truck } from 'lucide-react'
+import { ArrowLeft, Shield, AlertTriangle, Calendar, MapPin, Scale, Truck, Percent } from 'lucide-react'
 
 const TermsOfService = () => {
   const navigate = useNavigate()
@@ -51,6 +51,7 @@ const TermsOfService = () => {
     <div className="min-h-screen bg-gradient-hero">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
+          {/* Cabeçalho */}
           <div className="flex items-center gap-4 text-white">
             <Button
               variant="ghost"
@@ -64,6 +65,7 @@ const TermsOfService = () => {
             <h1 className="text-3xl font-bold">Termos de Publicidade AgriLink</h1>
           </div>
 
+          {/* Card com Termos */}
           <Card className="shadow-strong border-0">
             <CardHeader className="bg-gradient-primary text-primary-foreground">
               <CardTitle className="text-xl flex items-center gap-3">
@@ -84,6 +86,7 @@ const TermsOfService = () => {
 
                 <Separator />
 
+                {/* Lista de Termos */}
                 <div className="grid gap-6">
                   {terms.map((term, index) => {
                     const Icon = term.icon
@@ -107,6 +110,7 @@ const TermsOfService = () => {
 
                 <Separator />
 
+                {/* Aviso Importante */}
                 <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
@@ -122,6 +126,7 @@ const TermsOfService = () => {
                   </div>
                 </div>
 
+                {/* Botões */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-6">
                   <Button
                     onClick={() => navigate('/cadastro')}
@@ -141,8 +146,43 @@ const TermsOfService = () => {
             </CardContent>
           </Card>
 
-          <div className="text-center text-white/80 text-sm">
-            <p>© 2024 AgriLink. Todos os direitos reservados.</p>
+          {/* Resumo do Marketplace */}
+          <Card className="shadow-strong border-0 mt-6">
+            <CardHeader className="bg-gradient-primary text-primary-foreground">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <Percent className="h-6 w-6" />
+                Resumo Rápido do Marketplace
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-primary">Para Agricultores</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Comissão AgriLink: <span className="font-semibold">7%</span> do valor vendido</li>
+                    <li>Responsáveis por fornecer informações corretas sobre o produto</li>
+                    <li>Publicação antecipada mínima: 1 mês antes da colheita</li>
+                    <li>Seguir critérios de qualidade da plataforma</li>
+                    <li>Penalidades por anúncios falsos ou incorretos</li>
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-primary">Para Compradores</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Taxa de transporte: <span className="font-semibold">7,8%</span> sobre o pedido</li>
+                    <li>Pagamento no prazo acordado</li>
+                    <li>Conferir produtos no ato da entrega</li>
+                    <li>Seguir regras de cancelamento e devolução</li>
+                    <li>Uso responsável e seguro da plataforma</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center text-white/80 text-sm mt-6">
+            <p>© 2025 AgriLink. Todos os direitos reservados.</p>
             <p>Plataforma B2B de Produtos Alimentares em Grande Escala</p>
           </div>
         </div>

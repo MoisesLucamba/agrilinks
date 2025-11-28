@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Info } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import agrilinkLogo from '@/assets/agrilink-logo.png';
+import agrilinkLogo from '@/assets/agrilink-logo.png'
+
 const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -15,9 +16,13 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
+  const [showConfirmEmailModal, setShowConfirmEmailModal] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  // Submissão do login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
@@ -25,18 +30,28 @@ const LoginPage = () => {
     setLoading(true)
     try {
       const { error } = await login(email, password)
+
       if (error) {
+        // Se o erro for email não confirmado
+        if (error.message.includes('email not confirmed') || error.message.includes('User not confirmed')) {
+          setShowConfirmEmailModal(true)
+        } else {
+          alert('Erro ao fazer login: ' + error.message)
+        }
         console.error('Login error:', error)
         return
       }
+
       navigate('/app')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error)
+      alert('Erro ao fazer login: ' + error.message)
     } finally {
       setLoading(false)
     }
   }
 
+  // Recuperar senha
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) {
@@ -50,9 +65,7 @@ const LoginPage = () => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       })
-      
       if (error) throw error
-      
       alert('Email de recuperação enviado! Verifique sua caixa de entrada.')
       setShowForgotPassword(false)
     } catch (error: any) {
@@ -62,16 +75,52 @@ const LoginPage = () => {
     }
   }
 
+  // Reenviar e-mail de confirmação
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      alert('Por favor, insira seu e-mail primeiro')
+      return
+    }
+
+    setResendLoading(true)
+    try {
+      const { supabase } = await import('@/integrations/supabase/client')
+      const { error } = await supabase.auth.api.sendVerificationEmail(email)
+      if (error) throw error
+
+      alert('E-mail de confirmação reenviado! Verifique sua caixa de entrada ou spam.')
+    } catch (error: any) {
+      alert('Erro ao reenviar e-mail: ' + error.message)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-           <div className="text-center mb-6">
-<img src={agrilinkLogo} alt="AgriLink" className="h-28 mx-auto mb-4" />
+    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background flex items-center justify-center bg-background p-4 relative">
+
+      {/* Overlay de carregamento verde */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999]">
+          <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center gap-3 animate-pulse">
+            <div className="animate-spin h-14 w-14 border-4 border-green-600 border-b-transparent rounded-full"></div>
+            <p className="text-green-700 font-semibold flex items-center gap-2">Processando...</p>
+            <p className="text-gray-500 text-sm flex items-center gap-1">
+              <Info className="h-4 w-4 text-green-600" />
+              Aguarde um instante…
+            </p>
           </div>
+        </div>
+      )}
+
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo e mensagem */}
+        <div className="text-center mb-6">
+          <img src={agrilinkLogo} alt="AgriLink" className="h-28 mx-auto mb-4" />
           <p className="text-primary/70">Conecta-te ao Mercado</p>
         </div>
 
+        {/* Card login */}
         <Card className="shadow-strong border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
@@ -85,6 +134,7 @@ const LoginPage = () => {
           
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -101,6 +151,7 @@ const LoginPage = () => {
                 </div>
               </div>
 
+              {/* Senha */}
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
                 <div className="relative">
@@ -124,6 +175,7 @@ const LoginPage = () => {
                 </div>
               </div>
 
+              {/* Esqueci senha */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -182,11 +234,10 @@ const LoginPage = () => {
           </Link>
 
           <footer className="mt-12 border-t border-muted py-6 text-center text-sm text-muted-foreground">
-  <p>
-    © <span className="font-semibold text-primary">AgriLink Lda</span> 2025 — Todos os direitos reservados.
-  </p>
-</footer>
-
+            <p>
+              © <span className="font-semibold text-primary">AgriLink Lda</span> 2025 — Todos os direitos reservados.
+            </p>
+          </footer>
         </div>
       </div>
 
@@ -234,6 +285,40 @@ const LoginPage = () => {
           </Card>
         </div>
       )}
+
+      {/* Modal E-mail não confirmado */}
+      {showConfirmEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-2 border-yellow-400 shadow-lg">
+            <CardHeader className="flex items-center gap-2">
+              <Info className="text-yellow-500 w-5 h-5" />
+              <CardTitle className="text-lg">E-mail não confirmado</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>
+                Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada ou spam. 
+                Clique no link que enviamos e você será redirecionado para esta página.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading}
+                >
+                  {resendLoading ? 'Reenviando...' : 'Reenviar e-mail de confirmação'}
+                </Button>
+                <Button
+                  className="w-full border border-yellow-400 text-yellow-600 hover:bg-yellow-100"
+                  onClick={() => setShowConfirmEmailModal(false)}
+                >
+                  Entendi
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
     </div>
   )
 }

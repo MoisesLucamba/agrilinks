@@ -71,7 +71,7 @@ interface Product {
 
 interface User {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
   phone?: string;
   province_id?: string;
@@ -646,7 +646,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                           <div className="flex items-center gap-3">
                             <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
                             <div>
-                              <p className="font-medium text-gray-900">{user.name}</p>
+                              <p className="font-medium text-gray-900">{user.full_name}</p>
                               <p className="text-xs text-gray-500">{user.email}</p>
                             </div>
                           </div>
@@ -714,7 +714,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                   {order.id.substring(0, 8)}...
                 </TableCell>
                 <TableCell>{product?.product_type || "-"}</TableCell>
-                <TableCell>{user?.name || "-"}</TableCell>
+                <TableCell>{user?.full_name || "-"}</TableCell>
                 <TableCell>{user?.phone || "-"}</TableCell>
                 <TableCell>{order.quantity} kg</TableCell>
                 <TableCell>
@@ -838,7 +838,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                         <TableCell>{product.quantity} kg</TableCell>
                         <TableCell>{product.price ? `${product.price.toFixed(2)} Kz/kg` : "-"}</TableCell>
                         <TableCell>{getLogisticsBadge(product.logistics_access)}</TableCell>
-                        <TableCell>{user?.name || "-"}</TableCell>
+                        <TableCell>{user?.full_name || "-"}</TableCell>
                         <TableCell>{user?.phone || "-"}</TableCell>
                         <TableCell className="text-sm text-gray-500">
                           {new Date(product.created_at).toLocaleDateString("pt-BR")}
@@ -923,7 +923,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                     const isOnline = onlineUsers.some((u) => u.id === user.id);
                     return (
                       <TableRow key={user.id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell className="font-medium">{user.full_name}</TableCell>
                         <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
                         <TableCell>{user.phone || "-"}</TableCell>
                         <TableCell className="text-sm">

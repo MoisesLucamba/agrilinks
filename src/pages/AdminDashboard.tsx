@@ -72,22 +72,39 @@ interface Product {
 interface User {
   id: string;
   full_name: string;
-  email: string;
-  phone?: string;
+  email?: string | null;
+  phone?: string | null;
   province_id?: string;
   municipality_id?: string;
-  avatar_url?: string;
-  created_at: string;
+  avatar_url?: string | null;
+  user_type?: string | null;
+  created_at?: string | null;
   last_seen?: string;
   is_online?: boolean;
 }
 
-interface Transaction {
+interface Order {
   id: string;
   user_id: string;
   product_id: string;
+  quantity: number;
+  location: string;
+  status: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+interface Transaction {
+  id: string;
+  wallet_id: string;
+  type: string;
+  status: string;
   amount: number;
-  status: "pending" | "completed" | "failed";
+  description?: string | null;
+  reference_id?: string | null;
+  related_user_id?: string | null;
+  metadata?: any;
+  completed_at?: string | null;
   created_at: string;
 }
 
@@ -149,7 +166,7 @@ const AdminDashboard = () => {
 
   // Estados
 
-  const [orders, setOrders] = useState<Transaction[]>([]); // ou Order[]
+  const [orders, setOrders] = useState<Order[]>([]); // ou Order[]
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -328,8 +345,10 @@ const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | 
       if (!confirm("Deseja realmente apagar?")) return;
 
       try {
-        await supabase.from(table).delete().eq("id", id);
-        setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
+        const { error } = await supabase.from(table as any).delete().eq("id", id);
+        if (!error) {
+          setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
+        }
       } catch (error) {
         console.error("Erro ao apagar:", error);
         alert("Erro ao apagar");
@@ -446,7 +465,7 @@ const filteredProducts = useMemo(() => {
 
 const filteredUsers = useMemo(() => {
   return (users || []).filter((u) =>
-    (u?.name || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+    (u?.full_name || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
     (u?.email || "").toLowerCase().includes((searchTerm || "").toLowerCase())
   );
 }, [users, searchTerm]);
@@ -1013,13 +1032,13 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                 </TableHeader>
                 <TableBody>
                   {transactions.map((transaction) => {
-                    const user = users.find((u) => u.id === transaction.user_id);
+                    const user = users.find((u) => u.id === transaction.related_user_id);
                     return (
                       <TableRow key={transaction.id} className="hover:bg-gray-50">
                         <TableCell className="font-mono text-sm">
                           {transaction.id.substring(0, 8)}...
                         </TableCell>
-                        <TableCell>{user?.name || "-"}</TableCell>
+                        <TableCell>{user?.full_name || "-"}</TableCell>
                         <TableCell className="font-semibold">
                           {transaction.amount.toFixed(2)} Kz
                         </TableCell>
@@ -1148,7 +1167,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                 <option value="">Selecione um usuário</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.name} ({user.email})
+                    {user.full_name} ({user.email})
                   </option>
                 ))}
               </select>
@@ -1220,7 +1239,7 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                 <option value="">Selecione um usuário</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.name} ({user.email})
+                    {user.full_name} ({user.email})
                   </option>
                 ))}
               </select>

@@ -13,24 +13,32 @@ const EmailConfirmation = () => {
 
   useEffect(() => {
     const confirmEmail = async () => {
-      setStatus("loading");
-
       try {
-        // Supabase handles email confirmation automatically via the callback URL
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Tenta trocar o código da URL por uma sessão válida
+        const { data, error } = await supabase.auth.exchangeCodeForSession(
+          window.location.href
+        );
 
-        if (error) console.warn("Erro ao obter sessão:", error.message);
+        if (error) {
+          console.error("Erro no exchangeCodeForSession:", error);
+          setStatus("error");
+          setMessage("Erro na confirmação. O link pode ter expirado ou já foi usado.");
+          return;
+        }
 
-        if (session?.user) {
-          // Sessão criada com sucesso
+        // Se criou sessão, está confirmado!
+        if (data?.session?.user) {
           setStatus("success");
           setMessage("E-mail confirmado com sucesso! Você será redirecionado automaticamente.");
           setTimeout(() => navigate("/app"), 3000);
-        } else {
-          // Sessão não criada, mas e-mail confirmado
-          setStatus("error");
-          setMessage("E-mail confirmado, mas não foi possível criar a sessão. Faça login manualmente.");
+          return;
         }
+
+        // Caso inesperado: sem erro e sem usuário
+        setStatus("error");
+        setMessage(
+          "Não foi possível confirmar sua conta. Tente fazer login manualmente."
+        );
       } catch (err) {
         console.error("Erro inesperado:", err);
         setStatus("error");
@@ -46,6 +54,7 @@ const EmailConfirmation = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
+          <h1 className="text-3xl font-bold text-primary">AgriLink</h1>
         </div>
 
         <Card className="border-0 shadow-xl rounded-2xl">

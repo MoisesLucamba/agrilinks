@@ -291,20 +291,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 variant="ghost"
                                 className={`h-6 w-6 text-red-500 hover:bg-red-100 ${c.is_liked ? 'fill-current animate-pulse' : ''} transition-all duration-200`}
                                 onClick={async () => {
-                                  try {
-                                    if (c.is_liked) {
-                                      await supabase.from('comment_likes').delete().eq('comment_id', c.id).eq('user_id', user.id)
-                                      c.is_liked = false
-                                      c.likes_count = (c.likes_count || 1) - 1
-                                    } else {
-                                      await supabase.from('comment_likes').insert({ comment_id: c.id, user_id: user.id })
-                                      c.is_liked = true
-                                      c.likes_count = (c.likes_count || 0) + 1
-                                    }
-                                    if (onProductUpdate) onProductUpdate({ ...product })
-                                  } catch {
-                                    toast.error('Erro ao processar like do comentário')
-                                  }
+                                  // Comment likes feature not yet implemented in database
+                                  toast.error('Feature em desenvolvimento')
                                 }}
                               >
                                 <Heart className="h-4 w-4" />

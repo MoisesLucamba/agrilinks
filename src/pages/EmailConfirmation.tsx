@@ -16,10 +16,10 @@ const EmailConfirmation = () => {
       setStatus("loading");
 
       try {
-        // Supabase processa o link e cria a sessão automaticamente
-        const { data: { session }, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+        // Supabase handles email confirmation automatically via the callback URL
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-        if (error) console.warn("Erro ao obter sessão da URL:", error.message);
+        if (error) console.warn("Erro ao obter sessão:", error.message);
 
         if (session?.user) {
           // Sessão criada com sucesso

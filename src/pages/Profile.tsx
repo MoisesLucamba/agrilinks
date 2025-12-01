@@ -226,7 +226,7 @@ const Profile = () => {
                   <input id="avatar-upload" type="file" accept="image/*" onChange={uploadAvatar} className="hidden"/>
                 </div>
               </div>
-              <CardTitle className="text-xl flex items-center justify-center gap-2">{profileData.full_name} <CheckCircle className="h-4 w-4 text-green-500" title="Perfil Verificado (Simulação)"/></CardTitle>
+              <CardTitle className="text-xl flex items-center justify-center gap-2">{profileData.full_name} <CheckCircle className="h-4 w-4 text-green-500" /></CardTitle>
               <p className="text-sm text-muted-foreground">{userProfile?.user_type}</p>
             </CardHeader>
             <CardContent>

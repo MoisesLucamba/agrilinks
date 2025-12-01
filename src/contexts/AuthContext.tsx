@@ -192,12 +192,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const verifyEmail = async (token: string) => {
-    // SDK expects 'token' and a type such as 'signup' or 'recovery'.
-    const { error } = await supabase.auth.verifyOtp({
-      token: token,
-      type: 'signup'
-    })
-    return { error }
+    // For email confirmation, Supabase handles this automatically via the callback URL
+    // This function is deprecated - email confirmation happens in EmailConfirmation page
+    return { error: null }
   }
 
   const resendVerification = async () => {

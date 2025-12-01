@@ -131,7 +131,7 @@ const FichaRecebimento = () => {
       produto: "",
       qualidade: "",
       embalagem: "",
-      transporte: [],
+      transporte: "",
       locaisEntrega: [],
       telefone: "",
       descricaoFinal: "",

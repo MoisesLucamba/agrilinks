@@ -31,7 +31,7 @@ interface Message {
   content: string;
   created_at: string;
   read: boolean;
-  files?: { url: string; name: string; size?: number }[];
+  files?: { url: string; name: string; size?: number }[] | null;
 }
 
 interface Conversation {
@@ -265,9 +265,15 @@ const Messages = () => {
 
         if (error) throw error;
         if (data) {
-          setMessages(data as Message[]);
+          setMessages(data.map(msg => ({
+            ...msg,
+            files: msg.files ? (Array.isArray(msg.files) ? msg.files : []) : []
+          })) as Message[]);
           // Marcar mensagens como lidas
-          await markMessagesAsRead(data);
+          await markMessagesAsRead(data.map(msg => ({
+            ...msg,
+            files: msg.files ? (Array.isArray(msg.files) ? msg.files : []) : []
+          })) as Message[]);
         }
       } catch (err) {
         console.error("Erro ao carregar mensagens:", err);

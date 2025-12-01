@@ -85,7 +85,10 @@ const LoginPage = () => {
     setResendLoading(true)
     try {
       const { supabase } = await import('@/integrations/supabase/client')
-      const { error } = await supabase.auth.api.sendVerificationEmail(email)
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      })
       if (error) throw error
 
       alert('E-mail de confirmação reenviado! Verifique sua caixa de entrada ou spam.')

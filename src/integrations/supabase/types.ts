@@ -45,10 +45,52 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "agent_referrals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "agent_referrals_referred_user_id_fkey"
             columns: ["referred_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_agent_referrals_agent"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_agent_referrals_agent"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_agent_referrals_referred_user"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_agent_referrals_referred_user"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
             referencedColumns: ["id"]
           },
         ]
@@ -56,21 +98,36 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          details: Json | null
+          event_type: string | null
           id: string
+          ip_address: string | null
           log_time: string | null
+          user_email: string | null
           user_id: string
+          user_type: string | null
         }
         Insert: {
           action: string
+          details?: Json | null
+          event_type?: string | null
           id?: string
+          ip_address?: string | null
           log_time?: string | null
+          user_email?: string | null
           user_id: string
+          user_type?: string | null
         }
         Update: {
           action?: string
+          details?: Json | null
+          event_type?: string | null
           id?: string
+          ip_address?: string | null
           log_time?: string | null
+          user_email?: string | null
           user_id?: string
+          user_type?: string | null
         }
         Relationships: []
       }
@@ -110,6 +167,27 @@ export type Database = {
             referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_commissions_transaction"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_commissions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_commissions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       conversations: {
@@ -119,9 +197,11 @@ export type Database = {
           id: string
           last_message: string | null
           last_timestamp: string | null
+          participant_id: string | null
+          peer_user_id: string | null
           title: string
           unread_count: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           avatar?: string | null
@@ -129,9 +209,11 @@ export type Database = {
           id?: string
           last_message?: string | null
           last_timestamp?: string | null
+          participant_id?: string | null
+          peer_user_id?: string | null
           title: string
           unread_count?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           avatar?: string | null
@@ -139,11 +221,42 @@ export type Database = {
           id?: string
           last_message?: string | null
           last_timestamp?: string | null
+          participant_id?: string | null
+          peer_user_id?: string | null
           title?: string
           unread_count?: number | null
-          user_id?: string | null
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversations_participant"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversations_participant"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversations_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversations_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fichas_recebimento: {
         Row: {
@@ -153,6 +266,7 @@ export type Database = {
           id: string
           locais_entrega: Json | null
           nome_ficha: string
+          observacoes: string | null
           produto: string
           qualidade: string | null
           telefone: string | null
@@ -168,6 +282,7 @@ export type Database = {
           id?: string
           locais_entrega?: Json | null
           nome_ficha: string
+          observacoes?: string | null
           produto: string
           qualidade?: string | null
           telefone?: string | null
@@ -183,6 +298,7 @@ export type Database = {
           id?: string
           locais_entrega?: Json | null
           nome_ficha?: string
+          observacoes?: string | null
           produto?: string
           qualidade?: string | null
           telefone?: string | null
@@ -198,30 +314,68 @@ export type Database = {
           content: string
           conversation_id: string | null
           created_at: string | null
+          files: Json | null
           id: string
           read: boolean | null
-          receiver_id: string | null
+          receiver_id: string
           sender_id: string | null
         }
         Insert: {
           content: string
           conversation_id?: string | null
           created_at?: string | null
+          files?: Json | null
           id?: string
           read?: boolean | null
-          receiver_id?: string | null
+          receiver_id: string
           sender_id?: string | null
         }
         Update: {
           content?: string
           conversation_id?: string | null
           created_at?: string | null
+          files?: Json | null
           id?: string
           read?: boolean | null
-          receiver_id?: string | null
+          receiver_id?: string
           sender_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_receiver"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_receiver"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_sender"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_sender"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_conversation_id_fkey"
             columns: ["conversation_id"]
@@ -237,10 +391,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
             referencedColumns: ["id"]
           },
         ]
@@ -276,7 +444,22 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_notifications_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_notifications_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -320,6 +503,34 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_orders_pre_order"
+            columns: ["pre_order_id"]
+            isOneToOne: false
+            referencedRelation: "pre_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_orders_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_orders_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_orders_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_pre_order_id_fkey"
             columns: ["pre_order_id"]
             isOneToOne: false
@@ -338,6 +549,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
             referencedColumns: ["id"]
           },
         ]
@@ -375,6 +593,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_pre_orders_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_pre_orders_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_pre_orders_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pre_orders_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -386,6 +625,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
             referencedColumns: ["id"]
           },
         ]
@@ -413,6 +659,27 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_product_comments_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_comments_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_comments_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_comments_product_id_fkey"
             columns: ["product_id"]
@@ -442,6 +709,27 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_product_likes_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_likes_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_likes_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_likes_product_id_fkey"
             columns: ["product_id"]
@@ -514,13 +802,64 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_products_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_products_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "products_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       support_messages: {
         Row: {
@@ -556,7 +895,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_support_messages_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_support_messages_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -600,6 +954,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_transactions_related_user"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_related_user"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_transactions_wallet"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_wallet_id_fkey"
             columns: ["wallet_id"]
             isOneToOne: false
@@ -624,7 +999,22 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_roles_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_roles_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -643,8 +1033,6 @@ export type Database = {
           referred_by_agent_id: string | null
           updated_at: string | null
           user_type: Database["public"]["Enums"]["user_type_enum"] | null
-          verification_code: string | null
-          verification_code_expires_at: string | null
         }
         Insert: {
           agent_code?: string | null
@@ -662,8 +1050,6 @@ export type Database = {
           referred_by_agent_id?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type_enum"] | null
-          verification_code?: string | null
-          verification_code_expires_at?: string | null
         }
         Update: {
           agent_code?: string | null
@@ -681,8 +1067,6 @@ export type Database = {
           referred_by_agent_id?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type_enum"] | null
-          verification_code?: string | null
-          verification_code_expires_at?: string | null
         }
         Relationships: [
           {
@@ -690,6 +1074,13 @@ export type Database = {
             columns: ["referred_by_agent_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_referred_by_agent_id_fkey"
+            columns: ["referred_by_agent_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
             referencedColumns: ["id"]
           },
         ]
@@ -728,11 +1119,58 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      users_public: {
+        Row: {
+          agent_code: string | null
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          municipality_id: string | null
+          province_id: string | null
+          user_type: Database["public"]["Enums"]["user_type_enum"] | null
+        }
+        Insert: {
+          agent_code?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          municipality_id?: string | null
+          province_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type_enum"] | null
+        }
+        Update: {
+          agent_code?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          municipality_id?: string | null
+          province_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type_enum"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       block_funds: {
@@ -743,6 +1181,15 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      create_admin_notifications: {
+        Args: {
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
       }
       create_notification: {
         Args: {
@@ -762,6 +1209,30 @@ export type Database = {
           recent_referrals: Json
           total_points: number
           total_referrals: number
+        }[]
+      }
+      get_or_create_conversation: {
+        Args: { p_other_user_id: string; p_user_id: string }
+        Returns: string
+      }
+      get_product_contact: {
+        Args: { p_product_id: string }
+        Returns: {
+          contact: string
+          farmer_name: string
+        }[]
+      }
+      get_public_user_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          agent_code: string
+          avatar_url: string
+          created_at: string
+          full_name: string
+          id: string
+          municipality_id: string
+          province_id: string
+          user_type: Database["public"]["Enums"]["user_type_enum"]
         }[]
       }
       has_role: {
@@ -792,6 +1263,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      request_email_confirmation: {
+        Args: { user_email: string }
+        Returns: Json
+      }
+      send_message:
+        | {
+            Args: {
+              p_content: string
+              p_conversation: string
+              p_receiver: string
+              p_sender: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_content: string
+              p_files?: Json
+              p_receiver: string
+              p_sender: string
+            }
+            Returns: string
+          }
       validate_agent_code: { Args: { p_code: string }; Returns: boolean }
     }
     Enums: {

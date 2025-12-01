@@ -118,7 +118,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       // Subscrever
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey,
+        applicationServerKey: convertedVapidKey as BufferSource,
       });
 
       // Salvar subscrição no banco de dados
@@ -126,18 +126,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
       const { error: dbError } = await supabase
         .from('push_subscriptions')
-        .upsert(
-          {
-            user_id: user.id,
-            endpoint: subscriptionJSON.endpoint,
-            auth_key: subscriptionJSON.keys.auth,
-            p256dh_key: subscriptionJSON.keys.p256dh,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            onConflict: 'user_id',
-          }
-        );
+        .upsert({
+          user_id: user.id,
+          endpoint: subscriptionJSON.endpoint,
+          auth_key: subscriptionJSON.keys.auth,
+          p256dh_key: subscriptionJSON.keys.p256dh,
+          updated_at: new Date().toISOString(),
+        });
 
       if (dbError) throw dbError;
 

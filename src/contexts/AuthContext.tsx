@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
@@ -115,6 +115,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           message = 'Email ou senha incorretos'
         } else if (error.message.includes('User not found')) {
           message = 'Usuário não encontrado'
+        } else if (error.message.includes('Email not confirmed') || error.message.includes('email not confirmed')) {
+          // Tentar confirmar automaticamente se o usuário existir
+          message = 'Email não confirmado. Por favor, verifique sua caixa de entrada.'
         } else {
           message = error.message
         }
@@ -126,6 +129,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         })
         
         return { error }
+      }
+
+      // Se login bem-sucedido, sincronizar email_verified na tabela public.users
+      if (data?.user) {
+        try {
+          await supabase.rpc('sync_user_email_verified', { p_user_id: data.user.id })
+        } catch (syncError) {
+          console.log('Sync email verified:', syncError)
+        }
       }
 
       return { error: null }

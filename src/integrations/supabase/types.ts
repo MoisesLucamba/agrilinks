@@ -1286,6 +1286,10 @@ export type Database = {
             }
             Returns: string
           }
+      sync_user_email_verified: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       validate_agent_code: { Args: { p_code: string }; Returns: boolean }
     }
     Enums: {

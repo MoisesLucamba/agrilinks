@@ -14,23 +14,80 @@ const EmailConfirmation = () => {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        // Tenta trocar o código da URL por uma sessão válida
+        // Verificar se há tokens na URL (hash ou query params)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const queryParams = new URLSearchParams(window.location.search);
+        
+        const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+        const type = hashParams.get('type') || queryParams.get('type');
+        
+        console.log("Email confirmation - type:", type, "has tokens:", !!accessToken);
+
+        // Se temos tokens diretamente (formato antigo do Supabase)
+        if (accessToken && refreshToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            console.error("Erro ao definir sessão:", error);
+            setStatus("error");
+            setMessage("Erro na confirmação. O link pode ter expirado ou já foi usado.");
+            return;
+          }
+
+          if (data?.session?.user) {
+            // Atualizar email_verified na tabela public.users
+            await supabase.rpc('sync_user_email_verified', { 
+              p_user_id: data.session.user.id 
+            });
+            
+            setStatus("success");
+            setMessage("E-mail confirmado com sucesso! Você será redirecionado automaticamente.");
+            setTimeout(() => navigate("/app"), 2000);
+            return;
+          }
+        }
+
+        // Tentar o método PKCE (formato mais novo)
         const { data, error } = await supabase.auth.exchangeCodeForSession(
           window.location.href
         );
 
         if (error) {
           console.error("Erro no exchangeCodeForSession:", error);
+          
+          // Verificar se já existe uma sessão ativa
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.user) {
+            // Usuário já está logado, atualizar email_verified
+            await supabase.rpc('sync_user_email_verified', { 
+              p_user_id: sessionData.session.user.id 
+            });
+            
+            setStatus("success");
+            setMessage("E-mail confirmado! Você será redirecionado.");
+            setTimeout(() => navigate("/app"), 2000);
+            return;
+          }
+          
           setStatus("error");
-          setMessage("Erro na confirmação. O link pode ter expirado ou já foi usado.");
+          setMessage("Erro na confirmação. O link pode ter expirado ou já foi usado. Tente fazer login normalmente.");
           return;
         }
 
-        // Se criou sessão, está confirmado!
+        // Se criou sessão via PKCE, está confirmado!
         if (data?.session?.user) {
+          // Atualizar email_verified na tabela public.users
+          await supabase.rpc('sync_user_email_verified', { 
+            p_user_id: data.session.user.id 
+          });
+          
           setStatus("success");
           setMessage("E-mail confirmado com sucesso! Você será redirecionado automaticamente.");
-          setTimeout(() => navigate("/app"), 3000);
+          setTimeout(() => navigate("/app"), 2000);
           return;
         }
 
@@ -42,7 +99,7 @@ const EmailConfirmation = () => {
       } catch (err) {
         console.error("Erro inesperado:", err);
         setStatus("error");
-        setMessage("Erro inesperado ao confirmar e-mail.");
+        setMessage("Erro inesperado ao confirmar e-mail. Tente fazer login normalmente.");
       }
     };
 
@@ -99,7 +156,7 @@ const EmailConfirmation = () => {
                       onClick={() => navigate("/login")}
                       className="w-full"
                     >
-                      Voltar ao Login
+                      Ir para Login
                     </Button>
                   </div>
                 </>

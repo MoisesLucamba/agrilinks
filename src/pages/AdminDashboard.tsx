@@ -119,6 +119,23 @@ interface Notification {
   metadata?: any;
 }
 
+interface Ficha {
+  id: string;
+  user_id: string;
+  nome_ficha: string;
+  produto: string;
+  tipo_negocio: string;
+  qualidade?: string;
+  embalagem?: string;
+  transporte?: string;
+  telefone?: string;
+  locais_entrega?: any;
+  observacoes?: string;
+  descricao_final?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
 // --- Componentes Auxiliares ---
 
 interface MetricCardProps {
@@ -166,14 +183,15 @@ const AdminDashboard = () => {
 
   // Estados
 
-  const [orders, setOrders] = useState<Order[]>([]); // ou Order[]
+  const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [fichas, setFichas] = useState<Ficha[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | "transactions" | "notifications" | "orders">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas">("dashboard");
 
   // Modal de Notificação
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
@@ -234,17 +252,19 @@ const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [prodRes, usersRes, transRes, notRes] = await Promise.all([
+      const [prodRes, usersRes, transRes, notRes, fichasRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("users").select("*").order("created_at", { ascending: false }),
         supabase.from("transactions").select("*").order("created_at", { ascending: false }),
         supabase.from("notifications").select("*").order("created_at", { ascending: false }),
+        supabase.from("fichas_recebimento").select("*").order("created_at", { ascending: false }),
       ]);
 
       setProducts(prodRes.data || []);
       setUsers(usersRes.data || []);
       setTransactions(transRes.data || []);
       setNotifications(notRes.data || []);
+      setFichas(fichasRes.data || []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -259,15 +279,13 @@ const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "users" | 
     }
 
     try {
-      const { error } = await supabase.from("notifications").insert({
-        id: crypto.randomUUID(),
-        user_id: targetUser,
-        type: notificationType,
-        title: notificationTitle,
-        message: notificationMessage,
-        read: false,
-        created_at: new Date().toISOString(),
-        metadata: {},
+      // Use RPC function to bypass RLS - create_notification is security definer
+      const { error } = await supabase.rpc("create_notification", {
+        p_user_id: targetUser,
+        p_type: notificationType,
+        p_title: notificationTitle,
+        p_message: notificationMessage,
+        p_metadata: {}
       });
 
       if (error) throw error;
@@ -483,7 +501,7 @@ const filteredUsers = useMemo(() => {
     );
   }
 
-const tabs = ["dashboard", "products", "users", "transactions", "notifications", "orders"];
+const tabs = ["dashboard", "products", "users", "transactions", "notifications", "orders", "fichas"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -1147,6 +1165,107 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* FICHAS DE RECEBIMENTO */}
+        {activeTab === "fichas" && (
+          <Card className="shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Fichas de Recebimento
+              </CardTitle>
+              <div className="flex gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar fichas..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead>Nome da Ficha</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Tipo de Negócio</TableHead>
+                    <TableHead>Qualidade</TableHead>
+                    <TableHead>Embalagem</TableHead>
+                    <TableHead>Transporte</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Criado em</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fichas
+                    .filter((f) =>
+                      (f.nome_ficha || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+                      (f.produto || "").toLowerCase().includes((searchTerm || "").toLowerCase())
+                    )
+                    .map((ficha) => {
+                      const user = users.find((u) => u.id === ficha.user_id);
+                      return (
+                        <TableRow key={ficha.id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium">
+                            {ficha.nome_ficha}
+                          </TableCell>
+                          <TableCell>{ficha.produto}</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              ficha.tipo_negocio === "compra"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }>
+                              {ficha.tipo_negocio.charAt(0).toUpperCase() + ficha.tipo_negocio.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{ficha.qualidade || "-"}</TableCell>
+                          <TableCell>{ficha.embalagem || "-"}</TableCell>
+                          <TableCell>{ficha.transporte || "-"}</TableCell>
+                          <TableCell>{ficha.telefone || "-"}</TableCell>
+                          <TableCell className="text-sm text-gray-500">
+                            {new Date(ficha.created_at).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setTargetUser(ficha.user_id);
+                                  setNotificationModalOpen(true);
+                                }}
+                                title="Enviar Notificação"
+                              >
+                                <Bell className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete("fichas_recebimento", ficha.id, setFichas)}
+                                className="text-red-600 hover:text-red-700"
+                                title="Apagar"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+              {fichas.length === 0 && (
+                <p className="text-center text-gray-500 py-8">Nenhuma ficha de recebimento cadastrada</p>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 

@@ -39,7 +39,6 @@ const Registration = () => {
   
   // OTP Modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [registeredUserId, setRegisteredUserId] = useState("");
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -59,23 +58,24 @@ const Registration = () => {
     }
   };
 
-  const sendOtpEmail = async (userId: string) => {
+  const sendOtpEmail = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('send-otp-email', {
-        body: { user_id: userId, email, full_name: fullName }
+      // Use Supabase Auth's built-in OTP email sending
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // User already exists from registration
+        }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao enviar OTP:", error);
+        // Continue even with error - user might need to resend
+      }
       
-      console.log("OTP enviado:", data);
       return true;
     } catch (error) {
       console.error("Erro ao enviar OTP:", error);
-      toast({
-        title: "Aviso",
-        description: "Código de verificação gerado. Verifique seu e-mail.",
-        variant: "default",
-      });
       return true; // Continue mesmo com erro no envio
     }
   };
@@ -114,10 +114,8 @@ const Registration = () => {
       const userId = data?.user?.id;
       
       if (userId) {
-        setRegisteredUserId(userId);
-        
-        // Send OTP email
-        await sendOtpEmail(userId);
+        // Send OTP email using Supabase Auth
+        await sendOtpEmail();
         
         // Show OTP modal
         setShowOtpModal(true);
@@ -462,8 +460,6 @@ const Registration = () => {
         isOpen={showOtpModal}
         onClose={() => setShowOtpModal(false)}
         email={email}
-        userId={registeredUserId}
-        fullName={fullName}
         onSuccess={handleOtpSuccess}
       />
     </div>

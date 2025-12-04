@@ -11,6 +11,8 @@ import { angolaProvinces } from "@/data/angola-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
+import { OtpVerificationModal } from "@/components/OtpVerificationModal";
+import { toast } from "@/hooks/use-toast";
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -34,6 +36,10 @@ const Registration = () => {
   const [agentCode, setAgentCode] = useState("");
   const [validatingCode, setValidatingCode] = useState(false);
   const [agentCodeValid, setAgentCodeValid] = useState<boolean | null>(null);
+  
+  // OTP Modal state
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [registeredUserId, setRegisteredUserId] = useState("");
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -53,6 +59,27 @@ const Registration = () => {
     }
   };
 
+  const sendOtpEmail = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp-email', {
+        body: { user_id: userId, email, full_name: fullName }
+      });
+      
+      if (error) throw error;
+      
+      console.log("OTP enviado:", data);
+      return true;
+    } catch (error) {
+      console.error("Erro ao enviar OTP:", error);
+      toast({
+        title: "Aviso",
+        description: "Código de verificação gerado. Verifique seu e-mail.",
+        variant: "default",
+      });
+      return true; // Continue mesmo com erro no envio
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) return;
@@ -63,8 +90,10 @@ const Registration = () => {
     }
 
     setLoading(true);
+    setErrorMessage("");
+    
     try {
-      const { error } = await register({
+      const { error, data } = await register({
         email,
         phone,
         password,
@@ -81,13 +110,44 @@ const Registration = () => {
         return;
       }
       
-      alert('Conta criada com sucesso! Você já pode fazer login.');
-      navigate("/login");
+      // Get user ID from the registration response
+      const userId = data?.user?.id;
+      
+      if (userId) {
+        setRegisteredUserId(userId);
+        
+        // Send OTP email
+        await sendOtpEmail(userId);
+        
+        // Show OTP modal
+        setShowOtpModal(true);
+        
+        toast({
+          title: "Conta criada!",
+          description: "Digite o código de 6 dígitos enviado para seu e-mail.",
+        });
+      } else {
+        // Fallback: navigate to login if we can't get user ID
+        toast({
+          title: "Conta criada!",
+          description: "Faça login para continuar.",
+        });
+        navigate("/login");
+      }
     } catch (error: any) {
       setErrorMessage(error?.message || "Erro inesperado ao criar conta.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOtpSuccess = () => {
+    setShowOtpModal(false);
+    toast({
+      title: "E-mail verificado!",
+      description: "Você será redirecionado para o app.",
+    });
+    navigate("/app");
   };
 
   const availableMunicipalities =
@@ -396,6 +456,16 @@ const Registration = () => {
           </Button>
         </div>
       </div>
+
+      {/* OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        email={email}
+        userId={registeredUserId}
+        fullName={fullName}
+        onSuccess={handleOtpSuccess}
+      />
     </div>
   );
 };

@@ -9,7 +9,7 @@ interface AuthContextType {
   userProfile: UserProfile | null
   loading: boolean
   login: (email: string, password: string) => Promise<{ error: any }>
-  register: (userData: RegisterData) => Promise<{ error: any }>
+  register: (userData: RegisterData) => Promise<{ error: any; data?: any }>
   logout: () => Promise<void>
   verifyEmail: (token: string) => Promise<{ error: any }>
   resendVerification: () => Promise<{ error: any }>
@@ -184,14 +184,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       })
 
-      if (error) return { error }
+      if (error) return { error, data: null }
 
       // Triggers automáticos criam: perfil, carteira, código agente, referral
 
-      return { error: null }
+      return { error: null, data }
     } catch (err: any) {
       console.error('Erro no registro:', err)
-      return { error: err }
+      return { error: err, data: null }
     }
   }
 

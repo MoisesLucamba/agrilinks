@@ -20,8 +20,6 @@ interface OtpVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
-  userId: string;
-  fullName: string;
   onSuccess: () => void;
 }
 
@@ -29,8 +27,6 @@ export const OtpVerificationModal = ({
   isOpen,
   onClose,
   email,
-  userId,
-  fullName,
   onSuccess,
 }: OtpVerificationModalProps) => {
   const [otp, setOtp] = useState("");
@@ -57,14 +53,29 @@ export const OtpVerificationModal = ({
 
     setIsVerifying(true);
     try {
-      const { data, error } = await supabase.rpc('verify_email_otp', {
-        p_email: email,
-        p_code: otp,
+      // Use Supabase Auth's built-in OTP verification
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email',
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error verifying OTP:", error);
+        toast({
+          title: "Código inválido",
+          description: "O código está incorreto ou expirou. Tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      if (data) {
+      if (data?.user) {
+        // Update email_verified in public.users table
+        await supabase.rpc('sync_user_email_verified', {
+          p_user_id: data.user.id,
+        });
+
         toast({
           title: "E-mail verificado!",
           description: "Sua conta foi verificada com sucesso.",
@@ -92,8 +103,12 @@ export const OtpVerificationModal = ({
   const handleResend = async () => {
     setIsResending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-otp-email', {
-        body: { user_id: userId, email, full_name: fullName }
+      // Use Supabase Auth's built-in OTP email sending
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        }
       });
 
       if (error) throw error;

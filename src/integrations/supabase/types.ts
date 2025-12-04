@@ -258,6 +258,36 @@ export type Database = {
           },
         ]
       }
+      email_verification_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       fichas_recebimento: {
         Row: {
           created_at: string | null
@@ -1202,6 +1232,10 @@ export type Database = {
         Returns: string
       }
       generate_agent_code: { Args: never; Returns: string }
+      generate_email_otp: {
+        Args: { p_email: string; p_user_id: string }
+        Returns: string
+      }
       get_agent_id_by_code: { Args: { p_code: string }; Returns: string }
       get_agent_referral_stats: {
         Args: { agent_user_id: string }
@@ -1291,6 +1325,10 @@ export type Database = {
         Returns: boolean
       }
       validate_agent_code: { Args: { p_code: string }; Returns: boolean }
+      verify_email_otp: {
+        Args: { p_code: string; p_email: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

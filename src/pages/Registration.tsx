@@ -11,7 +11,7 @@ import { angolaProvinces } from "@/data/angola-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
-import { OtpVerificationModal } from "@/components/OtpVerificationModal";
+import { EmailConfirmationModal } from "@/components/EmailConfirmationModal";
 import { toast } from "@/hooks/use-toast";
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -37,8 +37,8 @@ const Registration = () => {
   const [validatingCode, setValidatingCode] = useState(false);
   const [agentCodeValid, setAgentCodeValid] = useState<boolean | null>(null);
   
-  // OTP Modal state
-  const [showOtpModal, setShowOtpModal] = useState(false);
+  // Email confirmation modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -55,28 +55,6 @@ const Registration = () => {
       setAgentCodeValid(false);
     } finally {
       setValidatingCode(false);
-    }
-  };
-
-  const sendOtpEmail = async () => {
-    try {
-      // Use Supabase Auth's built-in OTP email sending
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false, // User already exists from registration
-        }
-      });
-      
-      if (error) {
-        console.error("Erro ao enviar OTP:", error);
-        // Continue even with error - user might need to resend
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Erro ao enviar OTP:", error);
-      return true; // Continue mesmo com erro no envio
     }
   };
 
@@ -113,25 +91,13 @@ const Registration = () => {
       // Get user ID from the registration response
       const userId = data?.user?.id;
       
-      if (userId) {
-        // Send OTP email using Supabase Auth
-        await sendOtpEmail();
-        
-        // Show OTP modal
-        setShowOtpModal(true);
-        
-        toast({
-          title: "Conta criada!",
-          description: "Digite o código de 6 dígitos enviado para seu e-mail.",
-        });
-      } else {
-        // Fallback: navigate to login if we can't get user ID
-        toast({
-          title: "Conta criada!",
-          description: "Faça login para continuar.",
-        });
-        navigate("/login");
-      }
+      // Show email confirmation modal
+      setShowEmailModal(true);
+      
+      toast({
+        title: "Conta criada!",
+        description: "Verifique seu e-mail para confirmar a conta.",
+      });
     } catch (error: any) {
       setErrorMessage(error?.message || "Erro inesperado ao criar conta.");
     } finally {
@@ -139,13 +105,9 @@ const Registration = () => {
     }
   };
 
-  const handleOtpSuccess = () => {
-    setShowOtpModal(false);
-    toast({
-      title: "E-mail verificado!",
-      description: "Você será redirecionado para o app.",
-    });
-    navigate("/app");
+  const handleCloseEmailModal = () => {
+    setShowEmailModal(false);
+    navigate("/login");
   };
 
   const availableMunicipalities =
@@ -455,12 +417,11 @@ const Registration = () => {
         </div>
       </div>
 
-      {/* OTP Verification Modal */}
-      <OtpVerificationModal
-        isOpen={showOtpModal}
-        onClose={() => setShowOtpModal(false)}
+      {/* Email Confirmation Modal */}
+      <EmailConfirmationModal
+        isOpen={showEmailModal}
+        onClose={handleCloseEmailModal}
         email={email}
-        onSuccess={handleOtpSuccess}
       />
     </div>
   );

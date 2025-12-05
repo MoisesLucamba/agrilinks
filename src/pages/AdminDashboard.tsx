@@ -465,6 +465,10 @@ const AdminDashboard = () => {
     });
   }, [users]);
 
+  const unreadNotificationsCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length;
+  }, [notifications]);
+
   const filteredNotifications = useMemo(() => {
   return notifications.filter((n) => {
     if (filterStatus === "unread") return !n.read;
@@ -517,6 +521,19 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
               </div>
             </div>
 
+            {/* Badge de notificações no header */}
+            <button
+              onClick={() => setActiveTab("notifications")}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors hidden md:flex"
+            >
+              <Bell className="h-6 w-6 text-gray-600" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                </span>
+              )}
+            </button>
+
             <button
               className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -538,9 +555,14 @@ const tabs = ["dashboard", "products", "users", "transactions", "notifications",
                     setActiveTab(tab as any);
                     setMenuOpen(false);
                   }}
-                  className="justify-start md:justify-center"
+                  className="justify-start md:justify-center relative"
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === "notifications" && unreadNotificationsCount > 0 && (
+                    <span className="ml-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
+                      {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                    </span>
+                  )}
                 </Button>
               ))}
               <Button

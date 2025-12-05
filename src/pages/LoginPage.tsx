@@ -178,12 +178,20 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* Esqueci senha */}
-              <div className="flex justify-end">
+              {/* Links de ajuda */}
+              <div className="flex justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading || !email}
+                  className="text-muted-foreground hover:text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendLoading ? 'Reenviando...' : 'Reenviar confirmação'}
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(true)}
-                  className="text-sm text-primary hover:underline"
+                  className="text-primary hover:underline"
                 >
                   Esqueci minha senha
                 </button>

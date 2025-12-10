@@ -1,13 +1,13 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Home, Map, Bell, MessageSquare, User, Plus, FileText } from 'lucide-react'
+import { Home, Map, Bell, MessageSquare, User, Plus, FileText, LayoutDashboard } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 const BottomNavigation = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { userProfile } = useAuth()
+  const { userProfile, isAdmin } = useAuth()
 
   // Determinar o ícone e caminho de publicação baseado no tipo de usuário
   const getPublishAction = () => {
@@ -22,10 +22,14 @@ const BottomNavigation = () => {
 
   const publishAction = getPublishAction()
 
+  // Para admins, mostrar Dashboard em vez de Mapa
   const navItems = [
     { icon: Home, label: 'Home', path: '/app' },
     ...(publishAction ? [publishAction] : []),
-    { icon: Map, label: 'Mapa', path: '/mapa' },
+    // Admins veem Dashboard, outros veem Mapa
+    isAdmin 
+      ? { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' }
+      : { icon: Map, label: 'Mapa', path: '/mapa' },
     { icon: Bell, label: 'Notificações', path: '/notificacoes' },
     { icon: MessageSquare, label: 'Mensagens', path: '/listamensagens' },
     { icon: User, label: 'Perfil', path: '/perfil' }

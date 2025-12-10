@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { BarChart3, Search } from 'lucide-react'
+import { BarChart3, Search, LayoutDashboard } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import agrilinkLogo from '@/assets/agrilink-logo.png'
@@ -17,7 +17,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY293Z2QwaGRwMmlyNGlwNW4
 
 
 const AppHome = () => {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -285,7 +285,15 @@ const AppHome = () => {
 </div>
 
         </div>
-        <Button variant="ghost" size="icon"><BarChart3 className="h-5 w-5" /></Button>
+        {isAdmin ? (
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admindashboard')}>
+            <LayoutDashboard className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" onClick={() => navigate('/mercado')}>
+            <BarChart3 className="h-5 w-5" />
+          </Button>
+        )}
       </div>
       {/* FEED */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3 w-full">

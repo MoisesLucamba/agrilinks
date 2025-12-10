@@ -28,7 +28,7 @@ const BottomNavigation = () => {
     ...(publishAction ? [publishAction] : []),
     // Admins veem Dashboard, outros veem Mapa
     isAdmin 
-      ? { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' }
+      ? { icon: LayoutDashboard, label: 'Dashboard', path: '/admindashboard' }
       : { icon: Map, label: 'Mapa', path: '/mapa' },
     { icon: Bell, label: 'Notificações', path: '/notificacoes' },
     { icon: MessageSquare, label: 'Mensagens', path: '/listamensagens' },

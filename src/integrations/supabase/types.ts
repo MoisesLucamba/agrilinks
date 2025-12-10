@@ -1305,20 +1305,20 @@ export type Database = {
         | {
             Args: {
               p_content: string
-              p_conversation: string
-              p_receiver: string
-              p_sender: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_content: string
               p_files?: Json
               p_receiver: string
               p_sender: string
             }
             Returns: string
+          }
+        | {
+            Args: {
+              p_content: string
+              p_conversation: string
+              p_receiver: string
+              p_sender: string
+            }
+            Returns: undefined
           }
       sync_user_email_verified: {
         Args: { p_user_id: string }

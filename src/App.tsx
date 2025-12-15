@@ -29,6 +29,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import FichaRecebimento from "./pages/FichaRecebimento";
 import SearchPage from "./pages/SearchPage";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const AppRoutes = () => {
       <Route path="/login" element={user ? <Navigate to="/app" replace /> : <LoginPage />} />
       <Route path="/cadastro" element={user ? <Navigate to="/app" replace /> : <Registration />} />
       <Route path="/confirmar-email" element={<EmailConfirmation />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/termos-publicidade" element={<TermsOfService />} />
 
       {/* App Routes */}

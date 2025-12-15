@@ -115,10 +115,54 @@ const AppHome = () => {
             (comments || []).map(async (c) => {
               const { data: userData } = await supabase
                 .from('users')
-                .select('full_name, user_type')
+                .select('full_name, user_type, avatar_url')
                 .eq('id', c.user_id)
-                .single()
-              return { ...c, user_name: userData?.full_name || 'Usuário', user_type: userData?.user_type || 'agricultor' }
+                .maybeSingle()
+
+              // Fetch likes count and user like status for this comment
+              const { count: likesCount } = await supabase
+                .from('comment_likes')
+                .select('*', { count: 'exact', head: true })
+                .eq('comment_id', c.id)
+
+              const { data: userCommentLike } = await supabase
+                .from('comment_likes')
+                .select('id')
+                .eq('comment_id', c.id)
+                .eq('user_id', user?.id || '')
+                .maybeSingle()
+
+              // Fetch replies for this comment
+              const { data: replies } = await supabase
+                .from('comment_replies')
+                .select('id, user_id, reply_text, created_at')
+                .eq('comment_id', c.id)
+                .order('created_at', { ascending: true })
+
+              const repliesWithUser = await Promise.all(
+                (replies || []).map(async (r) => {
+                  const { data: replyUser } = await supabase
+                    .from('users')
+                    .select('full_name, user_type')
+                    .eq('id', r.user_id)
+                    .maybeSingle()
+                  return {
+                    ...r,
+                    user_name: replyUser?.full_name || 'Usuário',
+                    user_type: replyUser?.user_type || 'agricultor'
+                  }
+                })
+              )
+
+              return {
+                ...c,
+                user_name: userData?.full_name || 'Usuário',
+                user_type: userData?.user_type || 'agricultor',
+                user_avatar: userData?.avatar_url,
+                likes_count: likesCount || 0,
+                is_liked: !!userCommentLike,
+                replies: repliesWithUser
+              }
             })
           )
 

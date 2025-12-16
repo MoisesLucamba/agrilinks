@@ -49,6 +49,16 @@ const MAX_FILE_SIZE = 35 * 1024 * 1024; // 35MB
 const BUCKET_NAME = "chatfiles";
 const MAX_MESSAGE_LENGTH = 5000;
 
+// Emojis temáticos de agricultura
+const AGRO_EMOJIS = [
+  "🌾", "🌽", "🍅", "🥕", "🥬", "🥦", "🍆", "🥒", 
+  "🌱", "🌿", "🍃", "🌻", "🌳", "🍎", "🍊", "🍋",
+  "🍇", "🍉", "🍌", "🥭", "🍍", "🥥", "🥑", "🧅",
+  "🥔", "🌶️", "🧄", "🥜", "🌰", "🍞", "🥚", "🧈",
+  "🐄", "🐖", "🐔", "🐑", "🐐", "🚜", "🌦️", "💧",
+  "☀️", "🌈", "👨‍🌾", "👩‍🌾", "🏡", "🛒", "📦", "✅"
+];
+
 // --- Componentes Auxiliares ---
 
 interface FilePreviewProps {
@@ -212,6 +222,7 @@ const Messages = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -516,7 +527,10 @@ const Messages = () => {
               <ArrowLeft className="h-5 w-5 text-gray-700" />
             </Button>
 
-            <Avatar className="h-12 w-12 ring-2 ring-blue-100">
+            <Avatar 
+              className="h-12 w-12 ring-2 ring-blue-100 cursor-pointer hover:ring-blue-300 transition-all"
+              onClick={() => conversation?.participant_id && navigate(`/perfil/${conversation.participant_id}`)}
+            >
               <AvatarImage src={conversation?.avatar || "/default-avatar.png"} />
               <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold">
                 {conversation?.title.charAt(0).toUpperCase() || "?"}
@@ -524,7 +538,10 @@ const Messages = () => {
             </Avatar>
 
             <div className="flex flex-col">
-              <h1 className="text-lg font-bold text-gray-900">
+              <h1 
+                className="text-lg font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={() => conversation?.participant_id && navigate(`/perfil/${conversation.participant_id}`)}
+              >
                 {conversation?.title || "Conversa"}
               </h1>
               <div className="flex items-center gap-1">
@@ -611,7 +628,7 @@ const Messages = () => {
       </div>
 
       {/* Input de Mensagem */}
-<footer className="sticky bottom-16 bg-white border-t border-gray-200 px-4 py-4 md:px-6">
+<footer className="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 md:px-6">
         <div className="flex flex-col gap-3">
           {/* Preview de Arquivos */}
           {selectedFiles.length > 0 && (
@@ -684,14 +701,38 @@ const Messages = () => {
               )}
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-600 hover:text-yellow-500 hover:bg-yellow-50"
-              disabled={isSending}
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-600 hover:text-yellow-500 hover:bg-yellow-50"
+                disabled={isSending}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
+                <Smile className="h-5 w-5" />
+              </Button>
+              
+              {/* Emoji Picker Agrícola */}
+              {showEmojiPicker && (
+                <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 w-72 z-50">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Emojis Agrícolas 🌾</p>
+                  <div className="grid grid-cols-8 gap-1">
+                    {AGRO_EMOJIS.map((emoji, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setNewMessage(prev => prev + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="text-xl hover:bg-gray-100 rounded p-1 transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Contador de caracteres */}

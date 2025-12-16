@@ -30,6 +30,7 @@ import FichaRecebimento from "./pages/FichaRecebimento";
 import SearchPage from "./pages/SearchPage";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import ResetPassword from "./pages/ResetPassword";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/perfil/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <UserProfile />
             </AppLayout>
           </ProtectedRoute>
         }

@@ -42,12 +42,31 @@ interface FichaRecebimento {
   created_at: string
 }
 
+interface ReceivedOrder {
+  id: string
+  product_id: string
+  user_id: string
+  quantity: number
+  location: string
+  status: string
+  created_at: string
+  product?: {
+    product_type: string
+    price: number
+  }
+  buyer?: {
+    full_name: string
+    phone: string
+  }
+}
+
 const Profile = () => {
   const { user, userProfile, logout } = useAuth()
   const navigate = useNavigate()
 
   const [userProducts, setUserProducts] = useState<UserProduct[]>([])
   const [fichasRecebimento, setFichasRecebimento] = useState<FichaRecebimento[]>([])
+  const [receivedOrders, setReceivedOrders] = useState<ReceivedOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [avatarLoading, setAvatarLoading] = useState(false)
@@ -110,12 +129,78 @@ const Profile = () => {
     }
   };
 
+  // Buscar pedidos recebidos (pre_orders) dos produtos do agricultor/agente
+  const fetchReceivedOrders = async () => {
+    try {
+      // Primeiro buscar os IDs dos produtos do usuário
+      const { data: userProductIds, error: prodError } = await supabase
+        .from('products')
+        .select('id')
+        .eq('user_id', user?.id)
+      
+      if (prodError) throw prodError
+      
+      if (!userProductIds || userProductIds.length === 0) {
+        setReceivedOrders([])
+        return
+      }
+
+      const productIds = userProductIds.map(p => p.id)
+
+      // Buscar pre_orders para esses produtos
+      const { data: orders, error: ordersError } = await supabase
+        .from('pre_orders')
+        .select(`
+          id,
+          product_id,
+          user_id,
+          quantity,
+          location,
+          status,
+          created_at
+        `)
+        .in('product_id', productIds)
+        .order('created_at', { ascending: false })
+
+      if (ordersError) throw ordersError
+
+      // Buscar detalhes dos produtos e compradores
+      const ordersWithDetails = await Promise.all((orders || []).map(async (order) => {
+        // Buscar produto
+        const { data: product } = await supabase
+          .from('products')
+          .select('product_type, price')
+          .eq('id', order.product_id)
+          .single()
+
+        // Buscar comprador
+        const { data: buyer } = await supabase
+          .from('users')
+          .select('full_name, phone')
+          .eq('id', order.user_id)
+          .single()
+
+        return {
+          ...order,
+          product: product || undefined,
+          buyer: buyer || undefined
+        } as ReceivedOrder
+      }))
+
+      setReceivedOrders(ordersWithDetails)
+    } catch (error) {
+      console.error('Erro ao buscar pedidos recebidos:', error)
+    }
+  }
+
   useEffect(() => {
     if (!user) return
     if (userProfile?.user_type === 'comprador') fetchFichasRecebimento()
-    else fetchUserProducts()
+    else {
+      fetchUserProducts()
+      fetchReceivedOrders() // Buscar pedidos para agricultores e agentes
+    }
     if (userProfile?.user_type === 'agente') {
-      fetchUserProducts() // Agentes também podem publicar produtos
       fetchAgentStats()
     }
     setLoading(false)
@@ -290,8 +375,16 @@ const Profile = () => {
         {/* Coluna direita: produtos / fichas / estatísticas */}
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="products" className="w-full">
-            <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-4' : userProfile?.user_type === 'agricultor' ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="products">{userProfile?.user_type==='comprador'?'Minhas Fichas':'Meus Produtos'}</TabsTrigger>
+              {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (
+                <TabsTrigger value="orders" className="flex items-center gap-1">
+                  Pedidos
+                  {receivedOrders.length > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">{receivedOrders.length}</Badge>
+                  )}
+                </TabsTrigger>
+              )}
               {userProfile?.user_type === 'agente' && <TabsTrigger value="referrals">Minhas Indicações</TabsTrigger>}
               <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
             </TabsList>
@@ -352,6 +445,76 @@ const Profile = () => {
                 </div>
               )}
             </TabsContent>
+
+            {/* Aba de Pedidos Recebidos (só para agricultores e agentes) */}
+            {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (
+              <TabsContent value="orders" className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  {receivedOrders.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {receivedOrders.map((order) => (
+                        <Card key={order.id} className="shadow-soft border-card-border overflow-hidden">
+                          <div className={`h-1 ${order.status === 'pending' ? 'bg-yellow-500' : order.status === 'accepted' ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <h3 className="font-bold text-lg text-primary">{order.product?.product_type || 'Produto'}</h3>
+                                <Badge variant={order.status === 'pending' ? 'secondary' : order.status === 'accepted' ? 'default' : 'destructive'}>
+                                  {order.status === 'pending' ? 'Pendente' : order.status === 'accepted' ? 'Aceito' : 'Rejeitado'}
+                                </Badge>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-bold text-green-600">{order.quantity.toLocaleString()} kg</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {((order.product?.price || 0) * order.quantity).toLocaleString()} Kz
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span>Comprador: <span className="font-semibold">{order.buyer?.full_name || 'Usuário'}</span></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <span>{order.buyer?.phone || 'Sem telefone'}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span>Entrega: <span className="font-semibold">{order.location}</span></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span>Data: <span className="font-semibold">{formatDate(order.created_at)}</span></span>
+                              </div>
+                            </div>
+
+                            {order.status === 'pending' && (
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" className="flex-1" variant="default">
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Aceitar
+                                </Button>
+                                <Button size="sm" className="flex-1" variant="outline">
+                                  Contactar
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                      <p className="text-muted-foreground">Nenhum pedido recebido ainda</p>
+                      <p className="text-sm text-muted-foreground mt-2">Quando alguém fizer um pedido nos seus produtos, aparecerá aqui.</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            )}
 
             {/* Aba de Indicações (só para agentes) */}
             {userProfile?.user_type === 'agente' && (

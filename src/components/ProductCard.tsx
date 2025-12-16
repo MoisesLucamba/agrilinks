@@ -277,11 +277,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <Card className="shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow bg-white">
         {/* Header */}
         <div className="p-3 flex items-center gap-3 border-b border-gray-50">
-          <Avatar className="h-9 w-9 ring-2 ring-primary/20">
+          <Avatar 
+            className="h-9 w-9 ring-2 ring-primary/20 cursor-pointer hover:ring-primary/40 transition-all"
+            onClick={() => navigate(`/perfil/${product.user_id}`)}
+          >
             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">{product.farmer_name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">{product.farmer_name}</h3>
+            <h3 
+              className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
+              onClick={() => navigate(`/perfil/${product.user_id}`)}
+            >
+              {product.farmer_name}
+            </h3>
             <p className="text-xs text-muted-foreground truncate">{product.province_id}, {product.municipality_id}</p>
           </div>
           <Badge variant="secondary" className="text-xs shrink-0">{product.product_type}</Badge>

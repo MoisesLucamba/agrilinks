@@ -8,15 +8,16 @@ interface AppLayoutProps {
 }
 
 // Páginas onde o BottomNavigation não deve aparecer
-const HIDDEN_NAV_ROUTES = ['/mapa', '/notificacoes', '/listamensagens', '/messages']
+const HIDDEN_NAV_ROUTES = ['/mapa', '/notificacoes', '/listamensagens']
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation()
+  const pathname = location.pathname
   
   // Verificar se deve esconder a navegação inferior
-  const shouldHideNav = HIDDEN_NAV_ROUTES.some(route => 
-    location.pathname === route || location.pathname.startsWith('/messages/')
-  )
+  const shouldHideNav = 
+    HIDDEN_NAV_ROUTES.includes(pathname) || 
+    pathname.startsWith('/messages')  // Cobre /messages e /messages/:id
 
   return (
     <div className="min-h-screen bg-background">

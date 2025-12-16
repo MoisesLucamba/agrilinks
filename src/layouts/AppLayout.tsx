@@ -8,7 +8,7 @@ interface AppLayoutProps {
 }
 
 // Páginas onde o BottomNavigation não deve aparecer
-const HIDDEN_NAV_ROUTES = ['/mapa', '/notificacoes', '/listamensagens']
+const HIDDEN_NAV_ROUTES = ['/mapa', '/notificacoes']
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation()

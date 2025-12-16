@@ -174,7 +174,7 @@ const UserProfile = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <p className="text-muted-foreground mb-4">Usuário não encontrado</p>
-        <Button onClick={() => navigate(-1)}>Voltar</Button>
+        <Button onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/app')}>Voltar</Button>
       </div>
     );
   }
@@ -183,7 +183,7 @@ const UserProfile = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/app')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-lg font-semibold">Perfil</h1>

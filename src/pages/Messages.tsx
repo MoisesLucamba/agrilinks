@@ -521,7 +521,7 @@ const Messages = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/listamensagens')}
               className="hover:bg-gray-100"
             >
               <ArrowLeft className="h-5 w-5 text-gray-700" />

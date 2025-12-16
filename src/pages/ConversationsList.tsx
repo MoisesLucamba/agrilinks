@@ -404,26 +404,14 @@ const ConversationsList = () => {
                 >
                   <CardContent className="flex items-center justify-between p-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Avatar 
-                        className="h-12 w-12 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/perfil/${conv.participant_id}`);
-                        }}
-                      >
+                      <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={conv.avatar || "/default-avatar.png"} />
                         <AvatarFallback className="bg-secondary text-secondary-foreground">
                           {conv.title.charAt(0).toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col flex-1 min-w-0">
-                        <span 
-                          className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/perfil/${conv.participant_id}`);
-                          }}
-                        >
+                        <span className="font-semibold text-sm truncate">
                           {highlightText(conv.title, searchTerm)}
                         </span>
                         <span className="text-xs text-muted-foreground line-clamp-1">

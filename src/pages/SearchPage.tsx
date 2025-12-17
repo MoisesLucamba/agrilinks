@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { supabase } from '@/integrations/supabase/client'
-import { ChevronLeft, Search, Package, User } from 'lucide-react'
+import { 
+  ChevronLeft, Search, Package, User, TrendingUp, Clock, 
+  DollarSign, Filter, X, SlidersHorizontal, Wheat, Apple,
+  Carrot, Leaf, ArrowUpDown
+} from 'lucide-react'
 import { angolaProvinces } from '@/data/angola-locations'
 import { ProductCard, Product as ProductCardType } from '@/components/ProductCard'
 import { useAuth } from '@/contexts/AuthContext'
@@ -19,21 +25,37 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY283Z2QwaGRwMmlyNGlwNW4
 
 interface Product extends ProductCardType {}
 
-interface User {
+interface UserResult {
   id: string
-  username: string
   full_name: string
   email: string
+  user_type: string
+  avatar_url?: string
 }
+
+type SortOption = 'recent' | 'popular' | 'price_asc' | 'price_desc'
+type TabOption = 'all' | 'products' | 'users'
+
+const productCategories = [
+  { id: 'all', name: 'Todos', icon: Package },
+  { id: 'cereais', name: 'Cereais', icon: Wheat },
+  { id: 'frutas', name: 'Frutas', icon: Apple },
+  { id: 'legumes', name: 'Legumes', icon: Carrot },
+  { id: 'verduras', name: 'Verduras', icon: Leaf },
+]
 
 const SearchPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProvince, setSelectedProvince] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<SortOption>('recent')
+  const [activeTab, setActiveTab] = useState<TabOption>('all')
   const [productResults, setProductResults] = useState<Product[]>([])
-  const [userResults, setUserResults] = useState<User[]>([])
+  const [userResults, setUserResults] = useState<UserResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [mapModalOpen, setMapModalOpen] = useState(false)
   const [preOrderModalOpen, setPreOrderModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -41,7 +63,7 @@ const SearchPage = () => {
   const mapContainerRef = React.useRef<HTMLDivElement>(null)
   const mapRef = React.useRef<mapboxgl.Map | null>(null)
 
-  const searchData = async (term: string, province?: string) => {
+  const searchData = async (term: string, province?: string, category?: string) => {
     setLoading(true)
     try {
       // Buscar produtos
@@ -50,19 +72,21 @@ const SearchPage = () => {
         .select('*')
         .eq('status', 'active')
       
-      // Aplicar filtro de província se selecionado
       if (province) {
         query = query.eq('province_id', province)
       }
       
-      // Aplicar filtro de busca se houver termo
       if (term.trim()) {
         query = query.or(`product_type.ilike.%${term}%,description.ilike.%${term}%,farmer_name.ilike.%${term}%`)
       }
 
+      // Filtrar por categoria (usando product_type)
+      if (category && category !== 'all') {
+        query = query.ilike('product_type', `%${category}%`)
+      }
+
       const { data: products } = await query
 
-      // Enriquecer produtos com likes e comentários
       const productsWithData = await Promise.all(
         (products || []).map(async (product) => {
           const { count: likesCount } = await supabase
@@ -105,14 +129,15 @@ const SearchPage = () => {
 
       setProductResults(productsWithData)
 
-      // Buscar usuários apenas se houver termo de busca
-      if (term.trim()) {
+      // Buscar usuários
+      if (term.trim() && (activeTab === 'all' || activeTab === 'users')) {
         const { data: users } = await supabase
           .from('users')
-          .select('*')
+          .select('id, full_name, email, user_type, avatar_url')
           .or(`full_name.ilike.%${term}%,email.ilike.%${term}%`)
+          .limit(20)
 
-        setUserResults((users || []) as any)
+        setUserResults((users || []) as UserResult[])
       } else {
         setUserResults([])
       }
@@ -124,15 +149,28 @@ const SearchPage = () => {
   }
 
   useEffect(() => {
-    searchData(searchTerm, selectedProvince)
-  }, [searchTerm, selectedProvince])
+    searchData(searchTerm, selectedProvince, selectedCategory)
+  }, [searchTerm, selectedProvince, selectedCategory, activeTab])
+
+  // Ordenar produtos
+  const sortedProducts = useMemo(() => {
+    const sorted = [...productResults]
+    switch (sortBy) {
+      case 'recent':
+        return sorted.sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+      case 'popular':
+        return sorted.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+      case 'price_asc':
+        return sorted.sort((a, b) => a.price - b.price)
+      case 'price_desc':
+        return sorted.sort((a, b) => b.price - a.price)
+      default:
+        return sorted
+    }
+  }, [productResults, sortBy])
 
   const handleProvinceClick = (provinceId: string) => {
-    if (selectedProvince === provinceId) {
-      setSelectedProvince('')
-    } else {
-      setSelectedProvince(provinceId)
-    }
+    setSelectedProvince(prev => prev === provinceId ? '' : provinceId)
   }
 
   const handleProductUpdate = (updatedProduct: Product) => {
@@ -164,7 +202,6 @@ const SearchPage = () => {
 
       if (error) throw error
 
-      // Criar notificação para o produtor
       await supabase.rpc('create_notification', {
         p_user_id: selectedProduct.user_id,
         p_type: 'pre_order',
@@ -177,7 +214,6 @@ const SearchPage = () => {
         }
       })
 
-      // Buscar agentes
       const { data: agentUsers } = await supabase
         .from('users')
         .select('id')
@@ -208,6 +244,15 @@ const SearchPage = () => {
       toast.error('Erro ao processar pré-compra')
     }
   }
+
+  const clearFilters = () => {
+    setSelectedProvince('')
+    setSelectedCategory('all')
+    setSortBy('recent')
+    setSearchTerm('')
+  }
+
+  const hasActiveFilters = selectedProvince || selectedCategory !== 'all' || sortBy !== 'recent' || searchTerm
 
   React.useEffect(() => {
     if (!mapModalOpen || !selectedProduct?.location_lat || !selectedProduct?.location_lng) return
@@ -242,46 +287,168 @@ const SearchPage = () => {
   const TAX_RATE = 0.10
   const totalPrice = selectedProduct ? orderData.quantity * selectedProduct.price * (1 + TAX_RATE) : 0
 
+  const getUserTypeLabel = (type: string) => {
+    switch (type) {
+      case 'agricultor': return 'Agricultor'
+      case 'comprador': return 'Comprador'
+      case 'agente': return 'Agente'
+      default: return 'Usuário'
+    }
+  }
+
+  const getUserTypeColor = (type: string) => {
+    switch (type) {
+      case 'agricultor': return 'bg-green-500/10 text-green-600'
+      case 'comprador': return 'bg-blue-500/10 text-blue-600'
+      case 'agente': return 'bg-purple-500/10 text-purple-600'
+      default: return 'bg-muted text-muted-foreground'
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* HEADER */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-muted transition"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-xl font-semibold">Pesquisar</h1>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar produtos ou usuários..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-11"
-          />
-        </div>
-        
-        {/* Filtro por Província */}
-        <div className="mt-3">
-          <p className="text-sm font-medium mb-2 text-muted-foreground">Filtrar por Província</p>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {angolaProvinces.map((province) => (
-              <Button
-                key={province.id}
-                variant={selectedProvince === province.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleProvinceClick(province.id)}
-                className="whitespace-nowrap shrink-0"
-              >
-                {province.name}
-              </Button>
-            ))}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-full hover:bg-muted transition"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">Pesquisar</h1>
+            <div className="flex-1" />
+            <Button
+              variant={showFilters ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtros
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-primary rounded-full" />
+              )}
+            </Button>
           </div>
+          
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar produtos, agricultores..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10 h-11 bg-muted/50"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-2.5 p-0.5 hover:bg-muted rounded"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabOption)} className="mt-3">
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="all" className="text-xs">Todos</TabsTrigger>
+              <TabsTrigger value="products" className="text-xs">Produtos</TabsTrigger>
+              <TabsTrigger value="users" className="text-xs">Usuários</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="px-4 pb-4 space-y-4 border-t border-border pt-4 bg-muted/30">
+            {/* Categorias */}
+            <div>
+              <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Categoria
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {productCategories.map((cat) => (
+                  <Button
+                    key={cat.id}
+                    variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className="whitespace-nowrap shrink-0 gap-1.5"
+                  >
+                    <cat.icon className="h-3.5 w-3.5" />
+                    {cat.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Ordenar */}
+            <div className="flex items-center gap-3">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4" />
+                Ordenar
+              </p>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" /> Mais recentes
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="popular">
+                    <span className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" /> Mais populares
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="price_asc">
+                    <span className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" /> Menor preço
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="price_desc">
+                    <span className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" /> Maior preço
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Províncias */}
+            <div>
+              <p className="text-sm font-medium mb-2">Província</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {angolaProvinces.map((province) => (
+                  <Button
+                    key={province.id}
+                    variant={selectedProvince === province.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleProvinceClick(province.id)}
+                    className="whitespace-nowrap shrink-0 text-xs"
+                  >
+                    {province.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Limpar filtros */}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-destructive">
+                <X className="h-4 w-4 mr-2" />
+                Limpar todos os filtros
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-4 space-y-6">
@@ -291,38 +458,48 @@ const SearchPage = () => {
           </div>
         )}
 
-        {!loading && searchTerm && productResults.length === 0 && userResults.length === 0 && (
+        {!loading && searchTerm && sortedProducts.length === 0 && userResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="h-12 w-12 text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Nenhum resultado encontrado</p>
-            <p className="text-sm text-muted-foreground mt-1">Tente buscar por outro termo</p>
+            <p className="text-muted-foreground font-medium">Nenhum resultado encontrado</p>
+            <p className="text-sm text-muted-foreground mt-1">Tente buscar por outro termo ou ajuste os filtros</p>
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters} className="mt-4">
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 
         {/* Resultados de Usuários */}
-        {userResults.length > 0 && (
+        {(activeTab === 'all' || activeTab === 'users') && userResults.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
               <User className="h-5 w-5 text-primary" />
               <h2 className="font-semibold text-lg">Usuários</h2>
               <Badge variant="secondary">{userResults.length}</Badge>
             </div>
-            <div className="space-y-2">
-              {userResults.map(user => (
+            <div className="grid gap-2">
+              {userResults.map(u => (
                 <Card 
-                  key={user.id} 
+                  key={u.id} 
                   className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
-                  onClick={() => navigate(`/perfil/${user.id}`)}
+                  onClick={() => navigate(`/perfil/${u.id}`)}
                 >
-                  <CardContent className="flex items-center gap-3 p-4">
-                    <Avatar className="h-12 w-12">
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <Avatar className="h-11 w-11">
+                      <AvatarImage src={u.avatar_url || ''} />
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {(user.full_name || user.username).charAt(0).toUpperCase()}
+                        {u.full_name?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{user.full_name || user.username}</p>
-                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                      <p className="font-semibold truncate">{u.full_name}</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={`text-[10px] ${getUserTypeColor(u.user_type)}`}>
+                          {getUserTypeLabel(u.user_type)}
+                        </Badge>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -332,15 +509,17 @@ const SearchPage = () => {
         )}
 
         {/* Resultados de Produtos */}
-        {productResults.length > 0 && (
+        {(activeTab === 'all' || activeTab === 'products') && sortedProducts.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Package className="h-5 w-5 text-primary" />
-              <h2 className="font-semibold text-lg">Produtos</h2>
-              <Badge variant="secondary">{productResults.length}</Badge>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold text-lg">Produtos</h2>
+                <Badge variant="secondary">{sortedProducts.length}</Badge>
+              </div>
             </div>
-            <div className="space-y-6">
-              {productResults.map(product => (
+            <div className="space-y-4">
+              {sortedProducts.map(product => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -350,6 +529,15 @@ const SearchPage = () => {
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Estado vazio sem pesquisa */}
+        {!loading && !searchTerm && sortedProducts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Search className="h-12 w-12 text-muted-foreground/50 mb-3" />
+            <p className="text-muted-foreground font-medium">Comece a pesquisar</p>
+            <p className="text-sm text-muted-foreground mt-1">Digite para encontrar produtos e usuários</p>
           </div>
         )}
       </div>

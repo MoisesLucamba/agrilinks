@@ -105,6 +105,7 @@ interface ProductCardProps {
   onFavorite: (productId: string) => void;
 }
 
+// Card simples que aparece ao clicar no marcador (sem modal grande)
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClose, onContact, onFavorite }) => {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -114,210 +115,71 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClose, onContact, 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-center items-center px-4 py-6 overflow-y-auto">
-      <Card className="w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-300">
-        {/* Imagem do Produto */}
-        <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100">
-          <img
-            src={product.image_url}
-            alt={product.product_type}
-            className="w-full h-full object-cover"
-          />
-          <button
-            className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-full shadow-lg transition-all"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <div className="absolute bottom-4 left-4 right-4 z-40 animate-in slide-in-from-bottom duration-300">
+      <Card className="w-full max-w-md mx-auto shadow-xl bg-white/95 backdrop-blur-sm border border-green-200">
+        <CardContent className="p-4">
+          <div className="flex gap-3">
+            {/* Imagem do Produto */}
+            <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+              <img
+                src={product.image_url}
+                alt={product.product_type}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-          {/* Badge de Status */}
-          <div className="absolute top-4 left-4">
-            <Badge className="bg-green-600 text-white">Disponível</Badge>
+            {/* Informações do Produto */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-bold text-gray-900 truncate">{product.product_type}</h3>
+                  <p className="text-sm text-gray-500">{product.farmer_name}</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                >
+                  <X className="h-4 w-4 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-lg font-bold text-green-600">{product.price.toLocaleString()} Kz</span>
+                <span className="text-sm text-gray-500">{product.quantity} kg</span>
+              </div>
+
+              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{product.municipality_id}, {product.province_id}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Botão de Favorito */}
-          <button
-            className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-full shadow-lg transition-all"
-            onClick={handleFavorite}
-          >
-            <Heart
-              className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`}
-            />
-          </button>
-        </div>
-
-        <CardContent className="p-6 md:p-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Coluna Esquerda - Informações do Produto */}
-            <div className="md:col-span-2 space-y-6">
-              {/* Título e Preço */}
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  {product.product_type}
-                </h2>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-green-600">
-                    {product.price.toFixed(2)}
-                  </span>
-                  <span className="text-lg text-gray-600">Kz/kg</span>
-                </div>
-              </div>
-
-              {/* Grid de Informações */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Quantidade */}
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-700 font-semibold mb-1">
-                    <Package className="h-4 w-4" />
-                    Quantidade
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">{product.quantity} kg</p>
-                </div>
-
-                {/* Data de Colheita */}
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 text-blue-700 font-semibold mb-1">
-                    <Calendar className="h-4 w-4" />
-                    Colheita
-                  </div>
-                  <p className="text-lg font-bold text-gray-900">
-                    {new Date(product.harvest_date).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-
-                {/* Localização */}
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-2 text-purple-700 font-semibold mb-1">
-                    <MapPin className="h-4 w-4" />
-                    Localização
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">
-                    {product.municipality_id}, {product.province_id}
-                  </p>
-                </div>
-
-                {/* Coordenadas */}
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <div className="flex items-center gap-2 text-orange-700 font-semibold mb-1">
-                    <Navigation className="h-4 w-4" />
-                    GPS
-                  </div>
-                  <p className="text-xs font-mono text-gray-900">
-                    {product.location_lat?.toFixed(4)}, {product.location_lng?.toFixed(4)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Dados Climáticos */}
-              {product.weatherData && (
-                <div className="p-4 bg-gradient-to-r from-sky-50 to-cyan-50 rounded-lg border border-sky-200">
-                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Cloud className="h-5 w-5 text-sky-600" />
-                    Condições Climáticas
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2">
-                      <Droplet className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-gray-700">
-                        Temp: {product.weatherData.main?.temp}°C
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Wind className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
-                        {product.weatherData.weather?.[0]?.description}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Estado da Estrada */}
-              {product.roadCondition && (
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
-                    <span className="font-semibold text-gray-900">
-                      Estado da Estrada: {product.roadCondition}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Coluna Direita - Informações do Agricultor */}
-            <div className="space-y-4">
-              {/* Card do Agricultor */}
-              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white">
-                    <Leaf className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{product.farmer_name}</p>
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3 w-3 ${
-                            i < (product.farmer_rating || 0)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contato */}
-                <div className="space-y-2">
-                  {product.farmer_phone && (
-                    <a
-                      href={`tel:${product.farmer_phone}`}
-                      className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-green-100 transition-colors text-gray-700 text-sm"
-                    >
-                      <Phone className="h-4 w-4 text-green-600" />
-                      {product.farmer_phone}
-                    </a>
-                  )}
-                  {product.farmer_email && (
-                    <a
-                      href={`mailto:${product.farmer_email}`}
-                      className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-green-100 transition-colors text-gray-700 text-sm"
-                    >
-                      <Mail className="h-4 w-4 text-green-600" />
-                      {product.farmer_email}
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="space-y-2">
-                <Button
-                  onClick={() => onContact(product)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Contactar Agricultor
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full border-green-200 text-green-700 hover:bg-green-50"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Partilhar
-                </Button>
-              </div>
-
-              {/* Informações Adicionais */}
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs text-gray-600 space-y-1">
-                <p>✓ Produto verificado</p>
-                <p>✓ Entrega disponível</p>
-                <p>✓ Pagamento seguro</p>
-              </div>
-            </div>
+          {/* Botões de Ação */}
+          <div className="flex gap-2 mt-3">
+            <Button
+              onClick={() => onContact(product)}
+              size="sm"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Contactar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleFavorite}
+              className={`${isFavorited ? 'text-red-500 border-red-200' : 'text-gray-600 border-gray-200'}`}
+            >
+              <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500' : ''}`} />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600 border-gray-200"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>

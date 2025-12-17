@@ -264,6 +264,71 @@ const Profile = () => {
     } catch (error) { console.error('Error deleting product:', error) }
   }
 
+  // Funções para gerenciar pedidos
+  const acceptOrder = async (orderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('pre_orders')
+        .update({ status: 'accepted' })
+        .eq('id', orderId)
+      if (error) throw error
+      setReceivedOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'accepted' } : o))
+      alert('Pedido aceito com sucesso!')
+    } catch (error) {
+      console.error('Erro ao aceitar pedido:', error)
+      alert('Erro ao aceitar pedido')
+    }
+  }
+
+  const rejectOrder = async (orderId: string) => {
+    if (!confirm('Deseja rejeitar este pedido?')) return
+    try {
+      const { error } = await supabase
+        .from('pre_orders')
+        .update({ status: 'rejected' })
+        .eq('id', orderId)
+      if (error) throw error
+      setReceivedOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'rejected' } : o))
+      alert('Pedido rejeitado')
+    } catch (error) {
+      console.error('Erro ao rejeitar pedido:', error)
+      alert('Erro ao rejeitar pedido')
+    }
+  }
+
+  const contactBuyer = async (order: ReceivedOrder) => {
+    if (!user || !order.user_id) return
+    try {
+      // Verificar se já existe conversa
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(user_id.eq.${user.id},peer_user_id.eq.${order.user_id}),and(user_id.eq.${order.user_id},peer_user_id.eq.${user.id})`)
+        .limit(1)
+      
+      if (existingConv && existingConv.length > 0) {
+        navigate(`/messages/${existingConv[0].id}`)
+        return
+      }
+      // Criar nova conversa
+      const { data: newConv, error } = await supabase
+        .from('conversations')
+        .insert({
+          user_id: user.id,
+          peer_user_id: order.user_id,
+          title: order.buyer?.full_name || 'Comprador',
+          last_timestamp: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      if (error) throw error
+      navigate(`/messages/${newConv.id}`)
+    } catch (error) {
+      console.error('Erro ao iniciar conversa:', error)
+      alert('Erro ao contactar comprador')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const variants = { 'active': 'default', 'inactive': 'secondary', 'removed': 'destructive' } as const
     const labels = { 'active': 'Ativo', 'inactive': 'Inativo', 'removed': 'Removido' }
@@ -492,13 +557,24 @@ const Profile = () => {
                               </div>
                             </div>
 
-                            {order.status === 'pending' && (
+                            {order.status === 'pending' ? (
                               <div className="flex gap-2 pt-2">
-                                <Button size="sm" className="flex-1" variant="default">
+                                <Button size="sm" className="flex-1" variant="default" onClick={() => acceptOrder(order.id)}>
                                   <CheckCircle className="h-4 w-4 mr-1" />
                                   Aceitar
                                 </Button>
-                                <Button size="sm" className="flex-1" variant="outline">
+                                <Button size="sm" className="flex-1" variant="destructive" onClick={() => rejectOrder(order.id)}>
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Rejeitar
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => contactBuyer(order)}>
+                                  <Phone className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" className="flex-1" variant="outline" onClick={() => contactBuyer(order)}>
+                                  <Phone className="h-4 w-4 mr-1" />
                                   Contactar
                                 </Button>
                               </div>

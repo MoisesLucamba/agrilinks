@@ -232,7 +232,7 @@ const UserProfile = () => {
             <Avatar className="h-28 w-28 ring-4 ring-background shadow-xl">
               <AvatarImage src={userData.avatar_url || ''} className="object-cover" />
               <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
-                {userData.full_name.charAt(0).toUpperCase()}
+                {userData.full_name?.charAt(0)?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             

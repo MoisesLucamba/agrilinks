@@ -376,17 +376,19 @@ const Profile = () => {
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="products" className="w-full">
             <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-4' : userProfile?.user_type === 'agricultor' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              <TabsTrigger value="products">{userProfile?.user_type==='comprador'?'Minhas Fichas':'Meus Produtos'}</TabsTrigger>
+              <TabsTrigger value="products" className="flex items-center justify-center gap-1" title={userProfile?.user_type==='comprador'?'Minhas Fichas':'Meus Produtos'}>
+                {userProfile?.user_type==='comprador' ? <ClipboardList className="h-5 w-5" /> : <Package className="h-5 w-5" />}
+              </TabsTrigger>
               {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (
-                <TabsTrigger value="orders" className="flex items-center gap-1">
-                  Pedidos
+                <TabsTrigger value="orders" className="flex items-center justify-center gap-1 relative" title="Pedidos Recebidos">
+                  <ShoppingCart className="h-5 w-5" />
                   {receivedOrders.length > 0 && (
-                    <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">{receivedOrders.length}</Badge>
+                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">{receivedOrders.length}</Badge>
                   )}
                 </TabsTrigger>
               )}
-              {userProfile?.user_type === 'agente' && <TabsTrigger value="referrals">Minhas Indicações</TabsTrigger>}
-              <TabsTrigger value="statistics">Estatísticas</TabsTrigger>
+              {userProfile?.user_type === 'agente' && <TabsTrigger value="referrals" className="flex items-center justify-center" title="Minhas Indicações"><Users className="h-5 w-5" /></TabsTrigger>}
+              <TabsTrigger value="statistics" className="flex items-center justify-center" title="Estatísticas"><BarChart3 className="h-5 w-5" /></TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="space-y-4 mt-4">

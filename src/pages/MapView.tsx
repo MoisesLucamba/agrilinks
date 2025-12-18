@@ -23,6 +23,7 @@ import {
   Heart,
   Share2,
   ArrowRight,
+  ArrowLeft,
   Droplet,
   Wind,
   Cloud,
@@ -486,22 +487,29 @@ const MapView = () => {
 
       {/* Header */}
     <header className="absolute top-0 left-0 right-0 z-30 bg-white text-gray-800 shadow-lg">
-  <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      {/* Componente logotipo */}
-          <img src={agrilinkLogo} alt="AgriLink" className="h-12" />
-      <h1 className="text-2xl font-bold"> Mapa de Produtos</h1>
-    </div>
-    <Button
-      variant="ghost"
-      size="icon"
-      className="text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-300"
-      onClick={() => setShowFilters(!showFilters)}
-    >
-      <Filter className="h-5 w-5" />
-    </Button>
-  </div>
-</header>
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="text-gray-800 hover:bg-gray-100 rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <img src={agrilinkLogo} alt="AgriLink" className="h-10" />
+          <h1 className="text-xl font-bold">Mapa de Produtos</h1>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-800 hover:bg-gray-100 rounded-full transition-colors duration-300"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <Filter className="h-5 w-5" />
+        </Button>
+      </div>
+    </header>
 
 
       {/* Barra de Pesquisa */}

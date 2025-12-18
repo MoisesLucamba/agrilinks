@@ -15,6 +15,7 @@ import {
   X,
   AlertCircle,
   Zap,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -533,6 +534,14 @@ const Notifications = () => {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.history.back()}
+              className="hover:bg-gray-100"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             <h1 className="text-2xl font-bold text-gray-900">Notificações</h1>
             {unreadCount > 0 && (
               <Badge className="bg-red-500 text-white text-sm">{unreadCount}</Badge>

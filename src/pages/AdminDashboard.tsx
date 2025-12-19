@@ -186,6 +186,7 @@ const AdminDashboard = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [fichas, setFichas] = useState<Ficha[]>([]);
+  const [sourcingRequests, setSourcingRequests] = useState<SourcingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -224,18 +225,20 @@ const AdminDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [prodRes, usersRes, transRes, notRes, fichasRes] = await Promise.all([
+      const [prodRes, usersRes, transRes, notRes, fichasRes, sourcingRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("users").select("*").order("created_at", { ascending: false }),
         supabase.from("transactions").select("*").order("created_at", { ascending: false }),
         supabase.from("notifications").select("*").order("created_at", { ascending: false }),
         supabase.from("fichas_recebimento").select("*").order("created_at", { ascending: false }),
+        supabase.from("sourcing_requests").select("*").order("created_at", { ascending: false }),
       ]);
       setProducts(prodRes.data || []);
       setUsers(usersRes.data || []);
       setTransactions(transRes.data || []);
       setNotifications(notRes.data || []);
       setFichas(fichasRes.data || []);
+      setSourcingRequests(sourcingRes.data || []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -290,6 +293,19 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  const updateSourcingStatus = useCallback(async (id: string, newStatus: string, adminNotes?: string) => {
+    const updateData: { status: string; admin_notes?: string } = { status: newStatus };
+    if (adminNotes !== undefined) updateData.admin_notes = adminNotes;
+    
+    const { error } = await supabase.from("sourcing_requests").update(updateData).eq("id", id);
+    if (!error) {
+      setSourcingRequests((prev) => prev.map((s) => (s.id === id ? { ...s, ...updateData } : s)));
+      toast.success(`Pedido de sourcing atualizado`);
+    } else {
+      toast.error("Erro ao atualizar pedido");
+    }
+  }, []);
+
   // --- Dados para Gráficos ---
   const chartDataRevenue = useMemo(() => {
     const data: Record<string, number> = {};
@@ -332,8 +348,10 @@ const AdminDashboard = () => {
       concluida: "bg-green-100 text-green-700",
       pending: "bg-amber-100 text-amber-700",
       aguardando: "bg-amber-100 text-amber-700",
+      in_progress: "bg-blue-100 text-blue-700",
       failed: "bg-red-100 text-red-700",
       cancelado: "bg-red-100 text-red-700",
+      cancelled: "bg-red-100 text-red-700",
       blocked: "bg-gray-100 text-gray-700",
     };
     return colors[status] || "bg-gray-100 text-gray-600";
@@ -407,6 +425,9 @@ const AdminDashboard = () => {
             </TabButton>
             <TabButton active={activeTab === "fichas"} onClick={() => { setActiveTab("fichas"); setMenuOpen(false); }}>
               <FileText className="h-4 w-4" /> Fichas
+            </TabButton>
+            <TabButton active={activeTab === "sourcing"} onClick={() => { setActiveTab("sourcing"); setMenuOpen(false); }} badge={sourcingRequests.filter(s => s.status === 'pending').length}>
+              <TrendingUp className="h-4 w-4" /> Sourcing
             </TabButton>
           </div>
         </div>
@@ -780,6 +801,111 @@ const AdminDashboard = () => {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* AGRILINK SOURCING */}
+        {activeTab === "sourcing" && (
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" /> AgriLink Sourcing - Pedidos Especiais ({sourcingRequests.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              {sourcingRequests.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Nenhum pedido de sourcing</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/80">
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Qtd (kg)</TableHead>
+                      <TableHead>Entrega</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sourcingRequests.map((req) => {
+                      const user = users.find((u) => u.id === req.user_id);
+                      return (
+                        <TableRow key={req.id} className="hover:bg-gray-50/50">
+                          <TableCell className="font-medium">{user?.full_name || "-"}</TableCell>
+                          <TableCell>{req.product_name}</TableCell>
+                          <TableCell>{req.quantity}</TableCell>
+                          <TableCell className="text-sm">{new Date(req.delivery_date).toLocaleDateString("pt-BR")}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-500">{new Date(req.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreVertical className="h-4 w-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => updateSourcingStatus(req.id, "in_progress")}>
+                                  <Clock className="h-4 w-4 mr-2 text-amber-500" /> Em Progresso
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateSourcingStatus(req.id, "completed")}>
+                                  <Check className="h-4 w-4 mr-2 text-green-500" /> Concluído
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => updateSourcingStatus(req.id, "cancelled")}>
+                                  <X className="h-4 w-4 mr-2 text-red-500" /> Cancelado
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  const notes = prompt("Notas do Admin:", req.admin_notes || "");
+                                  if (notes !== null) updateSourcingStatus(req.id, req.status, notes);
+                                }}>
+                                  <MessageSquare className="h-4 w-4 mr-2" /> Adicionar Notas
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setTargetUser(req.user_id); setNotificationModalOpen(true); }}>
+                                  <Bell className="h-4 w-4 mr-2" /> Notificar Cliente
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+              
+              {/* Detalhes expandidos */}
+              <div className="mt-6 space-y-4">
+                <h3 className="font-semibold text-sm text-gray-700">Detalhes dos Pedidos</h3>
+                {sourcingRequests.filter(r => r.description || r.admin_notes).map((req) => {
+                  const user = users.find((u) => u.id === req.user_id);
+                  return (
+                    <div key={req.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <span className="font-medium">{req.product_name}</span>
+                          <span className="text-sm text-gray-500 ml-2">- {user?.full_name}</span>
+                        </div>
+                        <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
+                      </div>
+                      {req.description && (
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-500 font-medium">Descrição do Cliente:</p>
+                          <p className="text-sm text-gray-700">{req.description}</p>
+                        </div>
+                      )}
+                      {req.admin_notes && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                          <p className="text-xs text-blue-600 font-medium">Notas do Admin:</p>
+                          <p className="text-sm text-blue-800">{req.admin_notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         )}

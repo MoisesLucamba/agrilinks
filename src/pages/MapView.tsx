@@ -106,7 +106,7 @@ interface ProductCardProps {
   onFavorite: (productId: string) => void;
 }
 
-// Card simples que aparece ao clicar no marcador (sem modal grande)
+// Card simples que aparece ao clicar no marcador
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClose, onContact, onFavorite }) => {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -117,67 +117,104 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClose, onContact, 
 
   return (
     <div className="absolute bottom-4 left-4 right-4 z-40 animate-in slide-in-from-bottom duration-300">
-      <Card className="w-full max-w-md mx-auto shadow-xl bg-white/95 backdrop-blur-sm border border-green-200">
-        <CardContent className="p-4">
-          <div className="flex gap-3">
-            {/* Imagem do Produto */}
-            <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-              <img
-                src={product.image_url}
-                alt={product.product_type}
-                className="w-full h-full object-cover"
-              />
+      <Card className="w-full max-w-md mx-auto shadow-2xl bg-white border-0 overflow-hidden">
+        {/* Header com imagem */}
+        <div className="relative h-32 bg-gradient-to-br from-green-500 to-emerald-600">
+          {product.image_url && (
+            <img
+              src={product.image_url}
+              alt={product.product_type}
+              className="w-full h-full object-cover opacity-30"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 p-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full transition-all"
+          >
+            <X className="h-4 w-4 text-white" />
+          </button>
+          <div className="absolute bottom-3 left-4 right-4">
+            <h3 className="text-xl font-bold text-white drop-shadow-lg">{product.product_type}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <User className="h-3 w-3 text-white/80" />
+              <span className="text-sm text-white/90">{product.farmer_name}</span>
             </div>
+          </div>
+        </div>
 
-            {/* Informações do Produto */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-bold text-gray-900 truncate">{product.product_type}</h3>
-                  <p className="text-sm text-gray-500">{product.farmer_name}</p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-                >
-                  <X className="h-4 w-4 text-gray-500" />
-                </button>
+        <CardContent className="p-4">
+          {/* Preço e Quantidade */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <DollarSign className="h-5 w-5 text-green-600" />
               </div>
+              <div>
+                <span className="text-2xl font-bold text-green-600">{product.price.toLocaleString()}</span>
+                <span className="text-sm text-gray-500 ml-1">AOA/kg</span>
+              </div>
+            </div>
+            <Badge className="bg-emerald-100 text-emerald-700 border-0 px-3 py-1">
+              <Package className="h-3 w-3 mr-1" />
+              {product.quantity} kg
+            </Badge>
+          </div>
 
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-lg font-bold text-green-600">{product.price.toLocaleString()} Kz</span>
-                <span className="text-sm text-gray-500">{product.quantity} kg</span>
-              </div>
-
-              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{product.municipality_id}, {product.province_id}</span>
-              </div>
+          {/* Localização e Data */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600 truncate">{product.municipality_id}</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600">
+                {new Date(product.harvest_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+              </span>
             </div>
           </div>
 
+          {/* Clima (se disponível) */}
+          {product.weatherData && (
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl mb-4">
+              <Cloud className="h-5 w-5 text-blue-500" />
+              <div className="flex-1">
+                <span className="text-sm font-medium text-blue-800">
+                  {Math.round(product.weatherData.main?.temp || 0)}°C
+                </span>
+                <span className="text-xs text-blue-600 ml-2">
+                  {product.weatherData.weather?.[0]?.description}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-blue-600">
+                <Droplet className="h-3 w-3" />
+                {product.weatherData.main?.humidity}%
+              </div>
+            </div>
+          )}
+
           {/* Botões de Ação */}
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2">
             <Button
               onClick={() => onContact(product)}
-              size="sm"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25"
             >
-              <MessageSquare className="h-4 w-4 mr-1" />
+              <MessageSquare className="h-4 w-4 mr-2" />
               Contactar
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={handleFavorite}
-              className={`${isFavorited ? 'text-red-500 border-red-200' : 'text-gray-600 border-gray-200'}`}
+              className={`transition-all ${isFavorited ? 'bg-red-50 border-red-200 text-red-500' : 'border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-500'}`}
             >
               <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500' : ''}`} />
             </Button>
             <Button
               variant="outline"
-              size="sm"
-              className="text-gray-600 border-gray-200"
+              size="icon"
+              className="border-gray-200 text-gray-500 hover:border-green-200 hover:text-green-600"
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -512,166 +549,292 @@ const MapView = () => {
     </header>
 
 
-      {/* Barra de Pesquisa */}
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 w-11/12 max-w-2xl">
-        <div className="bg-white/95 backdrop-blur-md shadow-xl rounded-2xl border border-green-200 flex items-center px-4 py-3">
-          <Search className="h-5 w-5 text-green-600 mr-3" />
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Pesquisar localização, produto..."
-            className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-500 text-lg"
-          />
-          {searchText && (
+      {/* Barra de Pesquisa Moderna */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 w-11/12 max-w-xl">
+        <div className="relative">
+          <div className="bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="flex items-center px-5 py-4">
+              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mr-4">
+                <Search className="h-5 w-5 text-white" />
+              </div>
+              <input
+                type="text"
+                value={searchText}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Pesquisar localização, produto..."
+                className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-base font-medium"
+              />
+              {searchLoading && (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-green-500 border-t-transparent mr-2" />
+              )}
+              {searchText && (
+                <button
+                  onClick={() => {
+                    setSearchText('');
+                    setSearchResults([]);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              )}
+            </div>
+            
+            {/* Quick Filters */}
+            <div className="flex items-center gap-2 px-5 pb-4 overflow-x-auto">
+              {['Milho', 'Feijão', 'Banana', 'Mandioca'].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setFilters({ ...filters, productType: item })}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                    filters.productType === item
+                      ? 'bg-green-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+              {filters.productType && (
+                <button
+                  onClick={() => setFilters({ ...filters, productType: '' })}
+                  className="px-4 py-1.5 rounded-full text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 whitespace-nowrap"
+                >
+                  <X className="h-3 w-3 inline mr-1" />
+                  Limpar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Resultados de Busca */}
+          {searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl max-h-72 overflow-auto border border-gray-100 z-50">
+              {searchResults.map((r, index) => (
+                <button
+                  key={r.id}
+                  onClick={() => selectSearchResult(r)}
+                  className={`w-full text-left p-4 hover:bg-green-50 transition-colors flex items-center gap-3 ${
+                    index !== searchResults.length - 1 ? 'border-b border-gray-100' : ''
+                  }`}
+                >
+                  <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{r.text || r.place_name?.split(',')[0]}</p>
+                    <p className="text-sm text-gray-500 truncate">{r.place_name}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-auto" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Painel de Filtros Moderno */}
+      {showFilters && (
+        <div className="absolute top-52 left-4 z-40 bg-white rounded-2xl shadow-2xl p-6 w-80 border border-gray-100 animate-in slide-in-from-left duration-200">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
+                <Filter className="h-4 w-4 text-white" />
+              </div>
+              Filtros
+            </h3>
             <button
-              onClick={() => {
-                setSearchText('');
-                setSearchResults([]);
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full"
+              onClick={() => setShowFilters(false)}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
             >
               <X className="h-5 w-5 text-gray-400" />
             </button>
-          )}
-        </div>
-
-        {/* Resultados de Busca */}
-        {searchResults.length > 0 && (
-          <div className="mt-2 bg-white rounded-xl shadow-xl max-h-64 overflow-auto border border-green-200">
-            {searchResults.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => selectSearchResult(r)}
-                className="w-full text-left p-3 hover:bg-green-50 border-b border-gray-100 last:border-b-0 transition-colors"
-              >
-                <p className="font-medium text-gray-900">{r.place_name}</p>
-                <p className="text-sm text-gray-500">{r.place_type}</p>
-              </button>
-            ))}
           </div>
-        )}
-      </div>
 
-      {/* Painel de Filtros */}
-      {showFilters && (
-        <div className="absolute top-56 left-4 z-30 bg-white rounded-xl shadow-xl p-6 max-w-xs border border-green-200">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Filter className="h-5 w-5 text-green-600" />
-            Filtros
-          </h3>
-
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Tipo de Produto */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Tipo de Produto
               </label>
-              <input
-                type="text"
-                placeholder="Ex: Milho, Feijão..."
-                value={filters.productType}
-                onChange={(e) =>
-                  setFilters({ ...filters, productType: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              <div className="relative">
+                <Leaf className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Ex: Milho, Feijão..."
+                  value={filters.productType}
+                  onChange={(e) =>
+                    setFilters({ ...filters, productType: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                />
+              </div>
             </div>
 
             {/* Faixa de Preço */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preço: {filters.priceRange[0]} - {filters.priceRange[1]} Kz
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Preço Máximo
               </label>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="100"
-                value={filters.priceRange[1]}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    priceRange: [filters.priceRange[0], parseInt(e.target.value)],
-                  })
-                }
-                className="w-full"
-              />
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-500">0 AOA</span>
+                  <span className="text-lg font-bold text-green-600">{filters.priceRange[1].toLocaleString()} AOA</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  step="100"
+                  value={filters.priceRange[1]}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      priceRange: [filters.priceRange[0], parseInt(e.target.value)],
+                    })
+                  }
+                  className="w-full accent-green-600"
+                />
+              </div>
             </div>
 
             {/* Raio de Busca */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Raio: {filters.radius} km
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Raio de Busca
               </label>
-              <input
-                type="range"
-                min="5"
-                max="200"
-                step="5"
-                value={filters.radius}
-                onChange={(e) =>
-                  setFilters({ ...filters, radius: parseInt(e.target.value) })
-                }
-                className="w-full"
-              />
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-500">5 km</span>
+                  <span className="text-lg font-bold text-green-600">{filters.radius} km</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={filters.radius}
+                  onChange={(e) =>
+                    setFilters({ ...filters, radius: parseInt(e.target.value) })
+                  }
+                  className="w-full accent-green-600"
+                />
+              </div>
             </div>
 
             {/* Tipo de Usuário */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Mostrar
               </label>
-              <select
-                value={filters.userType}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    userType: e.target.value as FilterOptions['userType'],
-                  })
-                }
-                className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="all">Todos</option>
-                <option value="farmers">Apenas Agricultores</option>
-                <option value="buyers">Apenas Compradores</option>
-              </select>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'all', label: 'Todos', icon: Users },
+                  { value: 'farmers', label: 'Agricultores', icon: Leaf },
+                  { value: 'buyers', label: 'Compradores', icon: Briefcase },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() =>
+                      setFilters({
+                        ...filters,
+                        userType: opt.value as FilterOptions['userType'],
+                      })
+                    }
+                    className={`p-3 rounded-xl text-center transition-all ${
+                      filters.userType === opt.value
+                        ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <opt.icon className="h-5 w-5 mx-auto mb-1" />
+                    <span className="text-xs font-medium">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <Button
               onClick={() => setShowFilters(false)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-6 rounded-xl shadow-lg shadow-green-500/25"
             >
+              <CheckCircle className="h-4 w-4 mr-2" />
               Aplicar Filtros
             </Button>
           </div>
         </div>
       )}
 
-      {/* Informações de Produtos */}
-      <div className="absolute bottom-6 left-6 z-30 bg-white rounded-xl shadow-xl p-4 max-w-xs border border-green-200">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-gray-900">Produtos Encontrados</h3>
-          <Badge className="bg-green-600 text-white">{filteredProducts.length}</Badge>
-        </div>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {filteredProducts.slice(0, 5).map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setSelectedProduct(p)}
-              className="w-full text-left p-2 hover:bg-green-50 rounded-lg border border-gray-200 transition-colors"
-            >
-              <p className="font-medium text-gray-900 text-sm">{p.product_type}</p>
-              <p className="text-xs text-green-600 font-semibold">{p.price.toFixed(2)} Kz/kg</p>
-              <p className="text-xs text-gray-500">{p.farmer_name}</p>
-            </button>
-          ))}
-          {filteredProducts.length > 5 && (
-            <p className="text-xs text-gray-500 text-center py-2">
-              +{filteredProducts.length - 5} produtos
-            </p>
-          )}
-        </div>
+      {/* Painel de Produtos Encontrados */}
+      <div className="absolute bottom-6 left-4 z-30 w-80">
+        <Card className="shadow-2xl border-0 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 p-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white text-base font-semibold flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Produtos Disponíveis
+              </CardTitle>
+              <Badge className="bg-white/20 text-white border-0 text-lg font-bold px-3">
+                {filteredProducts.length}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-72 overflow-y-auto">
+              {filteredProducts.length === 0 ? (
+                <div className="p-6 text-center">
+                  <Package className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Nenhum produto encontrado</p>
+                </div>
+              ) : (
+                filteredProducts.slice(0, 6).map((p, index) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedProduct(p);
+                      if (p.location_lat && p.location_lng) {
+                        map.current?.flyTo({ center: [p.location_lng, p.location_lat], zoom: 14 });
+                      }
+                    }}
+                    className={`w-full text-left p-4 hover:bg-green-50 transition-all flex items-center gap-3 ${
+                      index !== Math.min(filteredProducts.length, 6) - 1 ? 'border-b border-gray-100' : ''
+                    }`}
+                  >
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.product_type} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Leaf className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{p.product_type}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-green-600 font-bold text-sm">{p.price.toLocaleString()} AOA</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-gray-500 text-xs">{p.quantity} kg</span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <User className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-500 truncate">{p.farmer_name}</span>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-gray-400 -rotate-90" />
+                  </button>
+                ))
+              )}
+            </div>
+            {filteredProducts.length > 6 && (
+              <div className="p-3 bg-gray-50 border-t border-gray-100">
+                <p className="text-center text-sm text-gray-500">
+                  +{filteredProducts.length - 6} outros produtos
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal do Produto */}

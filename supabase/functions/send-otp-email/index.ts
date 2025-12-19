@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,82 +41,57 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log("OTP generated:", otpCode);
 
-    // Try to send email using SMTP
-    try {
-      const client = new SMTPClient({
-        connection: {
-          hostname: "mail.agrilink.ao",
-          port: 465,
-          tls: true,
-          auth: {
-            username: "no-reply@agrilink.ao",
-            password: "[fnN6K)5l4",
-          },
-        },
-      });
+    // Send email using Resend
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-      await client.send({
-        from: "AgriLink <no-reply@agrilink.ao>",
-        to: email,
-        subject: "Código de Verificação - AgriLink",
-        content: `Olá ${full_name}!\n\nSeu código de verificação é: ${otpCode}\n\nEste código expira em 15 minutos.\n\nSe você não solicitou este código, ignore este email.\n\nAtenciosamente,\nEquipe AgriLink`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #16a34a; margin: 0;">AgriLink</h1>
-              <p style="color: #666; margin: 5px 0;">Conectando produtores e compradores</p>
+    const { data: emailData, error: emailError } = await resend.emails.send({
+      from: "AgriLink <no-reply@agrilink.ao>",
+      to: [email],
+      subject: "Código de Verificação - AgriLink",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #16a34a; margin: 0;">AgriLink</h1>
+            <p style="color: #666; margin: 5px 0;">Conectando produtores e compradores</p>
+          </div>
+          
+          <div style="background: #f9fafb; border-radius: 12px; padding: 30px; text-align: center;">
+            <h2 style="color: #1f2937; margin-bottom: 10px;">Olá, ${full_name}!</h2>
+            <p style="color: #6b7280; margin-bottom: 20px;">Use o código abaixo para verificar seu e-mail:</p>
+            
+            <div style="background: #16a34a; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 40px; border-radius: 8px; display: inline-block;">
+              ${otpCode}
             </div>
             
-            <div style="background: #f9fafb; border-radius: 12px; padding: 30px; text-align: center;">
-              <h2 style="color: #1f2937; margin-bottom: 10px;">Olá, ${full_name}!</h2>
-              <p style="color: #6b7280; margin-bottom: 20px;">Use o código abaixo para verificar seu e-mail:</p>
-              
-              <div style="background: #16a34a; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 40px; border-radius: 8px; display: inline-block;">
-                ${otpCode}
-              </div>
-              
-              <p style="color: #9ca3af; margin-top: 20px; font-size: 14px;">
-                Este código expira em <strong>15 minutos</strong>
-              </p>
-            </div>
-            
-            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
-              Se você não solicitou este código, ignore este email.
+            <p style="color: #9ca3af; margin-top: 20px; font-size: 14px;">
+              Este código expira em <strong>15 minutos</strong>
             </p>
           </div>
-        `,
-      });
+          
+          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
+            Se você não solicitou este código, ignore este email.
+          </p>
+        </div>
+      `,
+    });
 
-      await client.close();
-      console.log("Email sent successfully to:", email);
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "Código enviado para " + email
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    } catch (emailError: any) {
+    if (emailError) {
       console.error("Error sending email:", emailError);
-      
-      // Return success anyway - code is generated and stored
-      // User can check database or retry
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "Código gerado. Verifique seu e-mail.",
-          warning: "Falha ao enviar e-mail, mas código foi gerado."
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      throw new Error("Erro ao enviar email: " + emailError.message);
     }
+
+    console.log("Email sent successfully to:", email, "Email ID:", emailData?.id);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: "Código enviado para " + email
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
   } catch (error: any) {
     console.error("Error in send-otp-email function:", error);
     return new Response(

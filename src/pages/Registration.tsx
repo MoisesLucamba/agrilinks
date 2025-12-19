@@ -127,6 +127,10 @@ const Registration = () => {
 
       setRegisteredUserId(userId);
 
+      // IMPORTANTE: Fazer logout para impedir entrada automática no app
+      // O usuário só poderá entrar após verificar o email
+      await supabase.auth.signOut();
+
       // Send OTP email using custom SMTP
       const otpResult = await sendOtpEmail(userId);
       

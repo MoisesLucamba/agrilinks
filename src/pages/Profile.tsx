@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card'
@@ -9,13 +10,15 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { 
   User, Edit, Package, MapPin, Phone, Mail, Calendar, BarChart3, 
-  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart 
+  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart, Search 
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
 import { useNavigate } from 'react-router-dom'
+import { toast } from '@/hooks/use-toast'
 
 interface UserProduct {
   id: string
@@ -60,8 +63,20 @@ interface ReceivedOrder {
   }
 }
 
+interface SourcingRequest {
+  id: string
+  product_name: string
+  quantity: number
+  delivery_date: string
+  description: string | null
+  status: string
+  admin_notes: string | null
+  created_at: string
+}
+
 const Profile = () => {
   const { user, userProfile, logout } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const [userProducts, setUserProducts] = useState<UserProduct[]>([])
@@ -193,12 +208,107 @@ const Profile = () => {
     }
   }
 
+  // Sourcing requests state and form
+  const [sourcingRequests, setSourcingRequests] = useState<SourcingRequest[]>([])
+  const [showSourcingForm, setShowSourcingForm] = useState(false)
+  const [sourcingForm, setSourcingForm] = useState({
+    product_name: '',
+    quantity: '',
+    delivery_date: '',
+    description: ''
+  })
+  const [submittingSourcing, setSubmittingSourcing] = useState(false)
+
+  // Fetch sourcing requests for buyers
+  const fetchSourcingRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sourcing_requests')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setSourcingRequests(data || [])
+    } catch (error) {
+      console.error('Erro ao buscar pedidos de sourcing:', error)
+    }
+  }
+
+  // Submit sourcing request
+  const submitSourcingRequest = async () => {
+    if (!user || !sourcingForm.product_name || !sourcingForm.quantity || !sourcingForm.delivery_date) {
+      toast({ title: 'Erro', description: 'Preencha todos os campos obrigatórios', variant: 'destructive' })
+      return
+    }
+    setSubmittingSourcing(true)
+    try {
+      const { error } = await supabase.from('sourcing_requests').insert({
+        user_id: user.id,
+        product_name: sourcingForm.product_name,
+        quantity: parseFloat(sourcingForm.quantity),
+        delivery_date: sourcingForm.delivery_date,
+        description: sourcingForm.description || null
+      })
+      if (error) throw error
+      
+      // Notificar admins
+      await supabase.rpc('create_admin_notifications', {
+        p_type: 'sourcing',
+        p_title: 'Novo Pedido de Sourcing',
+        p_message: `Comprador solicitou: ${sourcingForm.quantity}kg de ${sourcingForm.product_name}`,
+        p_metadata: { user_id: user.id, product_name: sourcingForm.product_name }
+      })
+
+      toast({ title: t('sourcing.requestSent'), description: t('sourcing.requestSentMessage') })
+      setSourcingForm({ product_name: '', quantity: '', delivery_date: '', description: '' })
+      setShowSourcingForm(false)
+      fetchSourcingRequests()
+    } catch (error: any) {
+      console.error('Erro ao enviar pedido:', error)
+      toast({ title: 'Erro', description: error.message || 'Erro ao enviar pedido', variant: 'destructive' })
+    } finally {
+      setSubmittingSourcing(false)
+    }
+  }
+
+  // Share agent code
+  const shareAgentCode = async () => {
+    const agentCode = (userProfile as any)?.agent_code
+    if (!agentCode) return
+    
+    const shareMessage = `${t('profile.shareMessage')}: ${agentCode}\n\nCadastrar: ${window.location.origin}/cadastro`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'AgriLink - Código de Agente',
+          text: shareMessage,
+        })
+        toast({ title: t('profile.codeShared') })
+      } catch (error) {
+        // User cancelled or error
+        copyAgentCode()
+      }
+    } else {
+      copyAgentCode()
+    }
+  }
+
+  const copyAgentCode = () => {
+    const agentCode = (userProfile as any)?.agent_code
+    if (!agentCode) return
+    navigator.clipboard.writeText(agentCode)
+    toast({ title: t('profile.codeCopied') })
+  }
+
   useEffect(() => {
     if (!user) return
-    if (userProfile?.user_type === 'comprador') fetchFichasRecebimento()
-    else {
+    if (userProfile?.user_type === 'comprador') {
+      fetchFichasRecebimento()
+      fetchSourcingRequests()
+    } else {
       fetchUserProducts()
-      fetchReceivedOrders() // Buscar pedidos para agricultores e agentes
+      fetchReceivedOrders()
     }
     if (userProfile?.user_type === 'agente') {
       fetchAgentStats()
@@ -389,17 +499,17 @@ const Profile = () => {
                   {/* Botões de Ação Rápida do Agente */}
                   {userProfile?.user_type === 'agente' && (
                     <div className="flex gap-2 mt-4">
-                      <Button variant="secondary" size="sm" onClick={() => navigator.clipboard.writeText((userProfile as any).agent_code || '')}><ClipboardList className="h-4 w-4 mr-2"/>Copiar Código</Button>
-                      <Button variant="outline" size="sm" onClick={() => alert('Função de Partilha')}><Share2 className="h-4 w-4 mr-2"/>Partilhar</Button>
+                      <Button variant="secondary" size="sm" onClick={copyAgentCode}><ClipboardList className="h-4 w-4 mr-2"/>{t('profile.copyCode')}</Button>
+                      <Button variant="outline" size="sm" onClick={shareAgentCode}><Share2 className="h-4 w-4 mr-2"/>{t('profile.shareCode')}</Button>
                     </div>
                   )}
                   
                   {/* Código do Agente */}
                   {userProfile?.user_type === 'agente' && (
                     <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-                      <p className="text-xs text-muted-foreground mb-1">Seu Código de Agente</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('profile.agentCode')}</p>
                       <p className="text-lg font-mono font-bold text-primary">{(userProfile as any).agent_code || 'Gerando...'}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Compartilhe este código para indicar novos usuários</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t('profile.shareMessage')}</p>
                     </div>
                   )}
                   
@@ -440,10 +550,15 @@ const Profile = () => {
         {/* Coluna direita: produtos / fichas / estatísticas */}
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="products" className="w-full">
-            <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-4' : userProfile?.user_type === 'agricultor' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-4' : userProfile?.user_type === 'comprador' ? 'grid-cols-3' : 'grid-cols-3'}`}>
               <TabsTrigger value="products" className="flex items-center justify-center gap-1" title={userProfile?.user_type==='comprador'?'Minhas Fichas':'Meus Produtos'}>
                 {userProfile?.user_type==='comprador' ? <ClipboardList className="h-5 w-5" /> : <Package className="h-5 w-5" />}
               </TabsTrigger>
+              {userProfile?.user_type === 'comprador' && (
+                <TabsTrigger value="sourcing" className="flex items-center justify-center gap-1" title={t('profile.sourcing')}>
+                  <Search className="h-5 w-5" />
+                </TabsTrigger>
+              )}
               {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (
                 <TabsTrigger value="orders" className="flex items-center justify-center gap-1 relative" title="Pedidos Recebidos">
                   <ShoppingCart className="h-5 w-5" />
@@ -512,6 +627,60 @@ const Profile = () => {
                 </div>
               )}
             </TabsContent>
+
+            {/* Aba de Sourcing (só para compradores) */}
+            {userProfile?.user_type === 'comprador' && (
+              <TabsContent value="sourcing" className="space-y-4 mt-4">
+                <Card className="shadow-soft border-card-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2"><Search className="h-5 w-5"/>{t('sourcing.title')}</span>
+                      <Button size="sm" onClick={() => setShowSourcingForm(!showSourcingForm)}>{showSourcingForm ? t('common.cancel') : t('sourcing.newRequest')}</Button>
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">{t('sourcing.subtitle')}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {showSourcingForm && (
+                      <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>{t('sourcing.productName')} *</Label>
+                            <Input value={sourcingForm.product_name} onChange={e => setSourcingForm(p => ({...p, product_name: e.target.value}))} placeholder={t('sourcing.productNamePlaceholder')} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>{t('sourcing.quantity')} *</Label>
+                            <Input type="number" value={sourcingForm.quantity} onChange={e => setSourcingForm(p => ({...p, quantity: e.target.value}))} placeholder={t('sourcing.quantityPlaceholder')} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label>{t('sourcing.deliveryDate')} *</Label>
+                            <Input type="date" value={sourcingForm.delivery_date} onChange={e => setSourcingForm(p => ({...p, delivery_date: e.target.value}))} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label>{t('sourcing.description')}</Label>
+                            <Textarea value={sourcingForm.description} onChange={e => setSourcingForm(p => ({...p, description: e.target.value}))} placeholder={t('sourcing.descriptionPlaceholder')} rows={4} />
+                          </div>
+                        </div>
+                        <Button onClick={submitSourcingRequest} disabled={submittingSourcing} className="w-full">{submittingSourcing ? t('common.processing') : t('sourcing.submitRequest')}</Button>
+                      </div>
+                    )}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">{t('sourcing.myRequests')}</h4>
+                      {sourcingRequests.length > 0 ? sourcingRequests.map(req => (
+                        <Card key={req.id} className="border">
+                          <CardContent className="p-3 flex justify-between items-center">
+                            <div>
+                              <p className="font-semibold">{req.product_name} - {req.quantity}kg</p>
+                              <p className="text-sm text-muted-foreground">{t('sourcing.deliveryDate')}: {new Date(req.delivery_date).toLocaleDateString()}</p>
+                            </div>
+                            <Badge variant={req.status === 'pending' ? 'secondary' : req.status === 'processing' ? 'default' : 'outline'}>{t(`sourcing.status.${req.status}`)}</Badge>
+                          </CardContent>
+                        </Card>
+                      )) : <p className="text-center text-muted-foreground py-4">{t('sourcing.noRequests')}</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             {/* Aba de Pedidos Recebidos (só para agricultores e agentes) */}
             {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (

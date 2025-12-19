@@ -111,7 +111,7 @@ interface Ficha {
   created_at: string;
 }
 
-type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing";
+type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market";
 
 interface SourcingRequest {
   id: string;
@@ -197,6 +197,8 @@ const AdminDashboard = () => {
   const [targetUser, setTargetUser] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [analyzingMarket, setAnalyzingMarket] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -305,6 +307,28 @@ const AdminDashboard = () => {
       toast.error("Erro ao atualizar pedido");
     }
   }, []);
+
+  const generateMarketAnalysis = useCallback(async () => {
+    if (products.length === 0) {
+      toast.error("Sem produtos para analisar");
+      return;
+    }
+    setAnalyzingMarket(true);
+    try {
+      const savedLang = localStorage.getItem('agrilink_language') || 'pt';
+      const { data, error } = await supabase.functions.invoke('market-analysis', {
+        body: { products, language: savedLang }
+      });
+      if (error) throw error;
+      setAiAnalysis(data.analysis);
+      toast.success("Análise gerada com sucesso!");
+    } catch (error) {
+      console.error("Error generating analysis:", error);
+      toast.error("Erro ao gerar análise");
+    } finally {
+      setAnalyzingMarket(false);
+    }
+  }, [products]);
 
   // --- Dados para Gráficos ---
   const chartDataRevenue = useMemo(() => {
@@ -428,6 +452,9 @@ const AdminDashboard = () => {
             </TabButton>
             <TabButton active={activeTab === "sourcing"} onClick={() => { setActiveTab("sourcing"); setMenuOpen(false); }} badge={sourcingRequests.filter(s => s.status === 'pending').length}>
               <TrendingUp className="h-4 w-4" /> Sourcing
+            </TabButton>
+            <TabButton active={activeTab === "market"} onClick={() => { setActiveTab("market"); setMenuOpen(false); }}>
+              <Activity className="h-4 w-4" /> Mercado
             </TabButton>
           </div>
         </div>

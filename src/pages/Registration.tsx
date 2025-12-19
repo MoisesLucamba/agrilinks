@@ -1,23 +1,27 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, User, Phone, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "lucide-react";
+import { ArrowLeft, User, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "lucide-react";
 import { angolaProvinces } from "@/data/angola-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
 import { OtpVerificationModal } from "@/components/OtpVerificationModal";
 import { toast } from "@/hooks/use-toast";
+import { CountryPhoneInput, countries, Country } from "@/components/CountryPhoneInput";
+import { changeLanguage, getSavedCountry } from "@/i18n";
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const Registration = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { register, user } = useAuth();
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedMunicipality, setSelectedMunicipality] = useState("");
@@ -37,12 +41,24 @@ const Registration = () => {
   const [validatingCode, setValidatingCode] = useState(false);
   const [agentCodeValid, setAgentCodeValid] = useState<boolean | null>(null);
   
+  // Country selection for phone
+  const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
+    const savedCode = getSavedCountry();
+    return countries.find(c => c.code === savedCode) || countries[0];
+  });
+  
   // OTP verification modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [registeredUserId, setRegisteredUserId] = useState("");
   
   // Flag para indicar que estamos no processo de registro (para evitar redirecionamento)
   const [isRegistering, setIsRegistering] = useState(false);
+
+  // Handle country change - also changes language
+  const handleCountryChange = (country: Country) => {
+    setSelectedCountry(country);
+    changeLanguage(country.code);
+  };
 
   // Se o usuário já está logado e NÃO está no processo de registro, redirecionar
   React.useEffect(() => {
@@ -106,9 +122,12 @@ const Registration = () => {
     setErrorMessage("");
     setIsRegistering(true); // Marcar que estamos no processo de registro
     try {
+      // Combine country code with phone number
+      const fullPhone = `${selectedCountry.dialCode} ${phone}`;
+      
       const { error, data } = await register({
         email,
-        phone,
+        phone: fullPhone,
         password,
         full_name: fullName,
         identity_document: identityDocument,
@@ -223,15 +242,15 @@ const Registration = () => {
 
         <div className="text-center mb-8">
           <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary">Cadastro AgriLink</h1>
-          <p className="text-primary/70">Crie sua conta na plataforma</p>
+          <h1 className="text-3xl font-bold text-primary">{t('registration.title')}</h1>
+          <p className="text-primary/70">{t('registration.subtitle')}</p>
         </div>
 
         <Card className="border-0 shadow-xl rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg text-primary">
               <Users className="h-5 w-5" />
-              Informações de Cadastro
+              {t('registration.infoTitle')}
             </CardTitle>
           </CardHeader>
 
@@ -239,7 +258,7 @@ const Registration = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tipo de Usuário */}
               <div className="space-y-2">
-                <Label>Tipo de Usuário</Label>
+                <Label>{t('registration.userType')}</Label>
                 {isMobile() ? (
                   <select
                     value={userType}
@@ -247,20 +266,20 @@ const Registration = () => {
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary bg-background"
                     required
                   >
-                    <option value="">Selecione o tipo de usuário</option>
-                    <option value="agricultor">Agricultor</option>
-                    <option value="agente">Agente</option>
-                    <option value="comprador">Comprador</option>
+                    <option value="">{t('registration.selectUserType')}</option>
+                    <option value="agricultor">{t('registration.farmer')}</option>
+                    <option value="agente">{t('registration.agent')}</option>
+                    <option value="comprador">{t('registration.buyer')}</option>
                   </select>
                 ) : (
                   <Select value={userType} onValueChange={setUserType} required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de usuário" />
+                      <SelectValue placeholder={t('registration.selectUserType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="agricultor">Agricultor</SelectItem>
-                      <SelectItem value="agente">Agente</SelectItem>
-                      <SelectItem value="comprador">Comprador</SelectItem>
+                      <SelectItem value="agricultor">{t('registration.farmer')}</SelectItem>
+                      <SelectItem value="agente">{t('registration.agent')}</SelectItem>
+                      <SelectItem value="comprador">{t('registration.buyer')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -268,13 +287,13 @@ const Registration = () => {
 
               {/* Nome */}
               <div className="space-y-2">
-                <Label>Nome Completo</Label>
+                <Label>{t('registration.fullName')}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Digite seu nome completo"
+                    placeholder={t('registration.fullNamePlaceholder')}
                     className="pl-10"
                     required
                   />
@@ -283,7 +302,7 @@ const Registration = () => {
 
               {/* BI */}
               <div className="space-y-2">
-                <Label>Bilhete de Identidade</Label>
+                <Label>{t('registration.identityDocument')}</Label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -312,42 +331,38 @@ const Registration = () => {
                 </div>
               </div>
 
-              {/* Telefone */}
+              {/* Telefone com seletor de país */}
               <div className="space-y-2">
-                <Label>Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+244 900 000 000"
-                    className="pl-10"
-                    required
-                  />
-                </div>
+                <Label>{t('registration.phone')}</Label>
+                <CountryPhoneInput
+                  value={phone}
+                  onChange={setPhone}
+                  selectedCountry={selectedCountry}
+                  onCountryChange={handleCountryChange}
+                  required
+                />
               </div>
 
               {/* Indicação por Agente */}
               <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-border">
                 <Label className="flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  Foi indicado por um agente?
+                  {t('registration.referredByAgent')}
                 </Label>
                 <RadioGroup value={wasReferred} onValueChange={(v) => setWasReferred(v as 'sim' | 'nao')}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="nao" id="nao" />
-                    <Label htmlFor="nao" className="font-normal cursor-pointer">Não</Label>
+                    <Label htmlFor="nao" className="font-normal cursor-pointer">{t('registration.no')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="sim" id="sim" />
-                    <Label htmlFor="sim" className="font-normal cursor-pointer">Sim</Label>
+                    <Label htmlFor="sim" className="font-normal cursor-pointer">{t('registration.yes')}</Label>
                   </div>
                 </RadioGroup>
 
                 {wasReferred === 'sim' && (
                   <div className="space-y-2 mt-3">
-                    <Label>Código do Agente</Label>
+                    <Label>{t('registration.agentCode')}</Label>
                     <div className="relative">
                       <Input
                         value={agentCode}
@@ -357,7 +372,7 @@ const Registration = () => {
                           if (value.length === 6) validateAgentCode(value);
                           else setAgentCodeValid(null);
                         }}
-                        placeholder="Digite o código de 6 caracteres"
+                        placeholder={t('registration.agentCodePlaceholder')}
                         className="uppercase"
                         maxLength={6}
                         required
@@ -368,43 +383,60 @@ const Registration = () => {
                         </div>
                       )}
                     </div>
-                    {agentCodeValid === true && <p className="text-sm text-green-600">✓ Código válido</p>}
-                    {agentCodeValid === false && <p className="text-sm text-destructive">✗ Código inválido</p>}
+                    {agentCodeValid === true && <p className="text-sm text-green-600">✓ {t('registration.validCode')}</p>}
+                    {agentCodeValid === false && <p className="text-sm text-destructive">✗ {t('registration.invalidCode')}</p>}
                   </div>
                 )}
               </div>
 
               {/* Senhas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[["Senha", password, setPassword, showPassword, setShowPassword],
-                  ["Confirmar Senha", confirmPassword, setConfirmPassword, showConfirmPassword, setShowConfirmPassword]
-                ].map(([label, value, setter, show, setShow], i) => (
-                  <div className="space-y-2" key={i}>
-                    <Label>{label as string}</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type={show ? "text" : "password"}
-                        value={value as string}
-                        onChange={(e) => (setter as any)(e.target.value)}
-                        placeholder={label as string}
-                        className="pl-10 pr-10"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => (setShow as any)(!show)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      >
-                        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
+                <div className="space-y-2">
+                  <Label>{t('auth.password')}</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('auth.password')}
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                ))}
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('auth.confirmPassword')}</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('auth.confirmPassword')}
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {password && confirmPassword && password !== confirmPassword && (
-                <div className="text-destructive text-sm">As senhas não coincidem</div>
+                <div className="text-destructive text-sm">{t('registration.passwordsNotMatch')}</div>
               )}
 
               {errorMessage && <div className="text-destructive text-sm">{errorMessage}</div>}
@@ -413,7 +445,7 @@ const Registration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Província */}
                 <div className="space-y-2">
-                  <Label>Província</Label>
+                  <Label>{t('registration.province')}</Label>
                   {isMobile() ? (
                     <select
                       value={selectedProvince}
@@ -421,12 +453,12 @@ const Registration = () => {
                       className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary bg-background"
                       required
                     >
-                      <option value="">Selecione a província</option>
+                      <option value="">{t('registration.selectProvince')}</option>
                       {angolaProvinces.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
                     </select>
                   ) : (
                     <Select value={selectedProvince} onValueChange={(v) => { setSelectedProvince(v); setSelectedMunicipality(""); }} required>
-                      <SelectTrigger><SelectValue placeholder="Selecione a província" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('registration.selectProvince')} /></SelectTrigger>
                       <SelectContent>
                         {angolaProvinces.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                       </SelectContent>
@@ -436,7 +468,7 @@ const Registration = () => {
 
                 {/* Município */}
                 <div className="space-y-2">
-                  <Label>Município</Label>
+                  <Label>{t('registration.municipality')}</Label>
                   {isMobile() ? (
                     <select
                       value={selectedMunicipality}
@@ -445,15 +477,13 @@ const Registration = () => {
                       className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-primary bg-background"
                       required
                     >
-                      <option value="">
-                        {selectedProvince ? "Selecione o município" : "Primeiro selecione a província"}
-                      </option>
+                      <option value="">{t('registration.selectMunicipality')}</option>
                       {availableMunicipalities.map((m) => (<option key={m.id} value={m.id}>{m.name}</option>))}
                     </select>
                   ) : (
                     <Select value={selectedMunicipality} onValueChange={setSelectedMunicipality} required disabled={!selectedProvince}>
                       <SelectTrigger>
-                        <SelectValue placeholder={selectedProvince ? "Selecione o município" : "Primeiro selecione a província"} />
+                        <SelectValue placeholder={t('registration.selectMunicipality')} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableMunicipalities.map((m) => (<SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>))}
@@ -478,21 +508,17 @@ const Registration = () => {
                   (wasReferred === 'sim' && (!agentCodeValid || validatingCode))
                 }
               >
-                {loading ? "Criando conta..." : "Criar Conta"}
+                {loading ? t('common.processing') : t('registration.createAccount')}
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <div className="mt-4 text-center">
-          <Button
-            variant="link"
-            className="text-primary"
-            onClick={() => navigate("/login")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar ao Login
-          </Button>
+          <p className="text-sm text-muted-foreground mb-2">{t('registration.alreadyHaveAccount')}</p>
+          <Link to="/login" className="text-primary hover:underline font-medium">
+            {t('registration.loginHere')}
+          </Link>
         </div>
       </div>
 

@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Info } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/integrations/supabase/client'
 import agrilinkLogo from '@/assets/agrilink-logo.png'
+import { OtpVerificationModal } from '@/components/OtpVerificationModal'
+import { toast } from '@/hooks/use-toast'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -18,6 +21,11 @@ const LoginPage = () => {
   const [resetLoading, setResetLoading] = useState(false)
   const [showConfirmEmailModal, setShowConfirmEmailModal] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
+  
+  // OTP modal state
+  const [showOtpModal, setShowOtpModal] = useState(false)
+  const [pendingUserId, setPendingUserId] = useState('')
+  const [pendingUserName, setPendingUserName] = useState('')
   
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -32,20 +40,49 @@ const LoginPage = () => {
       const { error } = await login(email, password)
 
       if (error) {
-        // Se o erro for email não confirmado
-        if (error.message.includes('email not confirmed') || error.message.includes('User not confirmed')) {
-          setShowConfirmEmailModal(true)
+        // Se o erro for email não confirmado, buscar dados do usuário e mostrar OTP modal
+        if (error.message.includes('email not confirmed') || error.message.includes('User not confirmed') || error.message.includes('Email not confirmed')) {
+          // Buscar o user_id pelo email para poder enviar OTP
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, full_name, email_verified')
+            .eq('email', email)
+            .maybeSingle()
+          
+          if (userData && !userData.email_verified) {
+            setPendingUserId(userData.id)
+            setPendingUserName(userData.full_name || 'Usuário')
+            
+            // Enviar OTP automaticamente
+            try {
+              await supabase.functions.invoke('send-otp-email', {
+                body: {
+                  user_id: userData.id,
+                  email: email,
+                  full_name: userData.full_name || 'Usuário',
+                },
+              })
+              toast({
+                title: "Código enviado!",
+                description: "Verifique seu e-mail para o código de verificação.",
+              })
+            } catch (otpError) {
+              console.error('Error sending OTP:', otpError)
+            }
+            
+            setShowOtpModal(true)
+          } else {
+            setShowConfirmEmailModal(true)
+          }
         } else {
-          alert('Erro ao fazer login: ' + error.message)
+          console.error('Login error:', error)
         }
-        console.error('Login error:', error)
         return
       }
 
       navigate('/app')
     } catch (error: any) {
       console.error('Login error:', error)
-      alert('Erro ao fazer login: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -61,7 +98,6 @@ const LoginPage = () => {
 
     setResetLoading(true)
     try {
-      const { supabase } = await import('@/integrations/supabase/client')
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       })
@@ -84,7 +120,6 @@ const LoginPage = () => {
 
     setResendLoading(true)
     try {
-      const { supabase } = await import('@/integrations/supabase/client')
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email
@@ -97,6 +132,31 @@ const LoginPage = () => {
     } finally {
       setResendLoading(false)
     }
+  }
+
+  // Quando OTP for verificado com sucesso
+  const handleOtpSuccess = async () => {
+    setShowOtpModal(false)
+    toast({
+      title: "Email verificado!",
+      description: "Seu email foi verificado. Faça login novamente.",
+    })
+    // Tentar login novamente automaticamente
+    if (email && password) {
+      setLoading(true)
+      try {
+        const { error } = await login(email, password)
+        if (!error) {
+          navigate('/app')
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleCloseOtpModal = () => {
+    setShowOtpModal(false)
   }
 
   return (
@@ -329,6 +389,16 @@ const LoginPage = () => {
           </Card>
         </div>
       )}
+
+      {/* Modal de verificação OTP */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        onClose={handleCloseOtpModal}
+        email={email}
+        userId={pendingUserId}
+        fullName={pendingUserName}
+        onSuccess={handleOtpSuccess}
+      />
 
     </div>
   )

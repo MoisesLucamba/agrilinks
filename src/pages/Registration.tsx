@@ -18,7 +18,7 @@ const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const Registration = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedMunicipality, setSelectedMunicipality] = useState("");
   const [userType, setUserType] = useState("");
@@ -40,6 +40,16 @@ const Registration = () => {
   // OTP verification modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [registeredUserId, setRegisteredUserId] = useState("");
+  
+  // Flag para indicar que estamos no processo de registro (para evitar redirecionamento)
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  // Se o usuário já está logado e NÃO está no processo de registro, redirecionar
+  React.useEffect(() => {
+    if (user && !isRegistering && !showOtpModal) {
+      navigate('/app', { replace: true });
+    }
+  }, [user, isRegistering, showOtpModal, navigate]);
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -94,7 +104,7 @@ const Registration = () => {
 
     setLoading(true);
     setErrorMessage("");
-    
+    setIsRegistering(true); // Marcar que estamos no processo de registro
     try {
       const { error, data } = await register({
         email,
@@ -153,6 +163,7 @@ const Registration = () => {
     } catch (error: any) {
       console.error("Registration error:", error);
       setErrorMessage(error?.message || "Erro inesperado ao criar conta.");
+      setIsRegistering(false); // Resetar flag em caso de erro
     } finally {
       setLoading(false);
     }
@@ -160,6 +171,7 @@ const Registration = () => {
 
   const handleOtpSuccess = () => {
     setShowOtpModal(false);
+    setIsRegistering(false);
     toast({
       title: "Conta verificada!",
       description: "Seu email foi verificado. Faça login para continuar.",
@@ -169,6 +181,7 @@ const Registration = () => {
 
   const handleCloseOtpModal = () => {
     setShowOtpModal(false);
+    setIsRegistering(false);
     toast({
       title: "Verificação pendente",
       description: "Você pode verificar seu email ao fazer login.",

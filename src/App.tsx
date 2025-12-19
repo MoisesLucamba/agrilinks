@@ -77,7 +77,7 @@ const AppRoutes = () => {
       <Route path="/" element={rootElement} />
       <Route path="/site" element={<Index />} />
       <Route path="/login" element={user ? <Navigate to="/app" replace /> : <LoginPage />} />
-      <Route path="/cadastro" element={user ? <Navigate to="/app" replace /> : <Registration />} />
+      <Route path="/cadastro" element={<Registration />} />
       <Route path="/confirmar-email" element={<EmailConfirmation />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/termos-publicidade" element={<TermsOfService />} />

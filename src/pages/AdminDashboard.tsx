@@ -111,7 +111,19 @@ interface Ficha {
   created_at: string;
 }
 
-type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas";
+type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing";
+
+interface SourcingRequest {
+  id: string;
+  user_id: string;
+  product_name: string;
+  quantity: number;
+  delivery_date: string;
+  description: string | null;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+}
 
 // --- Componentes Auxiliares ---
 const MetricCard = ({ title, value, icon, trend, color }: {

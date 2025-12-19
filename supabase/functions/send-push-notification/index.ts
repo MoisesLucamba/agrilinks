@@ -1,11 +1,13 @@
+/// <reference types="https://esm.sh/@types/web-push@3.6.3" />
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
-// @ts-ignore - web-push types not available in Deno
-import webpush from 'npm:web-push@3.6.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Dynamic import for web-push to avoid type issues
+const webpush = await import('npm:web-push@3.6.7').then(m => m.default);
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests

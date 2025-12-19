@@ -936,6 +936,250 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* MARKET DATA */}
+        {activeTab === "market" && (
+          <div className="space-y-6">
+            {/* Estatísticas do Mercado */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <MetricCard
+                title="Total Produtos"
+                value={products.length}
+                icon={<Package className="h-6 w-6" />}
+                color="bg-gradient-to-br from-blue-500 to-blue-600"
+              />
+              <MetricCard
+                title="Volume Total (kg)"
+                value={products.reduce((acc, p) => acc + p.quantity, 0).toLocaleString()}
+                icon={<TrendingUp className="h-6 w-6" />}
+                color="bg-gradient-to-br from-green-500 to-green-600"
+              />
+              <MetricCard
+                title="Preço Médio (AOA)"
+                value={products.length > 0 ? Math.round(products.reduce((acc, p) => acc + p.price, 0) / products.length).toLocaleString() : 0}
+                icon={<DollarSign className="h-6 w-6" />}
+                color="bg-gradient-to-br from-amber-500 to-amber-600"
+              />
+              <MetricCard
+                title="Tipos de Produtos"
+                value={new Set(products.map(p => p.product_type)).size}
+                icon={<Activity className="h-6 w-6" />}
+                color="bg-gradient-to-br from-purple-500 to-purple-600"
+              />
+            </div>
+
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráfico de Preços por Produto */}
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-primary" /> Preço Médio por Produto
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={(() => {
+                      const grouped: Record<string, { total: number; count: number }> = {};
+                      products.forEach(p => {
+                        if (!grouped[p.product_type]) grouped[p.product_type] = { total: 0, count: 0 };
+                        grouped[p.product_type].total += p.price;
+                        grouped[p.product_type].count++;
+                      });
+                      return Object.entries(grouped)
+                        .map(([name, data]) => ({ name, avgPrice: Math.round(data.total / data.count) }))
+                        .sort((a, b) => b.avgPrice - a.avgPrice)
+                        .slice(0, 8);
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} angle={-45} textAnchor="end" height={80} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip formatter={(value: number) => [`${value.toLocaleString()} AOA`, 'Preço Médio']} />
+                      <Bar dataKey="avgPrice" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Gráfico de Volume por Produto */}
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" /> Volume por Produto (kg)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={(() => {
+                      const grouped: Record<string, number> = {};
+                      products.forEach(p => {
+                        grouped[p.product_type] = (grouped[p.product_type] || 0) + p.quantity;
+                      });
+                      return Object.entries(grouped)
+                        .map(([name, volume]) => ({ name, volume }))
+                        .sort((a, b) => b.volume - a.volume)
+                        .slice(0, 8);
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} angle={-45} textAnchor="end" height={80} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip formatter={(value: number) => [`${value.toLocaleString()} kg`, 'Volume']} />
+                      <Bar dataKey="volume" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Distribuição por Tipo */}
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Package className="h-5 w-5 text-primary" /> Distribuição por Tipo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={chartDataProducts}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        labelLine={false}
+                      >
+                        {chartDataProducts.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Histórico de Preços */}
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" /> Tendência de Publicações
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={(() => {
+                      const grouped: Record<string, number> = {};
+                      products.forEach(p => {
+                        const date = new Date(p.created_at).toLocaleDateString("pt-BR", { month: "short", day: "numeric" });
+                        grouped[date] = (grouped[date] || 0) + 1;
+                      });
+                      return Object.entries(grouped).slice(-14).map(([date, count]) => ({ date, count }));
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="count" stroke="#22c55e" strokeWidth={2} dot={{ fill: '#22c55e' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tabela de Preços por Produto */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" /> Tabela de Preços do Mercado
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/80">
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Qtd Ofertas</TableHead>
+                      <TableHead>Preço Min</TableHead>
+                      <TableHead>Preço Médio</TableHead>
+                      <TableHead>Preço Máx</TableHead>
+                      <TableHead>Volume Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(() => {
+                      const grouped: Record<string, { prices: number[]; quantities: number[] }> = {};
+                      products.forEach(p => {
+                        if (!grouped[p.product_type]) grouped[p.product_type] = { prices: [], quantities: [] };
+                        grouped[p.product_type].prices.push(p.price);
+                        grouped[p.product_type].quantities.push(p.quantity);
+                      });
+                      return Object.entries(grouped)
+                        .map(([name, data]) => ({
+                          name,
+                          count: data.prices.length,
+                          minPrice: Math.min(...data.prices),
+                          avgPrice: Math.round(data.prices.reduce((a, b) => a + b, 0) / data.prices.length),
+                          maxPrice: Math.max(...data.prices),
+                          totalVolume: data.quantities.reduce((a, b) => a + b, 0)
+                        }))
+                        .sort((a, b) => b.count - a.count);
+                    })().map((item) => (
+                      <TableRow key={item.name} className="hover:bg-gray-50/50">
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>{item.count}</TableCell>
+                        <TableCell className="text-green-600">{item.minPrice.toLocaleString()} AOA</TableCell>
+                        <TableCell className="font-semibold">{item.avgPrice.toLocaleString()} AOA</TableCell>
+                        <TableCell className="text-red-600">{item.maxPrice.toLocaleString()} AOA</TableCell>
+                        <TableCell>{item.totalVolume.toLocaleString()} kg</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Análise IA */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" /> Análise de Mercado com IA (Google Gemini)
+                  </CardTitle>
+                  <Button onClick={generateMarketAnalysis} disabled={analyzingMarket} className="gap-2">
+                    {analyzingMarket ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" /> Analisando...
+                      </>
+                    ) : (
+                      <>
+                        <Activity className="h-4 w-4" /> Gerar Análise
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {aiAnalysis ? (
+                  <div className="prose prose-sm max-w-none">
+                    <div className="p-4 bg-gradient-to-br from-green-50 to-blue-50 rounded-xl border border-green-100">
+                      <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                        {aiAnalysis}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Clique em "Gerar Análise" para obter insights do mercado com IA</p>
+                    <p className="text-sm mt-2">A análise inclui: resumo do mercado, preços, tendências e recomendações</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
 
       {/* Modal de Notificação */}

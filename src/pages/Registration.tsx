@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, User, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "lucide-react";
-import { angolaProvinces } from "@/data/angola-locations";
+import { User, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "lucide-react";
+import { getProvincesForCountry, getProvinceLabel, getMunicipalityLabel } from "@/data/country-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
-import { OtpVerificationModal } from "@/components/OtpVerificationModal";
 import { toast } from "@/hooks/use-toast";
 import { CountryPhoneInput, countries, Country } from "@/components/CountryPhoneInput";
 import { changeLanguage, getSavedCountry } from "@/i18n";
@@ -46,26 +45,26 @@ const Registration = () => {
     const savedCode = getSavedCountry();
     return countries.find(c => c.code === savedCode) || countries[0];
   });
-  
-  // OTP verification modal state
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [registeredUserId, setRegisteredUserId] = useState("");
-  
-  // Flag para indicar que estamos no processo de registro (para evitar redirecionamento)
-  const [isRegistering, setIsRegistering] = useState(false);
 
-  // Handle country change - also changes language
+  // Handle country change - also changes language and resets location
   const handleCountryChange = (country: Country) => {
     setSelectedCountry(country);
+    setSelectedProvince("");
+    setSelectedMunicipality("");
     changeLanguage(country.code);
   };
 
-  // Se o usuário já está logado e NÃO está no processo de registro, redirecionar
+  // Get provinces for selected country
+  const availableProvinces = getProvincesForCountry(selectedCountry.code);
+  const provinceLabel = getProvinceLabel(selectedCountry.code);
+  const municipalityLabel = getMunicipalityLabel(selectedCountry.code);
+
+  // Se o usuário já está logado, redirecionar
   React.useEffect(() => {
-    if (user && !isRegistering && !showOtpModal) {
+    if (user) {
       navigate('/app', { replace: true });
     }
-  }, [user, isRegistering, showOtpModal, navigate]);
+  }, [user, navigate]);
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -85,30 +84,6 @@ const Registration = () => {
     }
   };
 
-  const sendOtpEmail = async (userId: string) => {
-    try {
-      console.log("Sending OTP email to:", email);
-      const { data, error } = await supabase.functions.invoke('send-otp-email', {
-        body: {
-          user_id: userId,
-          email: email,
-          full_name: fullName,
-        },
-      });
-
-      if (error) {
-        console.error("Error sending OTP email:", error);
-        throw error;
-      }
-
-      console.log("OTP email response:", data);
-      return { success: true, data };
-    } catch (error: any) {
-      console.error("Failed to send OTP email:", error);
-      return { success: false, error };
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) return;
@@ -120,12 +95,11 @@ const Registration = () => {
 
     setLoading(true);
     setErrorMessage("");
-    setIsRegistering(true); // Marcar que estamos no processo de registro
     try {
       // Combine country code with phone number
       const fullPhone = `${selectedCountry.dialCode} ${phone}`;
       
-      const { error, data } = await register({
+      const { error } = await register({
         email,
         phone: fullPhone,
         password,
@@ -146,70 +120,24 @@ const Registration = () => {
         return;
       }
       
-      // Get user ID from the registration response
-      const userId = data?.user?.id;
+      toast({
+        title: t('registration.accountCreated'),
+        description: t('registration.welcomeMessage'),
+      });
       
-      if (!userId) {
-        setErrorMessage("Erro ao obter dados do usuário. Tente novamente.");
-        return;
-      }
-
-      setRegisteredUserId(userId);
-
-      // IMPORTANTE: Fazer logout para impedir entrada automática no app
-      // O usuário só poderá entrar após verificar o email
-      await supabase.auth.signOut();
-
-      // Send OTP email using custom SMTP
-      const otpResult = await sendOtpEmail(userId);
-      
-      if (!otpResult.success) {
-        toast({
-          title: "Conta criada",
-          description: "Conta criada, mas houve um problema ao enviar o código. Tente reenviar.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Código enviado!",
-          description: "Verifique seu e-mail para o código de verificação.",
-        });
-      }
-      
-      // Show OTP verification modal
-      setShowOtpModal(true);
+      // Redirecionar diretamente para o app
+      navigate('/app', { replace: true });
       
     } catch (error: any) {
       console.error("Registration error:", error);
       setErrorMessage(error?.message || "Erro inesperado ao criar conta.");
-      setIsRegistering(false); // Resetar flag em caso de erro
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOtpSuccess = () => {
-    setShowOtpModal(false);
-    setIsRegistering(false);
-    toast({
-      title: "Conta verificada!",
-      description: "Seu email foi verificado. Faça login para continuar.",
-    });
-    navigate("/login");
-  };
-
-  const handleCloseOtpModal = () => {
-    setShowOtpModal(false);
-    setIsRegistering(false);
-    toast({
-      title: "Verificação pendente",
-      description: "Você pode verificar seu email ao fazer login.",
-    });
-    navigate("/login");
-  };
-
   const availableMunicipalities =
-    angolaProvinces.find((p) => p.id === selectedProvince)?.municipalities || [];
+    availableProvinces.find((p) => p.id === selectedProvince)?.municipalities || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background p-4 flex items-center justify-center">
@@ -445,7 +373,7 @@ const Registration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Província */}
                 <div className="space-y-2">
-                  <Label>{t('registration.province')}</Label>
+                  <Label>{provinceLabel}</Label>
                   {isMobile() ? (
                     <select
                       value={selectedProvince}
@@ -454,13 +382,13 @@ const Registration = () => {
                       required
                     >
                       <option value="">{t('registration.selectProvince')}</option>
-                      {angolaProvinces.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                      {availableProvinces.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
                     </select>
                   ) : (
                     <Select value={selectedProvince} onValueChange={(v) => { setSelectedProvince(v); setSelectedMunicipality(""); }} required>
                       <SelectTrigger><SelectValue placeholder={t('registration.selectProvince')} /></SelectTrigger>
                       <SelectContent>
-                        {angolaProvinces.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
+                        {availableProvinces.map((p) => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   )}
@@ -468,7 +396,7 @@ const Registration = () => {
 
                 {/* Município */}
                 <div className="space-y-2">
-                  <Label>{t('registration.municipality')}</Label>
+                  <Label>{municipalityLabel}</Label>
                   {isMobile() ? (
                     <select
                       value={selectedMunicipality}
@@ -521,16 +449,6 @@ const Registration = () => {
           </Link>
         </div>
       </div>
-
-      {/* OTP Verification Modal */}
-      <OtpVerificationModal
-        isOpen={showOtpModal}
-        onClose={handleCloseOtpModal}
-        email={email}
-        userId={registeredUserId}
-        fullName={fullName}
-        onSuccess={handleOtpSuccess}
-      />
     </div>
   );
 };

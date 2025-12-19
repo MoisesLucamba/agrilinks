@@ -63,7 +63,9 @@
     "selectMunicipality": "Select municipality",
     "createAccount": "Create Account",
     "alreadyHaveAccount": "Already have an account?",
-    "loginHere": "Login here"
+    "loginHere": "Login here",
+    "accountCreated": "Account created successfully!",
+    "welcomeMessage": "Welcome to AgriLink!"
   },
   "otp": {
     "title": "Email Verification",

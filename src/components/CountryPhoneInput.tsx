@@ -59,15 +59,15 @@ export const CountryPhoneInput = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="flex items-center gap-2 min-w-[120px] justify-between"
+            className="flex items-center gap-1.5 min-w-[130px] justify-between px-3"
             type="button"
           >
-            <span className="text-xl">{selectedCountry.flag}</span>
-            <span className="text-sm font-medium">{selectedCountry.dialCode}</span>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+            <span className="text-xl leading-none">{selectedCountry.flag}</span>
+            <span className="text-sm font-semibold">{selectedCountry.dialCode}</span>
+            <ChevronDown className="h-4 w-4 opacity-50 ml-1" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[200px]">
+        <DropdownMenuContent align="start" className="w-[220px]">
           {countries.map((country) => (
             <DropdownMenuItem
               key={country.code}
@@ -77,8 +77,8 @@ export const CountryPhoneInput = ({
               }}
               className="flex items-center gap-3 cursor-pointer"
             >
-              <span className="text-xl">{country.flag}</span>
-              <span className="flex-1">{country.name}</span>
+              <span className="text-xl leading-none">{country.flag}</span>
+              <span className="flex-1 font-medium">{country.name}</span>
               <span className="text-muted-foreground text-sm">{country.dialCode}</span>
             </DropdownMenuItem>
           ))}

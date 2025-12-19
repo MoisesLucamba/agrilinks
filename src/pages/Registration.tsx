@@ -11,7 +11,7 @@ import { angolaProvinces } from "@/data/angola-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from "@/assets/agrilink-logo.png";
-import { EmailConfirmationModal } from "@/components/EmailConfirmationModal";
+import { OtpVerificationModal } from "@/components/OtpVerificationModal";
 import { toast } from "@/hooks/use-toast";
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -37,8 +37,9 @@ const Registration = () => {
   const [validatingCode, setValidatingCode] = useState(false);
   const [agentCodeValid, setAgentCodeValid] = useState<boolean | null>(null);
   
-  // Email confirmation modal state
-  const [showEmailModal, setShowEmailModal] = useState(false);
+  // OTP verification modal state
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [registeredUserId, setRegisteredUserId] = useState("");
 
   const validateAgentCode = async (code: string) => {
     if (!code || code.length !== 6) {
@@ -55,6 +56,30 @@ const Registration = () => {
       setAgentCodeValid(false);
     } finally {
       setValidatingCode(false);
+    }
+  };
+
+  const sendOtpEmail = async (userId: string) => {
+    try {
+      console.log("Sending OTP email to:", email);
+      const { data, error } = await supabase.functions.invoke('send-otp-email', {
+        body: {
+          user_id: userId,
+          email: email,
+          full_name: fullName,
+        },
+      });
+
+      if (error) {
+        console.error("Error sending OTP email:", error);
+        throw error;
+      }
+
+      console.log("OTP email response:", data);
+      return { success: true, data };
+    } catch (error: any) {
+      console.error("Failed to send OTP email:", error);
+      return { success: false, error };
     }
   };
 
@@ -84,29 +109,66 @@ const Registration = () => {
       });
 
       if (error) {
-        setErrorMessage(error.message || "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        if (error.message?.includes('already registered') || error.message?.includes('User already registered')) {
+          setErrorMessage("Este email já está registrado. Tente fazer login.");
+        } else {
+          setErrorMessage(error.message || "Não foi possível criar a conta. Verifique os dados e tente novamente.");
+        }
         return;
       }
       
       // Get user ID from the registration response
       const userId = data?.user?.id;
       
-      // Show email confirmation modal
-      setShowEmailModal(true);
+      if (!userId) {
+        setErrorMessage("Erro ao obter dados do usuário. Tente novamente.");
+        return;
+      }
+
+      setRegisteredUserId(userId);
+
+      // Send OTP email using custom SMTP
+      const otpResult = await sendOtpEmail(userId);
       
-      toast({
-        title: "Conta criada!",
-        description: "Verifique seu e-mail para confirmar a conta.",
-      });
+      if (!otpResult.success) {
+        toast({
+          title: "Conta criada",
+          description: "Conta criada, mas houve um problema ao enviar o código. Tente reenviar.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Código enviado!",
+          description: "Verifique seu e-mail para o código de verificação.",
+        });
+      }
+      
+      // Show OTP verification modal
+      setShowOtpModal(true);
+      
     } catch (error: any) {
+      console.error("Registration error:", error);
       setErrorMessage(error?.message || "Erro inesperado ao criar conta.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCloseEmailModal = () => {
-    setShowEmailModal(false);
+  const handleOtpSuccess = () => {
+    setShowOtpModal(false);
+    toast({
+      title: "Conta verificada!",
+      description: "Seu email foi verificado. Faça login para continuar.",
+    });
+    navigate("/login");
+  };
+
+  const handleCloseOtpModal = () => {
+    setShowOtpModal(false);
+    toast({
+      title: "Verificação pendente",
+      description: "Você pode verificar seu email ao fazer login.",
+    });
     navigate("/login");
   };
 
@@ -417,11 +479,14 @@ const Registration = () => {
         </div>
       </div>
 
-      {/* Email Confirmation Modal */}
-      <EmailConfirmationModal
-        isOpen={showEmailModal}
-        onClose={handleCloseEmailModal}
+      {/* OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        onClose={handleCloseOtpModal}
         email={email}
+        userId={registeredUserId}
+        fullName={fullName}
+        onSuccess={handleOtpSuccess}
       />
     </div>
   );

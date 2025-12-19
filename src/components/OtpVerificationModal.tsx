@@ -20,6 +20,8 @@ interface OtpVerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
+  userId: string;
+  fullName: string;
   onSuccess: () => void;
 }
 
@@ -27,6 +29,8 @@ export const OtpVerificationModal = ({
   isOpen,
   onClose,
   email,
+  userId,
+  fullName,
   onSuccess,
 }: OtpVerificationModalProps) => {
   const [otp, setOtp] = useState("");
@@ -53,29 +57,23 @@ export const OtpVerificationModal = ({
 
     setIsVerifying(true);
     try {
-      // Use Supabase Auth's built-in OTP verification
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'email',
+      // Use custom verify_email_otp function
+      const { data, error } = await supabase.rpc('verify_email_otp', {
+        p_email: email,
+        p_code: otp,
       });
 
       if (error) {
         console.error("Error verifying OTP:", error);
         toast({
-          title: "Código inválido",
-          description: "O código está incorreto ou expirou. Tente novamente.",
+          title: "Erro na verificação",
+          description: "Ocorreu um erro ao verificar o código.",
           variant: "destructive",
         });
         return;
       }
 
-      if (data?.user) {
-        // Update email_verified in public.users table
-        await supabase.rpc('sync_user_email_verified', {
-          p_user_id: data.user.id,
-        });
-
+      if (data === true) {
         toast({
           title: "E-mail verificado!",
           description: "Sua conta foi verificada com sucesso.",
@@ -101,14 +99,24 @@ export const OtpVerificationModal = ({
   };
 
   const handleResend = async () => {
+    if (!userId || !email || !fullName) {
+      toast({
+        title: "Erro",
+        description: "Dados insuficientes para reenviar o código.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsResending(true);
     try {
-      // Use Supabase Auth's built-in OTP email sending
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-        }
+      // Call custom send-otp-email edge function
+      const { data, error } = await supabase.functions.invoke('send-otp-email', {
+        body: {
+          user_id: userId,
+          email: email,
+          full_name: fullName,
+        },
       });
 
       if (error) throw error;
@@ -123,7 +131,7 @@ export const OtpVerificationModal = ({
       console.error("Error resending OTP:", error);
       toast({
         title: "Erro ao reenviar",
-        description: "Não foi possível reenviar o código.",
+        description: error?.message || "Não foi possível reenviar o código.",
         variant: "destructive",
       });
     } finally {

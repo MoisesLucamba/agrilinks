@@ -45,7 +45,7 @@ serve(async (req: Request): Promise<Response> => {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "AgriLink <no-reply@agrilink.ao>",
+      from: "AgriLink <onboarding@resend.dev>",
       to: [email],
       subject: "Código de Verificação - AgriLink",
       html: `

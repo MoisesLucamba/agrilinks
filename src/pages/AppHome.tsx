@@ -33,7 +33,7 @@ const AppHome = () => {
 
   const mockProducts: Product[] = [
     {
-     /* id: 'mock-1',
+      id: 'mock-1',
       product_type: 'Milho',
       description: 'Milho de alta qualidade, seco e pronto para venda a granel.',
       quantity: 5000,
@@ -53,7 +53,7 @@ const AppHome = () => {
       user_id: 'mock-user-1',
       location_lat: -8.8383,
       location_lng: 13.2344
-    },*/
+    },
     {
       id: 'mock-2',
       product_type: 'Feijão',

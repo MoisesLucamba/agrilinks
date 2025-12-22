@@ -31,7 +31,7 @@ const AppHome = () => {
 
   const navigate = useNavigate()
 
-  const mockProducts: Product[] = [
+  /*const mockProducts: Product[] = [
     {
       id: 'mock-1',
       product_type: 'Milho',
@@ -76,7 +76,7 @@ const AppHome = () => {
       location_lat: -12.7761,
       location_lng: 15.7392
     }
-  ]
+  ]*/
 
   useEffect(() => {
     if (user) fetchProducts()

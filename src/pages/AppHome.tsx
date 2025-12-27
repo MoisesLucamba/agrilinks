@@ -33,28 +33,6 @@ const AppHome = () => {
 
   const mockProducts: Product[] = [
     {
-      /*id: 'mock-1',
-      product_type: 'Milho',
-      description: 'Milho de alta qualidade, seco e pronto para venda a granel.',
-      quantity: 5000,
-      harvest_date: '2025-11-15',
-      price: 150000,
-      province_id: 'Luanda',
-      municipality_id: 'Luanda',
-      farmer_name: 'João Domingos',
-      contact: '+244 923 456 789',
-      photos: [
-        'https://cdn.pixabay.com/photo/2016/03/26/16/44/tomatoes-1280859_640.jpg',
-        'https://th.bing.com/th/id/R.5823e6ff9ba8294eec131a909b3d7b25?rik=ThNd5GGmJ6IxTQ&pid=ImgRaw&r=0',
-        'https://cdn.pixabay.com/photo/2022/01/23/03/18/farming-6959638_960_720.jpg'
-      ],
-      status: 'active',
-      created_at: new Date().toISOString(),
-      user_id: 'mock-user-1',
-      location_lat: -8.8383,
-      location_lng: 13.2344
-    },*/
-    {
       id: 'mock-2',
       product_type: 'Feijão',
       description: 'Feijão fresco colhido diretamente do campo.',

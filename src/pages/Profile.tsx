@@ -488,10 +488,8 @@ const Profile = () => {
               </div>
               <CardTitle className="text-xl flex items-center justify-center gap-2">
                 {profileData.full_name} 
-                {(userProfile as any)?.verified ? (
-                  <BadgeCheck className="h-4 w-4 text-blue-500" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                {(userProfile as any)?.verified && (
+                  <BadgeCheck className="h-4 w-4 text-primary" />
                 )}
               </CardTitle>
               <p className="text-sm text-muted-foreground">{userProfile?.user_type}</p>

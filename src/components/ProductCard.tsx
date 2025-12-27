@@ -294,7 +294,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </h3>
               {product.user_verified && (
                 <span title="Perfil verificado pela AgriLink">
-                  <BadgeCheck className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                 </span>
               )}
             </div>

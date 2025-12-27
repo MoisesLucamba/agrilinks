@@ -708,7 +708,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-2">
                           {user.full_name}
                           {user.verified && (
-                            <BadgeCheck className="h-4 w-4 text-blue-500" />
+                            <BadgeCheck className="h-4 w-4 text-primary" />
                           )}
                         </div>
                       </TableCell>
@@ -717,7 +717,7 @@ const AdminDashboard = () => {
                       <TableCell><Badge variant="outline" className="capitalize">{user.user_type || "user"}</Badge></TableCell>
                       <TableCell>
                         {user.verified ? (
-                          <Badge className="bg-blue-100 text-blue-700 flex items-center gap-1 w-fit">
+                          <Badge className="bg-primary/10 text-primary flex items-center gap-1 w-fit">
                             <BadgeCheck className="h-3 w-3" /> Verificado
                           </Badge>
                         ) : (
@@ -736,7 +736,7 @@ const AdminDashboard = () => {
                                 <ShieldX className="h-4 w-4 mr-2" /> Remover Verificação
                               </DropdownMenuItem>
                             ) : (
-                              <DropdownMenuItem onClick={() => toggleUserVerification(user.id, false)} className="text-blue-600">
+                              <DropdownMenuItem onClick={() => toggleUserVerification(user.id, false)} className="text-primary">
                                 <ShieldCheck className="h-4 w-4 mr-2" /> Verificar Usuário
                               </DropdownMenuItem>
                             )}

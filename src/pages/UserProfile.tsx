@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, MapPin, Calendar, Package, MessageCircle, Phone, 
-  CheckCircle, Star, Eye, ShoppingCart, Users, Verified 
+  CheckCircle, Star, Eye, ShoppingCart, Users, Verified, BadgeCheck 
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +24,7 @@ interface UserData {
   created_at: string;
   phone?: string;
   agent_code?: string;
+  verified?: boolean;
 }
 
 interface UserStats {
@@ -58,7 +59,7 @@ const UserProfile = () => {
       
       const { data: profileData, error: profileError } = await supabase
         .from('users')
-        .select('id, full_name, avatar_url, user_type, province_id, municipality_id, created_at, phone, agent_code')
+        .select('id, full_name, avatar_url, user_type, province_id, municipality_id, created_at, phone, agent_code, verified')
         .eq('id', id)
         .single();
 
@@ -239,7 +240,11 @@ const UserProfile = () => {
             <div className="mt-3 text-center">
               <div className="flex items-center justify-center gap-2">
                 <h2 className="text-2xl font-bold">{userData.full_name}</h2>
-                <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
+                {userData.verified ? (
+                  <BadgeCheck className="h-5 w-5 text-blue-500" />
+                ) : (
+                  <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
+                )}
               </div>
               
               <Badge variant="outline" className={`mt-2 ${getUserTypeColor(userData.user_type)}`}>

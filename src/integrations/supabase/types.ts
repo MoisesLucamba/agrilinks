@@ -1178,6 +1178,9 @@ export type Database = {
           referred_by_agent_id: string | null
           updated_at: string | null
           user_type: Database["public"]["Enums"]["user_type_enum"] | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           agent_code?: string | null
@@ -1195,6 +1198,9 @@ export type Database = {
           referred_by_agent_id?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type_enum"] | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           agent_code?: string | null
@@ -1212,6 +1218,9 @@ export type Database = {
           referred_by_agent_id?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type_enum"] | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {

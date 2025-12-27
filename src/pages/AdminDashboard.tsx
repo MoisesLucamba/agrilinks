@@ -30,6 +30,9 @@ import {
   FileText,
   TrendingUp,
   RefreshCw,
+  BadgeCheck,
+  ShieldCheck,
+  ShieldX,
   Check,
   AlertCircle,
 } from "lucide-react";
@@ -67,6 +70,8 @@ interface User {
   phone?: string | null;
   user_type?: string | null;
   created_at?: string | null;
+  verified?: boolean;
+  verified_at?: string | null;
 }
 
 interface Order {
@@ -305,6 +310,29 @@ const AdminDashboard = () => {
       toast.success(`Pedido de sourcing atualizado`);
     } else {
       toast.error("Erro ao atualizar pedido");
+    }
+  }, []);
+
+  const toggleUserVerification = useCallback(async (userId: string, currentVerified: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ 
+          verified: !currentVerified,
+          verified_at: !currentVerified ? new Date().toISOString() : null
+        })
+        .eq("id", userId);
+      
+      if (error) throw error;
+      
+      setUsers((prev) => prev.map((u) => 
+        u.id === userId ? { ...u, verified: !currentVerified, verified_at: !currentVerified ? new Date().toISOString() : null } : u
+      ));
+      
+      toast.success(!currentVerified ? "Usuário verificado com sucesso!" : "Verificação removida");
+    } catch (error) {
+      console.error("Erro ao atualizar verificação:", error);
+      toast.error("Erro ao atualizar status de verificação");
     }
   }, []);
 
@@ -668,6 +696,7 @@ const AdminDashboard = () => {
                     <TableHead>Email</TableHead>
                     <TableHead>Telefone</TableHead>
                     <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
@@ -675,10 +704,26 @@ const AdminDashboard = () => {
                 <TableBody>
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id} className="hover:bg-gray-50/50">
-                      <TableCell className="font-medium">{user.full_name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {user.full_name}
+                          {user.verified && (
+                            <BadgeCheck className="h-4 w-4 text-blue-500" />
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-500">{user.email || "-"}</TableCell>
                       <TableCell className="text-sm">{user.phone || "-"}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{user.user_type || "user"}</Badge></TableCell>
+                      <TableCell>
+                        {user.verified ? (
+                          <Badge className="bg-blue-100 text-blue-700 flex items-center gap-1 w-fit">
+                            <BadgeCheck className="h-3 w-3" /> Verificado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-gray-500">Não verificado</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-gray-500">{user.created_at ? new Date(user.created_at).toLocaleDateString("pt-BR") : "-"}</TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -686,6 +731,15 @@ const AdminDashboard = () => {
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreVertical className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {user.verified ? (
+                              <DropdownMenuItem onClick={() => toggleUserVerification(user.id, true)} className="text-amber-600">
+                                <ShieldX className="h-4 w-4 mr-2" /> Remover Verificação
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => toggleUserVerification(user.id, false)} className="text-blue-600">
+                                <ShieldCheck className="h-4 w-4 mr-2" /> Verificar Usuário
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => { setTargetUser(user.id); setNotificationModalOpen(true); }}>
                               <Bell className="h-4 w-4 mr-2" /> Notificar
                             </DropdownMenuItem>

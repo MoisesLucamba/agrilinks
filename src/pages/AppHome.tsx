@@ -47,6 +47,13 @@ const AppHome = () => {
 
       const productsWithData = await Promise.all(
         (productsData || []).map(async (product) => {
+          // Fetch user verification status
+          const { data: productUser } = await supabase
+            .from('users')
+            .select('verified')
+            .eq('id', product.user_id)
+            .maybeSingle()
+
           const { count: likesCount } = await supabase
             .from('product_likes')
             .select('*', { count: 'exact', head: true })
@@ -57,7 +64,7 @@ const AppHome = () => {
             .select('id')
             .eq('product_id', product.id)
             .eq('user_id', user?.id || '')
-            .single()
+            .maybeSingle()
 
           const { data: comments } = await supabase
             .from('product_comments')
@@ -120,7 +127,13 @@ const AppHome = () => {
             })
           )
 
-          return { ...product, likes_count: likesCount || 0, is_liked: !!userLike, comments: commentsWithUserInfo } as Product
+          return { 
+            ...product, 
+            likes_count: likesCount || 0, 
+            is_liked: !!userLike, 
+            comments: commentsWithUserInfo,
+            user_verified: productUser?.verified || false
+          } as Product
         })
       )
 

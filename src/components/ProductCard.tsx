@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Heart, MessageCircle, Calendar, MapPin, Send, ChevronLeft, ChevronRight, ShoppingCart, Reply, ThumbsUp } from 'lucide-react'
+import { Heart, MessageCircle, Calendar, MapPin, Send, ChevronLeft, ChevronRight, ShoppingCart, Reply, ThumbsUp, BadgeCheck } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -58,6 +58,7 @@ export interface Product {
   likes_count?: number
   is_liked?: boolean
   comments?: Comment[]
+  user_verified?: boolean
 }
 
 interface ProductCardProps {
@@ -284,12 +285,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">{product.farmer_name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 
-              className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
-              onClick={() => navigate(`/perfil/${product.user_id}`)}
-            >
-              {product.farmer_name}
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 
+                className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                onClick={() => navigate(`/perfil/${product.user_id}`)}
+              >
+                {product.farmer_name}
+              </h3>
+              {product.user_verified && (
+                <span title="Perfil verificado pela AgriLink">
+                  <BadgeCheck className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground truncate">{product.province_id}, {product.municipality_id}</p>
           </div>
           <Badge variant="secondary" className="text-xs shrink-0">{product.product_type}</Badge>

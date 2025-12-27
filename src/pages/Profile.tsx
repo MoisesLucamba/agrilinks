@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea'
 import { 
   User, Edit, Package, MapPin, Phone, Mail, Calendar, BarChart3, 
-  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart, Search 
+  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart, Search, BadgeCheck 
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
@@ -486,7 +486,14 @@ const Profile = () => {
                   <input id="avatar-upload" type="file" accept="image/*" onChange={uploadAvatar} className="hidden"/>
                 </div>
               </div>
-              <CardTitle className="text-xl flex items-center justify-center gap-2">{profileData.full_name} <CheckCircle className="h-4 w-4 text-green-500" /></CardTitle>
+              <CardTitle className="text-xl flex items-center justify-center gap-2">
+                {profileData.full_name} 
+                {(userProfile as any)?.verified ? (
+                  <BadgeCheck className="h-4 w-4 text-blue-500" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                )}
+              </CardTitle>
               <p className="text-sm text-muted-foreground">{userProfile?.user_type}</p>
             </CardHeader>
             <CardContent>

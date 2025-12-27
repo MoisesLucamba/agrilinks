@@ -240,10 +240,8 @@ const UserProfile = () => {
             <div className="mt-3 text-center">
               <div className="flex items-center justify-center gap-2">
                 <h2 className="text-2xl font-bold">{userData.full_name}</h2>
-                {userData.verified ? (
-                  <BadgeCheck className="h-5 w-5 text-blue-500" />
-                ) : (
-                  <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
+                {userData.verified && (
+                  <BadgeCheck className="h-5 w-5 text-primary" />
                 )}
               </div>
               

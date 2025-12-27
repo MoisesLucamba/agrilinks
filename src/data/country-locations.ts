@@ -13,101 +13,158 @@ export interface CountryLocations {
   [countryCode: string]: Province[];
 }
 
-// Angola provinces
+// Angola provinces (atualizado 2025 com novas províncias)
 const angolaProvinces: Province[] = [
   {
-    id: "bengo", name: "Bengo",
+    id: "luanda", name: "Luanda",
     municipalities: [
-      { id: "ambriz", name: "Ambriz" },
-      { id: "dande", name: "Dande" },
-      { id: "nambuangongo", name: "Nambuangongo" },
-      { id: "pango-aluquem", name: "Pango Aluquém" }
+      { id: "luanda", name: "Município de Luanda" },
+      { id: "viana", name: "Município de Viana" },
+      { id: "talatona", name: "Município de Talatona" },
+      { id: "belas", name: "Município de Belas" },
+      { id: "cazenga", name: "Município do Cazenga" },
+      { id: "cacuaco", name: "Município de Cacuaco" }
+    ]
+  },
+  {
+    id: "icolo-e-bengo", name: "Icolo e Bengo",
+    municipalities: [
+      { id: "icolo-e-bengo", name: "Município de Icolo e Bengo" },
+      { id: "quissama", name: "Município da Quissama" }
     ]
   },
   {
     id: "benguela", name: "Benguela",
     municipalities: [
-      { id: "benguela-city", name: "Benguela" },
-      { id: "lobito", name: "Lobito" },
-      { id: "catumbela", name: "Catumbela" },
-      { id: "cubal", name: "Cubal" }
-    ]
-  },
-  {
-    id: "bie", name: "Bié",
-    municipalities: [
-      { id: "cuito", name: "Cuíto" },
-      { id: "andulo", name: "Andulo" },
-      { id: "camacupa", name: "Camacupa" }
-    ]
-  },
-  {
-    id: "cabinda", name: "Cabinda",
-    municipalities: [
-      { id: "cabinda-city", name: "Cabinda" },
-      { id: "cacongo", name: "Cacongo" },
-      { id: "buco-zau", name: "Buco-Zau" }
+      { id: "benguela", name: "Município de Benguela" },
+      { id: "lobito", name: "Município do Lobito" },
+      { id: "catumbela", name: "Município da Catumbela" },
+      { id: "baia-farta", name: "Município da Baía Farta" }
     ]
   },
   {
     id: "huambo", name: "Huambo",
     municipalities: [
-      { id: "huambo-city", name: "Huambo" },
-      { id: "caala", name: "Caála" },
-      { id: "bailundo", name: "Bailundo" }
+      { id: "huambo", name: "Município do Huambo" },
+      { id: "caala", name: "Município da Caála" },
+      { id: "bailundo", name: "Município do Bailundo" }
     ]
   },
   {
     id: "huila", name: "Huíla",
     municipalities: [
-      { id: "lubango", name: "Lubango" },
-      { id: "matala", name: "Matala" },
-      { id: "chibia", name: "Chibia" }
+      { id: "lubango", name: "Município do Lubango" },
+      { id: "humpata", name: "Município da Humpata" },
+      { id: "chibia", name: "Município da Chibia" }
     ]
   },
   {
-    id: "luanda", name: "Luanda",
+    id: "cabinda", name: "Cabinda",
     municipalities: [
-      { id: "luanda-city", name: "Luanda" },
-      { id: "viana", name: "Viana" },
-      { id: "cacuaco", name: "Cacuaco" },
-      { id: "belas", name: "Belas" },
-      { id: "talatona", name: "Talatona" }
+      { id: "cabinda", name: "Município de Cabinda" },
+      { id: "cacongo", name: "Município de Cacongo" }
     ]
   },
   {
-    id: "malanje", name: "Malanje",
+    id: "bengo", name: "Bengo",
     municipalities: [
-      { id: "malanje-city", name: "Malanje" },
-      { id: "cacuso", name: "Cacuso" }
-    ]
-  },
-  {
-    id: "moxico", name: "Moxico",
-    municipalities: [
-      { id: "luena", name: "Luena" },
-      { id: "luau", name: "Luau" }
-    ]
-  },
-  {
-    id: "namibe", name: "Namibe",
-    municipalities: [
-      { id: "mocamedes", name: "Moçâmedes" },
-      { id: "tombua", name: "Tômbua" }
-    ]
-  },
-  {
-    id: "uige", name: "Uíge",
-    municipalities: [
-      { id: "uige-city", name: "Uíge" },
-      { id: "negage", name: "Negage" }
+      { id: "dande", name: "Município do Dande" },
+      { id: "ambriz", name: "Município do Ambriz" }
     ]
   },
   {
     id: "zaire", name: "Zaire",
     municipalities: [
-      { id: "mbanza-congo", name: "Mbanza Congo" },
-      { id: "soio", name: "Soio" }
+      { id: "mbanza-congo", name: "Município de Mbanza Congo" },
+      { id: "soyo", name: "Município do Soyo" }
+    ]
+  },
+  {
+    id: "uige", name: "Uíge",
+    municipalities: [
+      { id: "uige", name: "Município do Uíge" },
+      { id: "negage", name: "Município do Negage" }
+    ]
+  },
+  {
+    id: "cuanza-norte", name: "Cuanza Norte",
+    municipalities: [
+      { id: "cazengo", name: "Município do Cazengo" },
+      { id: "cambambe", name: "Município de Cambambe" }
+    ]
+  },
+  {
+    id: "cuanza-sul", name: "Cuanza Sul",
+    municipalities: [
+      { id: "sumbe", name: "Município do Sumbe" },
+      { id: "porto-amboim", name: "Município de Porto Amboim" }
+    ]
+  },
+  {
+    id: "malanje", name: "Malanje",
+    municipalities: [
+      { id: "malanje", name: "Município de Malanje" },
+      { id: "calandula", name: "Município de Calandula" }
+    ]
+  },
+  {
+    id: "lunda-norte", name: "Lunda Norte",
+    municipalities: [
+      { id: "chitato", name: "Município do Chitato" },
+      { id: "cuango", name: "Município do Cuango" }
+    ]
+  },
+  {
+    id: "lunda-sul", name: "Lunda Sul",
+    municipalities: [
+      { id: "saurimo", name: "Município de Saurimo" }
+    ]
+  },
+  {
+    id: "bie", name: "Bié",
+    municipalities: [
+      { id: "cuito", name: "Município do Cuíto" },
+      { id: "andulo", name: "Município do Andulo" }
+    ]
+  },
+  {
+    id: "moxico", name: "Moxico",
+    municipalities: [
+      { id: "moxico-luena", name: "Município do Moxico/Luena" }
+    ]
+  },
+  {
+    id: "moxico-leste", name: "Moxico Leste",
+    municipalities: [
+      { id: "alto-zambeze", name: "Município do Alto Zambeze" }
+    ]
+  },
+  {
+    id: "namibe", name: "Namibe",
+    municipalities: [
+      { id: "mocamedes", name: "Município de Moçâmedes" },
+      { id: "tombwa", name: "Município do Tômbwa" }
+    ]
+  },
+  {
+    id: "cunene", name: "Cunene",
+    municipalities: [
+      { id: "cuanhama", name: "Município do Cuanhama" },
+      { id: "namacunde", name: "Município de Namacunde" }
+    ]
+  },
+  {
+    id: "cuando-cubango", name: "Cuando Cubango",
+    municipalities: [
+      { id: "menongue", name: "Município de Menongue" },
+      { id: "cuito-cuanavale", name: "Município do Cuito Cuanavale" }
+    ]
+  },
+  {
+    id: "cuando", name: "Cuando",
+    municipalities: [
+      { id: "mavinga", name: "Município de Mavinga" },
+      { id: "rivungo", name: "Município de Rivungo" }
     ]
   }
 ];

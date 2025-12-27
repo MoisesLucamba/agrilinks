@@ -31,30 +31,6 @@ const AppHome = () => {
 
   const navigate = useNavigate()
 
-  const mockProducts: Product[] = [
-    {
-      id: 'mock-2',
-      product_type: 'Feijão',
-      description: 'Feijão fresco colhido diretamente do campo.',
-      quantity: 3000,
-      harvest_date: '2025-10-20',
-      price: 200000,
-      province_id: 'Huambo',
-      municipality_id: 'Huambo',
-      farmer_name: 'Maria Santos',
-      contact: '+244 924 567 890',
-      photos: [
-        'https://cdn.pixabay.com/photo/2021/10/19/13/40/field-6723608_640.jpg',
-        'https://cdn.pixabay.com/photo/2019/07/25/12/51/reed-bed-4362529_640.jpg',
-        'https://cdn.pixabay.com/photo/2022/01/23/03/18/farming-6959638_960_720.jpg'
-      ],
-      status: 'active',
-      created_at: new Date().toISOString(),
-      user_id: 'mock-user-2',
-      location_lat: -12.7761,
-      location_lng: 15.7392
-    }
-  ]
 
   useEffect(() => {
     if (user) fetchProducts()
@@ -171,9 +147,9 @@ const AppHome = () => {
         return totalScoreB - totalScoreA
       })
 
-      setProducts([...mockProducts, ...rankedProducts.slice(0, 20)])
+      setProducts(rankedProducts.slice(0, 20))
     } catch {
-      setProducts(mockProducts)
+      setProducts([])
     } finally {
       setLoading(false)
     }

@@ -275,14 +275,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <>
-      <Card className="shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow bg-white">
+      <Card className="overflow-hidden bg-card border border-border rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 group">
         {/* Header */}
-        <div className="p-3 flex items-center gap-3 border-b border-gray-50">
+        <div className="p-3.5 flex items-center gap-3 border-b border-border/50">
           <Avatar 
-            className="h-9 w-9 ring-2 ring-primary/20 cursor-pointer hover:ring-primary/40 transition-all"
+            className="h-10 w-10 ring-2 ring-border cursor-pointer hover:ring-primary/50 transition-all"
             onClick={() => navigate(`/perfil/${product.user_id}`)}
           >
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">{product.farmer_name.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+              {product.farmer_name.charAt(0)}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
@@ -298,78 +300,101 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate">{product.province_id}, {product.municipality_id}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {product.province_id}, {product.municipality_id}
+            </p>
           </div>
-          <Badge variant="secondary" className="text-xs shrink-0">{product.product_type}</Badge>
+          <Badge variant="secondary" className="text-xs shrink-0 font-medium">
+            {product.product_type}
+          </Badge>
         </div>
 
-        {/* Imagens */}
-        <div className="relative bg-gray-100">
+        {/* Images */}
+        <div className="relative bg-muted aspect-[4/3]">
           {product.photos && product.photos.length > 0 ? (
             <Slider {...sliderSettings}>
               {product.photos.map((photo, i) => (
-                <div key={i} className="relative">
-                  <img src={photo} className="w-full h-64 object-cover" alt={product.product_type} />
+                <div key={i} className="relative aspect-[4/3]">
+                  <img 
+                    src={photo} 
+                    className="w-full h-full object-cover" 
+                    alt={product.product_type}
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </Slider>
           ) : (
-            <div className="w-full h-64 flex items-center justify-center bg-gray-100">
-              <span className="text-gray-400">Sem imagem</span>
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <span className="text-muted-foreground text-sm">Sem imagem</span>
             </div>
           )}
         </div>
 
         <CardContent className="p-4 space-y-3">
-          {/* Preço e Info */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h4 className="font-bold text-lg">{product.product_type}</h4>
-              <p className="text-sm text-muted-foreground">{product.quantity.toLocaleString()} kg disponíveis</p>
+          {/* Price and Info */}
+          <div className="flex justify-between items-start gap-3">
+            <div className="min-w-0">
+              <h4 className="font-bold text-base leading-tight">{product.product_type}</h4>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {product.quantity.toLocaleString()} kg disponíveis
+              </p>
             </div>
-            <span className="text-xl font-bold text-primary">{formatPrice(product.price)}</span>
+            <span className="text-lg font-bold text-primary whitespace-nowrap">
+              {formatPrice(product.price)}
+            </span>
           </div>
 
           {product.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              {product.description}
+            </p>
           )}
 
-          {/* Data e Localização */}
+          {/* Date and Location */}
           <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" /> {formatDate(product.harvest_date)}
             </span>
             {product.location_lat && product.location_lng && (
               <button
                 onClick={handleOpenMap}
-                className="flex items-center gap-1 text-primary hover:underline font-medium"
+                className="flex items-center gap-1.5 text-primary hover:underline font-medium transition-colors"
               >
                 <MapPin className="h-4 w-4" /> Ver no Mapa
               </button>
             )}
           </div>
 
-          {/* Ações */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-            <div className="flex items-center gap-2">
+          {/* Actions */}
+          <div className="flex items-center justify-between pt-3 border-t border-border/50">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLike}
-                className={`h-9 px-3 ${product.is_liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                className={`h-9 px-2.5 rounded-xl ${
+                  product.is_liked 
+                    ? 'text-destructive hover:text-destructive' 
+                    : 'text-muted-foreground hover:text-destructive'
+                }`}
               >
                 <Heart className={`h-5 w-5 ${product.is_liked ? 'fill-current' : ''}`} />
-                {product.likes_count ? <span className="ml-1 text-sm">{product.likes_count}</span> : null}
+                {product.likes_count ? (
+                  <span className="ml-1 text-sm font-medium">{product.likes_count}</span>
+                ) : null}
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setCommentVisible(!commentVisible)}
-                className="h-9 px-3 text-gray-500 hover:text-primary"
+                className="h-9 px-2.5 rounded-xl text-muted-foreground hover:text-primary"
               >
                 <MessageCircle className="h-5 w-5" />
-                {product.comments?.length ? <span className="ml-1 text-sm">{product.comments.length}</span> : null}
+                {product.comments?.length ? (
+                  <span className="ml-1 text-sm font-medium">{product.comments.length}</span>
+                ) : null}
               </Button>
             </div>
 
@@ -377,7 +402,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Button
                 size="sm"
                 onClick={() => onOpenPreOrder(product)}
-                className="bg-primary hover:bg-primary/90 shadow-sm h-9"
+                className="h-9 px-4 rounded-xl shadow-soft"
               >
                 <ShoppingCart className="h-4 w-4 mr-1.5" />
                 Pré-Compra
@@ -385,26 +410,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* Comentários */}
+          {/* Comments Section */}
           {commentVisible && (
-            <div className="pt-3 space-y-3 border-t border-gray-100">
+            <div className="pt-3 space-y-3 border-t border-border/50">
               <div className="flex gap-2">
                 <Input
                   placeholder="Escreva um comentário..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   onKeyPress={(e) => { if (e.key === 'Enter') addComment() }}
-                  className="flex-1 h-9 text-sm"
+                  className="flex-1 h-10 text-sm rounded-xl"
                 />
-                <Button size="sm" onClick={addComment} className="h-9 w-9 p-0">
+                <Button size="sm" onClick={addComment} className="h-10 w-10 p-0 rounded-xl">
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
 
               {product.comments?.length ? (
-                <div className="space-y-3 max-h-72 overflow-y-auto">
+                <div className="space-y-2.5 max-h-72 overflow-y-auto scrollbar-hide">
                   {product.comments.map(c => (
-                    <div key={c.id} className="bg-gray-50 rounded-xl p-3">
+                    <div key={c.id} className="bg-muted/50 rounded-xl p-3">
                       <div className="flex items-start gap-2">
                         <Avatar className="h-7 w-7">
                           {c.user_avatar ? (

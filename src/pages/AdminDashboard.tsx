@@ -35,6 +35,10 @@ import {
   ShieldX,
   Check,
   AlertCircle,
+  Crown,
+  Shield,
+  UserCog,
+  Lock,
 } from "lucide-react";
 import {
   Dialog,
@@ -51,6 +55,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import AgrilinkLogo from "@/assets/agrilink-logo.png";
+import AdminManagement from "@/components/admin/AdminManagement";
+
+type AdminPermission = "manage_users" | "manage_products" | "manage_orders" | "manage_support" | "manage_sourcing" | "view_analytics" | "manage_admins";
 
 // --- Tipos ---
 interface Product {
@@ -72,6 +79,7 @@ interface User {
   created_at?: string | null;
   verified?: boolean;
   verified_at?: string | null;
+  is_root_admin?: boolean;
 }
 
 interface Order {
@@ -116,7 +124,7 @@ interface Ficha {
   created_at: string;
 }
 
-type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market";
+type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market" | "admins";
 
 interface SourcingRequest {
   id: string;
@@ -204,6 +212,48 @@ const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [analyzingMarket, setAnalyzingMarket] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isRootAdmin, setIsRootAdmin] = useState(false);
+  const [userPermissions, setUserPermissions] = useState<AdminPermission[]>([]);
+
+  // Check admin permissions on mount
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      setCurrentUserId(user.id);
+
+      // Check if root admin
+      const { data: userData } = await supabase
+        .from("users")
+        .select("is_root_admin")
+        .eq("id", user.id)
+        .single();
+      
+      if (userData?.is_root_admin) {
+        setIsRootAdmin(true);
+        setUserPermissions(["manage_users", "manage_products", "manage_orders", "manage_support", "manage_sourcing", "view_analytics", "manage_admins"]);
+      } else {
+        // Get specific permissions
+        const { data: permissions } = await supabase
+          .from("admin_permissions")
+          .select("permission")
+          .eq("user_id", user.id);
+        
+        if (permissions) {
+          setUserPermissions(permissions.map((p) => p.permission as AdminPermission));
+        }
+      }
+    };
+    
+    checkAdminStatus();
+  }, []);
+
+  // Helper to check if user has a specific permission
+  const hasPermission = useCallback((permission: AdminPermission) => {
+    return isRootAdmin || userPermissions.includes(permission);
+  }, [isRootAdmin, userPermissions]);
 
   useEffect(() => {
     fetchAllData();
@@ -463,12 +513,16 @@ const AdminDashboard = () => {
             <TabButton active={activeTab === "orders"} onClick={() => { setActiveTab("orders"); setMenuOpen(false); }}>
               <ShoppingCart className="h-4 w-4" /> Pedidos
             </TabButton>
-            <TabButton active={activeTab === "products"} onClick={() => { setActiveTab("products"); setMenuOpen(false); }}>
-              <Package className="h-4 w-4" /> Produtos
-            </TabButton>
-            <TabButton active={activeTab === "users"} onClick={() => { setActiveTab("users"); setMenuOpen(false); }}>
-              <Users className="h-4 w-4" /> Usuários
-            </TabButton>
+            {hasPermission("manage_products") && (
+              <TabButton active={activeTab === "products"} onClick={() => { setActiveTab("products"); setMenuOpen(false); }}>
+                <Package className="h-4 w-4" /> Produtos
+              </TabButton>
+            )}
+            {hasPermission("manage_users") && (
+              <TabButton active={activeTab === "users"} onClick={() => { setActiveTab("users"); setMenuOpen(false); }}>
+                <Users className="h-4 w-4" /> Usuários
+              </TabButton>
+            )}
             <TabButton active={activeTab === "transactions"} onClick={() => { setActiveTab("transactions"); setMenuOpen(false); }}>
               <DollarSign className="h-4 w-4" /> Transações
             </TabButton>
@@ -478,17 +532,36 @@ const AdminDashboard = () => {
             <TabButton active={activeTab === "fichas"} onClick={() => { setActiveTab("fichas"); setMenuOpen(false); }}>
               <FileText className="h-4 w-4" /> Fichas
             </TabButton>
-            <TabButton active={activeTab === "sourcing"} onClick={() => { setActiveTab("sourcing"); setMenuOpen(false); }} badge={sourcingRequests.filter(s => s.status === 'pending').length}>
-              <TrendingUp className="h-4 w-4" /> Sourcing
-            </TabButton>
-            <TabButton active={activeTab === "market"} onClick={() => { setActiveTab("market"); setMenuOpen(false); }}>
-              <Activity className="h-4 w-4" /> Mercado
-            </TabButton>
+            {hasPermission("manage_sourcing") && (
+              <TabButton active={activeTab === "sourcing"} onClick={() => { setActiveTab("sourcing"); setMenuOpen(false); }} badge={sourcingRequests.filter(s => s.status === 'pending').length}>
+                <TrendingUp className="h-4 w-4" /> Sourcing
+              </TabButton>
+            )}
+            {hasPermission("view_analytics") && (
+              <TabButton active={activeTab === "market"} onClick={() => { setActiveTab("market"); setMenuOpen(false); }}>
+                <Activity className="h-4 w-4" /> Mercado
+              </TabButton>
+            )}
+            {isRootAdmin && (
+              <TabButton active={activeTab === "admins"} onClick={() => { setActiveTab("admins"); setMenuOpen(false); }}>
+                <Crown className="h-4 w-4" /> Admins
+              </TabButton>
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 space-y-6">
+        {/* Root Admin Badge */}
+        {isRootAdmin && (
+          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-xl">
+            <Crown className="h-5 w-5 text-amber-600" />
+            <span className="text-sm font-medium text-amber-800">
+              Você é um Root Admin - Acesso total ao sistema
+            </span>
+          </div>
+        )}
+
         {/* DASHBOARD */}
         {activeTab === "dashboard" && (
           <>
@@ -1233,6 +1306,16 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* ADMIN MANAGEMENT */}
+        {activeTab === "admins" && currentUserId && (
+          <AdminManagement
+            currentUserId={currentUserId}
+            isRootAdmin={isRootAdmin}
+            users={users}
+            onRefresh={fetchAllData}
+          />
         )}
       </main>
 

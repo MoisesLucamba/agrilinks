@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_permissions: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          permission: Database["public"]["Enums"]["admin_permission"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission: Database["public"]["Enums"]["admin_permission"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["admin_permission"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_referrals: {
         Row: {
           agent_id: string
@@ -1171,6 +1224,7 @@ export type Database = {
           full_name: string
           id: string
           identity_document: string
+          is_root_admin: boolean | null
           municipality_id: string
           phone: string | null
           phone_verified: boolean | null
@@ -1191,6 +1245,7 @@ export type Database = {
           full_name: string
           id: string
           identity_document: string
+          is_root_admin?: boolean | null
           municipality_id: string
           phone?: string | null
           phone_verified?: boolean | null
@@ -1211,6 +1266,7 @@ export type Database = {
           full_name?: string
           id?: string
           identity_document?: string
+          is_root_admin?: boolean | null
           municipality_id?: string
           phone?: string | null
           phone_verified?: boolean | null
@@ -1393,6 +1449,13 @@ export type Database = {
           user_type: Database["public"]["Enums"]["user_type_enum"]
         }[]
       }
+      has_admin_permission: {
+        Args: {
+          _permission: Database["public"]["Enums"]["admin_permission"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1400,6 +1463,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_root_admin: { Args: { _user_id: string }; Returns: boolean }
       process_deposit: {
         Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: string
@@ -1455,6 +1519,14 @@ export type Database = {
       }
     }
     Enums: {
+      admin_permission:
+        | "manage_users"
+        | "manage_products"
+        | "manage_orders"
+        | "manage_support"
+        | "manage_sourcing"
+        | "view_analytics"
+        | "manage_admins"
       app_role: "admin" | "moderator" | "user"
       transaction_status:
         | "pending"
@@ -1599,6 +1671,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_permission: [
+        "manage_users",
+        "manage_products",
+        "manage_orders",
+        "manage_support",
+        "manage_sourcing",
+        "view_analytics",
+        "manage_admins",
+      ],
       app_role: ["admin", "moderator", "user"],
       transaction_status: [
         "pending",

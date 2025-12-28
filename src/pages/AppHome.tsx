@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { BarChart3, Search, LayoutDashboard } from 'lucide-react'
+import { BarChart3, Search, LayoutDashboard, ShoppingCart, Bell, Phone } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import agrilinkLogo from '@/assets/agrilink-logo.png'
@@ -11,7 +11,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useNavigate } from 'react-router-dom'
 import { ProductCard, Product } from '@/components/ProductCard'
-import { Bell, Phone } from 'lucide-react'
+
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY293Z2QwaGRwMmlyNGlwNW4xYXhwIn0.qOjQNe8kbbfmdK5G0MHWDA'
 
@@ -279,139 +279,194 @@ const AppHome = () => {
   const totalPrice = selectedProduct ? orderData.quantity * selectedProduct.price * (1 + TAX_RATE) : 0
   const formatPrice = (p: number) => `${p.toLocaleString()} Kz`
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
+          <span className="text-sm text-muted-foreground">Carregando...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-background min-h-screen pb-6">
-      {/* HEADER */}
-      <div className="sticky top-0 z-20 bg-white/60 backdrop-blur-md border-green-600 px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-12" />
-          <div
-  onClick={() => navigate('/search')}
-  className="flex items-center justify-center p-2 rounded-full cursor-pointer 
-             hover:bg-green-100 transition-colors duration-200"
->
-  <Search className="h-6 w-6 text-green-500" />
-</div>
-
-        </div>
-        {isAdmin ? (
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admindashboard')}>
-            <LayoutDashboard className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button variant="ghost" size="icon" onClick={() => navigate('/mercado')}>
-            <BarChart3 className="h-5 w-5" />
-          </Button>
-        )}
-      </div>
-      {/* FEED */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3 w-full">
-        <div className="space-y-6 md:col-span-2">
-          {products.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onProductUpdate={handleProductUpdate}
-              onOpenMap={handleOpenMap}
-              onOpenPreOrder={handleOpenPreOrder}
+    <div className="bg-background min-h-screen safe-bottom">
+      {/* HEADER - Refined glass effect */}
+      <header className="sticky top-0 z-30 glass border-b border-border/50">
+        <div className="content-container py-3 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <img 
+              src={agrilinkLogo} 
+              alt="AgriLink" 
+              className="h-10 sm:h-11 drop-shadow-glow transition-transform hover:scale-105" 
             />
+            <button
+              onClick={() => navigate('/search')}
+              className="flex items-center justify-center p-2.5 rounded-full 
+                         bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary
+                         transition-all duration-200"
+              aria-label="Pesquisar"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isAdmin ? (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/admindashboard')}
+                className="hover:bg-primary/10 hover:text-primary"
+              >
+                <LayoutDashboard className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/mercado')}
+                className="hover:bg-primary/10 hover:text-primary"
+              >
+                <BarChart3 className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* FEED - Improved responsive grid */}
+      <main className="content-container py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+          {products.map((product, index) => (
+            <div 
+              key={product.id} 
+              className="animate-fade-in"
+              style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
+            >
+              <ProductCard
+                product={product}
+                onProductUpdate={handleProductUpdate}
+                onOpenMap={handleOpenMap}
+                onOpenPreOrder={handleOpenPreOrder}
+              />
+            </div>
           ))}
         </div>
-      </div>
-      {/* MODAIS */}
-<Dialog open={modalOpen} onOpenChange={setModalOpen}>
-  <DialogContent className="sm:max-w-md bg-white border border-green-200 shadow-lg rounded-xl p-6 max-h-[80vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle className="text-xl flex items-center gap-2">
-        <span className="text-green-600">🛒</span>
-        Pré-Compra – {selectedProduct?.product_type}
-      </DialogTitle>
-
-      <DialogDescription className="text-sm text-gray-500 text-justify flex flex-col gap-2">
-        <div className="flex items-start gap-2">
-          <Bell className="w-4 h-4 text-green-500 mt-1" />
-          A pré-compra é apenas uma demonstração de interesse. O agricultor receberá o pedido e verificará se consegue corresponder à sua solicitação, incluindo a localização.
-        </div>
-        <div className="flex items-start gap-2">
-          <Bell className="w-4 h-4 text-green-500 mt-1" />
-          Após alguns minutos, você será notificado aqui mesmo na plataforma com uma ligação e uma mensagem.
-        </div>
-        <div className="flex flex-col items-start gap-1">
-          <Phone className="w-4 h-4 text-black mt-1" />
-          Fique atento, pois os seguintes números podem entrar em contato quando alguém demonstrar interesse no produto:
-          <div className="ml-5 mt-1 space-y-1">
-            <div className="font-semibold">934 745 871</div>
-            <div className="font-semibold">935 358 417</div>
-            <div className="font-semibold">922 717 574</div>
+        
+        {products.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
+              <Search className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum produto encontrado</h3>
+            <p className="text-sm text-muted-foreground">Novos produtos serão exibidos aqui.</p>
           </div>
-        </div>
-      </DialogDescription>
-    </DialogHeader>
-
-    <div className="space-y-5 py-4">
-      {/* QUANTIDADE */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium flex items-center gap-2">📦 Quantidade (kg)</label>
-        <Input
-          type="number"
-          value={orderData.quantity || ''}
-          onChange={(e) => setOrderData({ ...orderData, quantity: Number(e.target.value) })}
-          min={1}
-          max={selectedProduct?.quantity}
-        />
-        <p className="text-xs text-muted-foreground">
-          Disponível: {selectedProduct?.quantity.toLocaleString()} kg
-        </p>
-      </div>
-
-      {/* LOCAL */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium flex items-center gap-2">📍 Local de Entrega</label>
-        <Input
-          placeholder="Ex: Luanda, Maianga"
-          value={orderData.location}
-          onChange={(e) => setOrderData({ ...orderData, location: e.target.value })}
-        />
-      </div>
-
-      {/* RESUMO */}
-      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Subtotal:</span>
-          <span>{formatPrice(orderData.quantity * (selectedProduct?.price || 0))}</span>
-        </div>
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>Taxa de Logística (7,8%):</span>
-          <span>{formatPrice(orderData.quantity * (selectedProduct?.price || 0) * 0.078)}</span>
-        </div>
-        <div className="border-t pt-2 flex justify-between font-bold text-lg">
-          <span>Total:</span>
-          <span className="text-green-600">{formatPrice(totalPrice)}</span>
-        </div>
-      </div>
-    </div>
-
-    <DialogFooter className="flex justify-between">
-      <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
-      <Button
-        className="bg-green-600 hover:bg-green-700 text-white"
-        onClick={handlePreOrderSubmit}
-        disabled={isSubmitting || !orderData.location.trim()}
-      >
-        {isSubmitting ? (
-          <div className="flex items-center gap-2">
-            <div className="animate-spin h-4 w-4 rounded-full border-2 border-white border-b-transparent" />
-            Processando...
-          </div>
-        ) : (
-          'Confirmar Pedido'
         )}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+      </main>
+
+      {/* MODAL PRÉ-COMPRA - Refined */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-md bg-card border border-border shadow-strong rounded-2xl p-0 max-h-[85vh] overflow-hidden">
+          <DialogHeader className="p-5 pb-4 border-b border-border">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10">
+                <ShoppingCart className="h-5 w-5 text-primary" />
+              </span>
+              Pré-Compra
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground mt-1">{selectedProduct?.product_type}</p>
+          </DialogHeader>
+
+          <div className="p-5 space-y-4 overflow-y-auto max-h-[50vh]">
+            {/* Info Cards */}
+            <div className="space-y-2.5">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
+                <Bell className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  A pré-compra é uma demonstração de interesse. O agricultor receberá e verificará a disponibilidade.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
+                <Phone className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="text-muted-foreground mb-1.5">Números de contato:</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2 py-0.5 bg-background rounded-md font-medium text-xs">934 745 871</span>
+                    <span className="px-2 py-0.5 bg-background rounded-md font-medium text-xs">935 358 417</span>
+                    <span className="px-2 py-0.5 bg-background rounded-md font-medium text-xs">922 717 574</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Quantidade (kg)</label>
+                <Input
+                  type="number"
+                  value={orderData.quantity || ''}
+                  onChange={(e) => setOrderData({ ...orderData, quantity: Number(e.target.value) })}
+                  min={1}
+                  max={selectedProduct?.quantity}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Disponível: {selectedProduct?.quantity.toLocaleString()} kg
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Local de Entrega</label>
+                <Input
+                  placeholder="Ex: Luanda, Maianga"
+                  value={orderData.location}
+                  onChange={(e) => setOrderData({ ...orderData, location: e.target.value })}
+                  className="h-11"
+                />
+              </div>
+            </div>
+
+            {/* Price Summary */}
+            <div className="bg-muted/50 p-4 rounded-xl space-y-2.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal:</span>
+                <span className="font-medium">{formatPrice(orderData.quantity * (selectedProduct?.price || 0))}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Taxa de Logística (7,8%):</span>
+                <span className="font-medium">{formatPrice(orderData.quantity * (selectedProduct?.price || 0) * 0.078)}</span>
+              </div>
+              <div className="border-t border-border pt-2.5 flex justify-between">
+                <span className="font-semibold">Total:</span>
+                <span className="font-bold text-lg text-primary">{formatPrice(totalPrice)}</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-5 pt-4 border-t border-border gap-3 sm:gap-3">
+            <Button variant="outline" onClick={() => setModalOpen(false)} className="flex-1 sm:flex-none">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handlePreOrderSubmit}
+              disabled={isSubmitting || !orderData.location.trim()}
+              className="flex-1 sm:flex-none"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin h-4 w-4 rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  Processando...
+                </span>
+              ) : (
+                'Confirmar Pedido'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
 {isSubmitting && (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">

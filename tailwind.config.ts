@@ -93,14 +93,22 @@ export default {
 				'gradient-card': 'var(--gradient-card)'
 			},
 			boxShadow: {
+				'xs': 'var(--shadow-xs)',
 				'soft': 'var(--shadow-soft)',
 				'medium': 'var(--shadow-medium)',
 				'strong': 'var(--shadow-strong)',
-				'glow': 'var(--shadow-glow)'
+				'glow': 'var(--shadow-glow)',
+				'inner': 'var(--shadow-inner)'
 			},
 			transitionTimingFunction: {
-				'smooth': 'var(--transition-smooth)',
-				'bounce': 'var(--transition-bounce)'
+				'fast': 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+			},
+			transitionDuration: {
+				'fast': '150ms',
+				'normal': '250ms',
+				'slow': '400ms'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

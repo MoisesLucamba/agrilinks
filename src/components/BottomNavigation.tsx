@@ -94,33 +94,44 @@ const BottomNavigation = () => {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
-      <div className="grid grid-cols-6 gap-1 p-2">
-        {navItems.map((item) => (
-          <Button
-            key={item.path}
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(item.path)}
-            className={`relative flex flex-col items-center gap-1 h-auto py-2 px-1 ${
-              isActive(item.path)
-                ? 'text-primary bg-primary/10'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <div className="relative">
-              <item.icon className="h-5 w-5" />
-              {item.badge > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full px-1 animate-pulse">
-                  {item.badge > 99 ? '99+' : item.badge}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] font-medium">{item.label}</span>
-          </Button>
-        ))}
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border"
+      style={{ paddingBottom: 'var(--safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="grid grid-cols-6 gap-0.5 px-1 py-1.5 max-w-lg mx-auto">
+        {navItems.map((item) => {
+          const active = isActive(item.path)
+          return (
+            <Button
+              key={item.path}
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(item.path)}
+              className={`
+                relative flex flex-col items-center gap-0.5 h-auto py-2 px-1 rounded-xl
+                transition-all duration-200
+                ${active 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }
+              `}
+            >
+              <div className="relative">
+                <item.icon className={`h-5 w-5 transition-transform ${active ? 'scale-110' : ''}`} />
+                {item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full px-1 animate-pulse-soft">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </div>
+              <span className={`text-[10px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
+                {item.label}
+              </span>
+            </Button>
+          )
+        })}
       </div>
-    </div>
+    </nav>
   )
 }
 

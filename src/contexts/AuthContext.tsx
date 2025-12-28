@@ -9,6 +9,7 @@ interface AuthContextType {
   userProfile: UserProfile | null
   loading: boolean
   isAdmin: boolean
+  isRootAdmin: boolean
   login: (email: string, password: string) => Promise<{ error: any }>
   register: (userData: RegisterData) => Promise<{ error: any; data?: any }>
   logout: () => Promise<void>
@@ -42,19 +43,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   })
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isRootAdmin, setIsRootAdmin] = useState(false)
 
   const checkAdminRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('has_role', { 
+      // Check if user has admin role
+      const { data: hasAdminRole, error: roleError } = await supabase.rpc('has_role', { 
         _user_id: userId, 
         _role: 'admin' 
       })
-      if (!error) {
-        setIsAdmin(data === true)
+      
+      // Check if user is root admin
+      const { data: rootAdminData, error: rootError } = await supabase.rpc('is_root_admin', { 
+        _user_id: userId 
+      })
+      
+      if (!roleError) {
+        setIsAdmin(hasAdminRole === true || rootAdminData === true)
+      }
+      
+      if (!rootError) {
+        setIsRootAdmin(rootAdminData === true)
       }
     } catch (error) {
       console.error('Error checking admin role:', error)
       setIsAdmin(false)
+      setIsRootAdmin(false)
     }
   }
 
@@ -103,6 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setUserProfile(null)
           setIsAdmin(false)
+          setIsRootAdmin(false)
         }
         setLoading(false)
       }
@@ -256,6 +271,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     userProfile,
     loading,
     isAdmin,
+    isRootAdmin,
     login,
     register,
     logout,

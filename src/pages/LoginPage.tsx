@@ -160,37 +160,37 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background flex items-center justify-center bg-background p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6 relative">
 
-      {/* Overlay de carregamento verde */}
+      {/* Overlay de carregamento */}
       {loading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999]">
-          <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center gap-3 animate-pulse">
-            <div className="animate-spin h-14 w-14 border-4 border-green-600 border-b-transparent rounded-full"></div>
-            <p className="text-green-700 font-semibold flex items-center gap-2">Processando...</p>
-            <p className="text-gray-500 text-sm flex items-center gap-1">
-              <Info className="h-4 w-4 text-green-600" />
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-card p-6 rounded-2xl shadow-strong border border-border flex flex-col items-center gap-4 animate-scale-in">
+            <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+            <p className="text-foreground font-semibold">Processando...</p>
+            <p className="text-muted-foreground text-sm flex items-center gap-2">
+              <Info className="h-4 w-4 text-primary" />
               Aguarde um instante…
             </p>
           </div>
         </div>
       )}
 
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-md space-y-6 animate-fade-in">
         {/* Logo e mensagem */}
         <div className="text-center mb-6">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-28 mx-auto mb-4" />
-          <p className="text-primary/70">Conecta-te ao Mercado</p>
+          <img src={agrilinkLogo} alt="AgriLink" className="h-24 sm:h-28 mx-auto mb-4 drop-shadow-lg" />
+          <p className="text-muted-foreground text-base sm:text-lg">Conecta-te ao Mercado</p>
         </div>
 
         {/* Card login */}
-        <Card className="shadow-strong border-0">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
-              <LogIn className="w-6 h-6 text-primary" />
+        <Card className="bg-card border border-border/50 rounded-2xl shadow-strong">
+          <CardHeader className="space-y-2 pb-4">
+            <CardTitle className="text-xl sm:text-2xl text-center flex items-center justify-center gap-2">
+              <LogIn className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               Entrar na Plataforma
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-sm sm:text-base">
               Faça login para acessar sua conta
             </CardDescription>
           </CardHeader>
@@ -259,7 +259,7 @@ const LoginPage = () => {
 
               <Button
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary-hover"
+                className="w-full h-12 text-base font-semibold rounded-xl shadow-soft hover:shadow-medium transition-all"
                 disabled={loading}
               >
                 {loading ? 'Entrando...' : 'Entrar'}
@@ -273,13 +273,13 @@ const LoginPage = () => {
                 Não tem conta? Cadastre-se como:
               </p>
               
-              <div className="grid gap-2">
+              <div className="grid gap-3">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-12 text-base rounded-xl border-2 hover:bg-primary/5 transition-all"
                   onClick={() => navigate('/cadastro')}
                 >
-                  <UserPlus className="mr-2 h-4 w-4" />
+                  <UserPlus className="mr-2 h-5 w-5" />
                   Agricultor, Agente ou Comprador
                 </Button>
               </div>
@@ -288,7 +288,7 @@ const LoginPage = () => {
             <div className="text-center pt-4">
               <Link
                 to="/site"
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 Ver site institucional →
               </Link>
@@ -296,16 +296,17 @@ const LoginPage = () => {
           </CardContent>
         </Card>
 
-        <div className="text-center">
+        {/* Footer Links */}
+        <div className="text-center space-y-4">
           <Link
             to="/termos-publicidade"
-            className="text-sm text-primary/80 hover:text-primary underline"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             Termos de Publicidade AgriLink
           </Link>
 
-          <footer className="mt-12 border-t border-muted py-6 text-center text-sm text-muted-foreground">
-            <p>
+          <footer className="pt-4 border-t border-border/50">
+            <p className="text-xs text-muted-foreground">
               © <span className="font-semibold text-primary">AgriLink Lda</span> 2025 — Todos os direitos reservados.
             </p>
           </footer>
@@ -314,10 +315,10 @@ const LoginPage = () => {
 
       {/* Modal Esqueci Senha */}
       {showForgotPassword && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-card border border-border rounded-2xl shadow-strong animate-scale-in">
             <CardHeader>
-              <CardTitle>Recuperar Senha</CardTitle>
+              <CardTitle className="text-xl">Recuperar Senha</CardTitle>
               <CardDescription>
                 Digite seu email para receber um link de recuperação
               </CardDescription>
@@ -334,18 +335,19 @@ const LoginPage = () => {
                       placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-12 rounded-xl"
                       required
                     />
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button type="submit" className="flex-1" disabled={resetLoading}>
+                <div className="flex gap-3">
+                  <Button type="submit" className="flex-1 h-11 rounded-xl" disabled={resetLoading}>
                     {resetLoading ? 'Enviando...' : 'Enviar Link'}
                   </Button>
                   <Button 
                     type="button" 
                     variant="outline" 
+                    className="h-11 rounded-xl"
                     onClick={() => setShowForgotPassword(false)}
                   >
                     Cancelar
@@ -359,27 +361,30 @@ const LoginPage = () => {
 
       {/* Modal E-mail não confirmado */}
       {showConfirmEmailModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md border-2 border-yellow-400 shadow-lg">
-            <CardHeader className="flex items-center gap-2">
-              <Info className="text-yellow-500 w-5 h-5" />
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-card border-2 border-warning rounded-2xl shadow-strong animate-scale-in">
+            <CardHeader className="flex flex-row items-center gap-3">
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Info className="text-warning w-5 h-5" />
+              </div>
               <CardTitle className="text-lg">E-mail não confirmado</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p>
+              <p className="text-muted-foreground">
                 Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada ou spam. 
                 Clique no link que enviamos e você será redirecionado para esta página.
               </p>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <Button
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                  className="w-full h-11 rounded-xl bg-warning hover:bg-warning/90 text-warning-foreground"
                   onClick={handleResendConfirmation}
                   disabled={resendLoading}
                 >
                   {resendLoading ? 'Reenviando...' : 'Reenviar e-mail de confirmação'}
                 </Button>
                 <Button
-                  className="w-full border border-yellow-400 text-yellow-600 hover:bg-yellow-100"
+                  variant="outline"
+                  className="w-full h-11 rounded-xl border-warning/50 text-warning hover:bg-warning/10"
                   onClick={() => setShowConfirmEmailModal(false)}
                 >
                   Entendi

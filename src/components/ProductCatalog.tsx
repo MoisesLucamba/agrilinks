@@ -1,192 +1,211 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { ShoppingCart, Filter } from "lucide-react";
+import { ShoppingCart, Filter, Loader2, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+
+interface Product {
+  id: string;
+  product_type: string;
+  price: number;
+  quantity: number;
+  description?: string;
+  province_id: string;
+  municipality_id: string;
+  farmer_name: string;
+  status: string;
+}
 
 const ProductCatalog = () => {
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [categories, setCategories] = useState<string[]>(["Todos"]);
 
-  const categories = ["Todos", "Grãos", "Frutas", "Vegetais", "Proteínas"];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(50);
 
-  const products = [
-    {
-      id: 1,
-      name: "Arroz Branco Premium",
-      category: "Grãos",
-      price: 85000,
-      unit: "saco 50kg",
-      minQuantity: 100,
-      image: "🌾",
-      description: "Arroz de alta qualidade, grão longo, ideal para revendas.",
-      available: true
-    },
-    {
-      id: 2,
-      name: "Feijão Preto",
-      category: "Grãos",
-      price: 120000,
-      unit: "saco 50kg",
-      minQuantity: 50,
-      image: "🫘",
-      description: "Feijão preto selecionado, rico em proteínas.",
-      available: true
-    },
-    {
-      id: 3,
-      name: "Banana da Madeira",
-      category: "Frutas",
-      price: 45000,
-      unit: "caixa 20kg",
-      minQuantity: 80,
-      image: "🍌",
-      description: "Bananas frescas, direto do produtor.",
-      available: true
-    },
-    {
-      id: 4,
-      name: "Tomate Industrial",
-      category: "Vegetais",
-      price: 35000,
-      unit: "caixa 15kg",
-      minQuantity: 120,
-      image: "🍅",
-      description: "Tomates para processamento industrial.",
-      available: false
-    },
-    {
-      id: 5,
-      name: "Carne Bovina",
-      category: "Proteínas",
-      price: 1800000,
-      unit: "kg",
-      minQuantity: 500,
-      image: "🥩",
-      description: "Carne bovina de primeira qualidade, refrigerada.",
-      available: true
-    },
-    {
-      id: 6,
-      name: "Milho em Grão",
-      category: "Grãos",
-      price: 65000,
-      unit: "saco 50kg",
-      minQuantity: 200,
-      image: "🌽",
-      description: "Milho amarelo para ração e consumo.",
-      available: true
-    }
-  ];
+        if (error) throw error;
+
+        setProducts(data || []);
+
+        // Extract unique categories from products
+        const uniqueCategories = [...new Set((data || []).map(p => p.product_type))];
+        setCategories(["Todos", ...uniqueCategories]);
+      } catch (err) {
+        console.error("Erro ao buscar produtos:", err);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredProducts = selectedCategory === "Todos" 
     ? products 
-    : products.filter(product => product.category === selectedCategory);
+    : products.filter(product => product.product_type === selectedCategory);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
+    return new Intl.NumberFormat("pt-AO", {
+      style: "currency",
+      currency: "AOA",
       minimumFractionDigits: 0
     }).format(price);
   };
 
+  const handleViewProduct = (productId: string) => {
+    navigate(`/ficha-tecnica/${productId}`);
+  };
+
+  if (loading) {
+    return (
+      <section id="catalogo" className="py-16 lg:py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">Carregando catálogo...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section id="catalogo" className="py-16 lg:py-24 bg-background">
+    <section id="catalogo" className="py-12 sm:py-16 lg:py-24 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             Catálogo de Produtos
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Produtos alimentares de alta qualidade direto dos produtores para sua empresa.
+          <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
+            Produtos agrícolas disponíveis na plataforma AgriLink.
           </p>
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <Filter className="h-5 w-5 text-muted-foreground mt-2" />
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category)}
-              className="rounded-full"
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+        {categories.length > 1 && (
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-12">
+            <Filter className="h-5 w-5 text-muted-foreground mt-2 hidden sm:block" />
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                className="rounded-full text-xs sm:text-sm"
+                size="sm"
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="p-6 hover:shadow-medium transition-all duration-300 border-card-border">
-              <div className="text-center mb-4">
-                <div className="text-6xl mb-4">{product.image}</div>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant={product.available ? "default" : "secondary"}>
-                    {product.available ? "Disponível" : "Indisponível"}
-                  </Badge>
-                  <Badge variant="outline">{product.category}</Badge>
-                </div>
-              </div>
-
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {product.name}
-              </h3>
-              
-              <p className="text-muted-foreground mb-4 text-sm">
-                {product.description}
-              </p>
-
-              <div className="space-y-2 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Preço:</span>
-                  <span className="font-semibold text-primary">
-                    {formatPrice(product.price)}/{product.unit}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Qtd. Mínima:</span>
-                  <span className="font-semibold">
-                    {product.minQuantity} {product.unit}s
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Valor Mínimo:</span>
-                  <span className="font-semibold text-accent">
-                    {formatPrice(product.price * product.minQuantity)}
-                  </span>
-                </div>
-              </div>
-
-              <Button 
-                className="w-full" 
-                variant={product.available ? "default" : "outline"}
-                disabled={!product.available}
+        {filteredProducts.length > 0 ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {filteredProducts.map((product) => (
+              <Card 
+                key={product.id} 
+                className="p-4 sm:p-6 hover:shadow-medium transition-all duration-300 border-card-border"
               >
-                <ShoppingCart className="h-4 w-4" />
-                {product.available ? "Adicionar ao Pedido" : "Indisponível"}
-              </Button>
-            </Card>
-          ))}
-        </div>
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Package className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                    <Badge variant="default">Disponível</Badge>
+                    <Badge variant="outline" className="text-xs">{product.product_type}</Badge>
+                  </div>
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 text-center">
+                  {product.product_type}
+                </h3>
+                
+                <p className="text-muted-foreground mb-4 text-xs sm:text-sm text-center line-clamp-2">
+                  {product.description || `${product.product_type} de ${product.farmer_name}`}
+                </p>
+
+                <div className="space-y-2 mb-4 sm:mb-6 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço:</span>
+                    <span className="font-semibold text-primary">
+                      {formatPrice(product.price)}/kg
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Quantidade:</span>
+                    <span className="font-semibold">
+                      {product.quantity.toLocaleString()} kg
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Região:</span>
+                    <span className="font-semibold text-xs">
+                      {product.province_id}
+                    </span>
+                  </div>
+                </div>
+
+                <Button 
+                  className="w-full gap-2" 
+                  onClick={() => handleViewProduct(product.id)}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Ver Detalhes
+                </Button>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center">
+            <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              Nenhum produto encontrado
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {selectedCategory !== "Todos" 
+                ? `Não há produtos na categoria "${selectedCategory}"`
+                : "Novos produtos serão exibidos aqui."}
+            </p>
+          </div>
+        )}
 
         {/* Call to Action */}
-        <div className="text-center mt-12">
-          <div className="bg-gradient-card rounded-xl p-8 border border-card-border shadow-medium">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Não encontrou o que procura?
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Entre em contato conosco para consultar outros produtos disponíveis.
-            </p>
-            <Button variant="business" size="lg">
-              Falar com Especialista
-            </Button>
+        {products.length > 0 && (
+          <div className="text-center mt-8 sm:mt-12">
+            <div className="bg-gradient-card rounded-xl p-6 sm:p-8 border border-card-border shadow-medium">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-3 sm:mb-4">
+                Quer vender seus produtos?
+              </h3>
+              <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
+                Cadastre-se como agricultor e comece a vender na plataforma AgriLink.
+              </p>
+              <Button 
+                variant="business" 
+                size="lg"
+                onClick={() => navigate("/registro")}
+              >
+                Cadastrar-se
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

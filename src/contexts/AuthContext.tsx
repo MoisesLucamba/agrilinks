@@ -10,6 +10,7 @@ interface AuthContextType {
   loading: boolean
   isAdmin: boolean
   isRootAdmin: boolean
+  isSuperRoot: boolean
   login: (email: string, password: string) => Promise<{ error: any }>
   register: (userData: RegisterData) => Promise<{ error: any; data?: any }>
   logout: () => Promise<void>
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isRootAdmin, setIsRootAdmin] = useState(false)
+  const [isSuperRoot, setIsSuperRoot] = useState(false)
 
   const checkAdminRole = async (userId: string) => {
     try {
@@ -57,6 +59,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: rootAdminData, error: rootError } = await supabase.rpc('is_root_admin', { 
         _user_id: userId 
       })
+
+      // Check if user is super root
+      const { data: superRootData, error: superRootError } = await supabase.rpc('is_super_root', { 
+        _user_id: userId 
+      })
       
       if (!roleError) {
         setIsAdmin(hasAdminRole === true || rootAdminData === true)
@@ -65,10 +72,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!rootError) {
         setIsRootAdmin(rootAdminData === true)
       }
+
+      if (!superRootError) {
+        setIsSuperRoot(superRootData === true)
+      }
     } catch (error) {
       console.error('Error checking admin role:', error)
       setIsAdmin(false)
       setIsRootAdmin(false)
+      setIsSuperRoot(false)
     }
   }
 
@@ -118,6 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUserProfile(null)
           setIsAdmin(false)
           setIsRootAdmin(false)
+          setIsSuperRoot(false)
         }
         setLoading(false)
       }
@@ -272,6 +285,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     isAdmin,
     isRootAdmin,
+    isSuperRoot,
     login,
     register,
     logout,

@@ -238,6 +238,7 @@ const AdminDashboard = () => {
   const [analyzingMarket, setAnalyzingMarket] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isRootAdmin, setIsRootAdmin] = useState(false);
+  const [isSuperRoot, setIsSuperRoot] = useState(false);
   const [userPermissions, setUserPermissions] = useState<AdminPermission[]>([]);
 
   // Check admin permissions on mount
@@ -248,18 +249,24 @@ const AdminDashboard = () => {
       
       setCurrentUserId(user.id);
 
-      // Check if root admin
+      // Check if root admin or super root
       const { data: userData } = await supabase
         .from("users")
-        .select("is_root_admin")
+        .select("is_root_admin, is_super_root")
         .eq("id", user.id)
         .single();
       
       if (userData?.is_root_admin) {
         setIsRootAdmin(true);
         setUserPermissions(["manage_users", "manage_products", "manage_orders", "manage_support", "manage_sourcing", "view_analytics", "manage_admins"]);
-      } else {
-        // Get specific permissions
+      }
+      
+      if ((userData as any)?.is_super_root) {
+        setIsSuperRoot(true);
+      }
+
+      // Get specific permissions for non-root admins
+      if (!userData?.is_root_admin) {
         const { data: permissions } = await supabase
           .from("admin_permissions")
           .select("permission")
@@ -1427,6 +1434,7 @@ const AdminDashboard = () => {
           <AdminManagement
             currentUserId={currentUserId}
             isRootAdmin={isRootAdmin}
+            isSuperRoot={isSuperRoot}
             users={users}
             onRefresh={fetchAllData}
           />

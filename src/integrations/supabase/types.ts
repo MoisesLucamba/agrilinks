@@ -1225,6 +1225,7 @@ export type Database = {
           id: string
           identity_document: string
           is_root_admin: boolean | null
+          is_super_root: boolean | null
           municipality_id: string
           phone: string | null
           phone_verified: boolean | null
@@ -1246,6 +1247,7 @@ export type Database = {
           id: string
           identity_document: string
           is_root_admin?: boolean | null
+          is_super_root?: boolean | null
           municipality_id: string
           phone?: string | null
           phone_verified?: boolean | null
@@ -1267,6 +1269,7 @@ export type Database = {
           id?: string
           identity_document?: string
           is_root_admin?: boolean | null
+          is_super_root?: boolean | null
           municipality_id?: string
           phone?: string | null
           phone_verified?: boolean | null
@@ -1474,6 +1477,7 @@ export type Database = {
         Returns: boolean
       }
       is_root_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_root: { Args: { _user_id: string }; Returns: boolean }
       process_deposit: {
         Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: string

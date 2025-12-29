@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -100,6 +101,7 @@ interface AdminUser {
   email: string | null;
   user_type: string | null;
   is_root_admin: boolean;
+  is_super_root: boolean;
   permissions: PermissionKey[];
   created_at: string;
 }
@@ -110,11 +112,13 @@ interface User {
   email?: string | null;
   user_type?: string | null;
   is_root_admin?: boolean;
+  is_super_root?: boolean;
 }
 
 interface AdminManagementProps {
   currentUserId: string;
   isRootAdmin: boolean;
+  isSuperRoot: boolean;
   users: User[];
   onRefresh: () => void;
 }
@@ -122,6 +126,7 @@ interface AdminManagementProps {
 const AdminManagement: React.FC<AdminManagementProps> = ({
   currentUserId,
   isRootAdmin,
+  isSuperRoot,
   users,
   onRefresh,
 }) => {
@@ -135,6 +140,8 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
   const [editPermissions, setEditPermissions] = useState<PermissionKey[]>([]);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
   const [adminToRevoke, setAdminToRevoke] = useState<AdminUser | null>(null);
+  const [promoteToRootDialogOpen, setPromoteToRootDialogOpen] = useState(false);
+  const [userToPromoteRoot, setUserToPromoteRoot] = useState<AdminUser | null>(null);
 
   const fetchAdmins = useCallback(async () => {
     setLoading(true);
@@ -157,7 +164,7 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
       // Get user details
       const { data: adminUsers, error: usersError } = await supabase
         .from("users")
-        .select("id, full_name, email, user_type, is_root_admin, created_at")
+        .select("id, full_name, email, user_type, is_root_admin, is_super_root, created_at")
         .in("id", adminUserIds);
 
       if (usersError) throw usersError;
@@ -174,13 +181,16 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
       const adminList: AdminUser[] = (adminUsers || []).map((user) => ({
         ...user,
         is_root_admin: user.is_root_admin || false,
+        is_super_root: (user as any).is_super_root || false,
         permissions: (permissions || [])
           .filter((p) => p.user_id === user.id)
           .map((p) => p.permission as PermissionKey),
       }));
 
-      // Sort: root admins first, then by name
+      // Sort: super roots first, then root admins, then by name
       adminList.sort((a, b) => {
+        if (a.is_super_root && !b.is_super_root) return -1;
+        if (!a.is_super_root && b.is_super_root) return 1;
         if (a.is_root_admin && !b.is_root_admin) return -1;
         if (!a.is_root_admin && b.is_root_admin) return 1;
         return a.full_name.localeCompare(b.full_name);
@@ -307,6 +317,65 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
     }
   };
 
+  const promoteToRoot = async () => {
+    if (!userToPromoteRoot) return;
+
+    try {
+      // Update user to be root admin
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ is_root_admin: true })
+        .eq("id", userToPromoteRoot.id);
+
+      if (updateError) throw updateError;
+
+      toast.success(`${userToPromoteRoot.full_name} promovido a Root Admin!`);
+      setPromoteToRootDialogOpen(false);
+      setUserToPromoteRoot(null);
+      fetchAdmins();
+      onRefresh();
+    } catch (error) {
+      console.error("Error promoting to root:", error);
+      toast.error("Erro ao promover a Root Admin");
+    }
+  };
+
+  const promoteToSuperRoot = async (admin: AdminUser) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ is_super_root: true })
+        .eq("id", admin.id);
+
+      if (error) throw error;
+
+      toast.success(`${admin.full_name} promovido a Super Root!`);
+      fetchAdmins();
+      onRefresh();
+    } catch (error) {
+      console.error("Error promoting to super root:", error);
+      toast.error("Erro ao promover a Super Root");
+    }
+  };
+
+  const demoteFromRoot = async (admin: AdminUser) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ is_root_admin: false, is_super_root: false })
+        .eq("id", admin.id);
+
+      if (error) throw error;
+
+      toast.success(`${admin.full_name} rebaixado de Root Admin!`);
+      fetchAdmins();
+      onRefresh();
+    } catch (error) {
+      console.error("Error demoting from root:", error);
+      toast.error("Erro ao rebaixar de Root Admin");
+    }
+  };
+
   const nonAdminUsers = users.filter(
     (u) => !admins.find((a) => a.id === u.id)
   );
@@ -387,17 +456,22 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
                 >
                   <AccordionTrigger className="hover:no-underline py-4">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-2 rounded-lg ${admin.is_root_admin ? "bg-amber-100" : "bg-primary/10"}`}>
-                        {admin.is_root_admin ? (
+                      <div className={`p-2 rounded-lg ${admin.is_super_root ? "bg-gradient-to-br from-purple-100 to-amber-100" : admin.is_root_admin ? "bg-amber-100" : "bg-primary/10"}`}>
+                        {admin.is_super_root ? (
+                          <Sparkles className="h-5 w-5 text-purple-600" />
+                        ) : admin.is_root_admin ? (
                           <Crown className="h-5 w-5 text-amber-600" />
                         ) : (
                           <Shield className="h-5 w-5 text-primary" />
                         )}
                       </div>
                       <div className="text-left">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">{admin.full_name}</span>
-                          {admin.is_root_admin && (
+                          {admin.is_super_root && (
+                            <Badge className="bg-gradient-to-r from-purple-500 to-amber-500 text-white text-xs">Super Root</Badge>
+                          )}
+                          {admin.is_root_admin && !admin.is_super_root && (
                             <Badge className="bg-amber-100 text-amber-700 text-xs">Root Admin</Badge>
                           )}
                           {admin.id === currentUserId && (
@@ -478,10 +552,56 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
                         </div>
                       )}
 
-                      {admin.is_root_admin && (
+                      {/* Root Admin Actions - Only Super Root can modify other roots */}
+                      {admin.is_root_admin && !admin.is_super_root && admin.id !== currentUserId && isSuperRoot && (
+                        <div className="flex flex-wrap gap-2 pt-2 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                            onClick={() => promoteToSuperRoot(admin)}
+                          >
+                            <Sparkles className="h-4 w-4 mr-1" /> Promover a Super Root
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => demoteFromRoot(admin)}
+                          >
+                            <ShieldX className="h-4 w-4 mr-1" /> Rebaixar de Root
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Sub-admin actions - Promote to root */}
+                      {!admin.is_root_admin && admin.id !== currentUserId && isSuperRoot && (
+                        <div className="pt-2 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            onClick={() => {
+                              setUserToPromoteRoot(admin);
+                              setPromoteToRootDialogOpen(true);
+                            }}
+                          >
+                            <Crown className="h-4 w-4 mr-1" /> Promover a Root Admin
+                          </Button>
+                        </div>
+                      )}
+
+                      {admin.is_root_admin && !isSuperRoot && (
                         <p className="text-xs text-amber-600 flex items-center gap-1 pt-2 border-t">
                           <Crown className="h-4 w-4" />
-                          Administradores Root têm acesso total e não podem ser modificados
+                          Administradores Root têm acesso total. Apenas Super Roots podem modificá-los.
+                        </p>
+                      )}
+
+                      {admin.is_super_root && (
+                        <p className="text-xs text-purple-600 flex items-center gap-1 pt-2 border-t">
+                          <Sparkles className="h-4 w-4" />
+                          Super Root - Nível máximo de acesso com poder de gerenciar outros roots
                         </p>
                       )}
                     </div>
@@ -673,6 +793,35 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
             </Button>
             <Button variant="destructive" onClick={revokeAdmin}>
               <ShieldX className="h-4 w-4 mr-1" /> Revogar Admin
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote to Root Dialog */}
+      <Dialog open={promoteToRootDialogOpen} onOpenChange={setPromoteToRootDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <Crown className="h-5 w-5" /> Promover a Root Admin
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja promover{" "}
+              <strong>{userToPromoteRoot?.full_name}</strong> a Root Admin?
+              <br />
+              Root Admins têm acesso total a todas as funcionalidades do sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPromoteToRootDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={promoteToRoot}
+            >
+              <Crown className="h-4 w-4 mr-1" /> Promover a Root
             </Button>
           </DialogFooter>
         </DialogContent>

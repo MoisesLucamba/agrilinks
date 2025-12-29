@@ -140,50 +140,37 @@ const Registration = () => {
     availableProvinces.find((p) => p.id === selectedProvince)?.municipalities || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-background p-3 sm:p-4 flex items-center justify-center safe-bottom">
       <div className="w-full max-w-2xl relative">
 
-       {/* Overlay de carregamento verde */}
+       {/* Overlay de carregamento */}
         {loading && (
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999]">
-            <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center gap-3 animate-pulse">
-              <div className="animate-spin h-14 w-14 border-4 border-green-600 border-b-transparent rounded-full"></div>
-              <p className="text-green-700 font-semibold flex items-center gap-2">Processando...</p>
-              <p className="text-gray-500 text-sm flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path d="M12 8v4l3 2" />
-                  <circle cx="12" cy="12" r="10" />
-                </svg>
-                Aguarde um instante…
-              </p>
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+            <div className="bg-card p-4 sm:p-6 rounded-2xl shadow-strong border border-border flex flex-col items-center gap-3 animate-scale-in">
+              <div className="animate-spin h-10 w-10 sm:h-14 sm:w-14 border-4 border-primary border-t-transparent rounded-full"></div>
+              <p className="text-primary font-semibold text-sm sm:text-base">Processando...</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">Aguarde um instante…</p>
             </div>
           </div>
         )}
 
 
-        <div className="text-center mb-8">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary">{t('registration.title')}</h1>
-          <p className="text-primary/70">{t('registration.subtitle')}</p>
+        <div className="text-center mb-6 sm:mb-8">
+          <img src={agrilinkLogo} alt="AgriLink" className="h-12 sm:h-16 mx-auto mb-2 drop-shadow-glow" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">{t('registration.title')}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">{t('registration.subtitle')}</p>
         </div>
 
-        <Card className="border-0 shadow-xl rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-primary">
-              <Users className="h-5 w-5" />
+        <Card className="border border-border/50 shadow-strong rounded-2xl bg-card">
+          <CardHeader className="pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-primary">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               {t('registration.infoTitle')}
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {/* Tipo de Usuário */}
               <div className="space-y-2">
                 <Label>{t('registration.userType')}</Label>
@@ -272,25 +259,25 @@ const Registration = () => {
               </div>
 
               {/* Indicação por Agente */}
-              <div className="space-y-3 p-4 bg-muted/30 rounded-lg border border-border">
-                <Label className="flex items-center gap-2">
+              <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-xl border border-border">
+                <Label className="flex items-center gap-2 text-sm">
                   <UserPlus className="h-4 w-4" />
                   {t('registration.referredByAgent')}
                 </Label>
                 <RadioGroup value={wasReferred} onValueChange={(v) => setWasReferred(v as 'sim' | 'nao')}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="nao" id="nao" />
-                    <Label htmlFor="nao" className="font-normal cursor-pointer">{t('registration.no')}</Label>
+                    <Label htmlFor="nao" className="font-normal cursor-pointer text-sm">{t('registration.no')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="sim" id="sim" />
-                    <Label htmlFor="sim" className="font-normal cursor-pointer">{t('registration.yes')}</Label>
+                    <Label htmlFor="sim" className="font-normal cursor-pointer text-sm">{t('registration.yes')}</Label>
                   </div>
                 </RadioGroup>
 
                 {wasReferred === 'sim' && (
                   <div className="space-y-2 mt-3">
-                    <Label>{t('registration.agentCode')}</Label>
+                    <Label className="text-sm">{t('registration.agentCode')}</Label>
                     <div className="relative">
                       <Input
                         value={agentCode}
@@ -301,18 +288,18 @@ const Registration = () => {
                           else setAgentCodeValid(null);
                         }}
                         placeholder={t('registration.agentCodePlaceholder')}
-                        className="uppercase"
+                        className="uppercase font-mono text-center text-lg tracking-widest"
                         maxLength={6}
                         required
                       />
                       {validatingCode && (
                         <div className="absolute right-3 top-3">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
                         </div>
                       )}
                     </div>
-                    {agentCodeValid === true && <p className="text-sm text-green-600">✓ {t('registration.validCode')}</p>}
-                    {agentCodeValid === false && <p className="text-sm text-destructive">✗ {t('registration.invalidCode')}</p>}
+                    {agentCodeValid === true && <p className="text-xs sm:text-sm text-green-600 font-medium">✓ {t('registration.validCode')}</p>}
+                    {agentCodeValid === false && <p className="text-xs sm:text-sm text-destructive font-medium">✗ {t('registration.invalidCode')}</p>}
                   </div>
                 )}
               </div>
@@ -424,7 +411,7 @@ const Registration = () => {
               {/* Botão */}
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-hover rounded-xl py-2 text-base font-medium"
+                className="w-full bg-primary hover:bg-primary-hover rounded-xl py-2.5 sm:py-3 text-sm sm:text-base font-medium shadow-soft"
                 disabled={
                   loading ||
                   password !== confirmPassword ||
@@ -442,9 +429,9 @@ const Registration = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-4 text-center">
-          <p className="text-sm text-muted-foreground mb-2">{t('registration.alreadyHaveAccount')}</p>
-          <Link to="/login" className="text-primary hover:underline font-medium">
+        <div className="mt-4 sm:mt-6 text-center pb-4">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2">{t('registration.alreadyHaveAccount')}</p>
+          <Link to="/login" className="text-primary hover:underline font-medium text-sm sm:text-base">
             {t('registration.loginHere')}
           </Link>
         </div>

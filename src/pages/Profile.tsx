@@ -87,6 +87,9 @@ const Profile = () => {
   const [avatarLoading, setAvatarLoading] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [agentStats, setAgentStats] = useState<{ totalReferrals: number; totalPoints: number; recentReferrals: any[] } | null>(null)
+  // Real stats from database
+  const [buyerStats, setBuyerStats] = useState<{ completedOrders: number; favoriteProducts: number }>({ completedOrders: 0, favoriteProducts: 0 })
+  const [productStats, setProductStats] = useState<{ [productId: string]: { likes: number; comments: number } }>({})
 
   const [provinceName, setProvinceName] = useState('')
   const [municipalityName, setMunicipalityName] = useState('')
@@ -98,18 +101,41 @@ const Profile = () => {
     municipality_id: userProfile?.municipality_id || '',
   })
 
-  // Buscar produtos do agricultor
+  // Buscar produtos do agricultor com estatísticas reais
   const fetchUserProducts = async () => {
     try {
       const { data, error } = await supabase.from('products')
         .select('*').eq('user_id', user?.id)
         .order('created_at', { ascending: false })
       if (error) throw error
+      
+      // Buscar estatísticas reais de likes e comentários para cada produto
+      const statsMap: { [productId: string]: { likes: number; comments: number } } = {}
+      
+      for (const product of (data || [])) {
+        const { count: likesCount } = await supabase
+          .from('product_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('product_id', product.id)
+        
+        const { count: commentsCount } = await supabase
+          .from('product_comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('product_id', product.id)
+        
+        statsMap[product.id] = {
+          likes: likesCount || 0,
+          comments: commentsCount || 0
+        }
+      }
+      
+      setProductStats(statsMap)
+      
       const productsWithStats = (data || []).map(product => ({
         ...product,
         status: product.status as 'active' | 'inactive' | 'removed',
-        views: Math.floor(Math.random() * 100),
-        interests: Math.floor(Math.random() * 20)
+        views: statsMap[product.id]?.comments || 0,
+        interests: statsMap[product.id]?.likes || 0
       }))
       setUserProducts(productsWithStats)
     } catch (error) { console.error(error) }
@@ -301,11 +327,37 @@ const Profile = () => {
     toast({ title: t('profile.codeCopied') })
   }
 
+  // Buscar estatísticas reais do comprador
+  const fetchBuyerStats = async () => {
+    try {
+      // Compras concluídas (pre_orders com status completed/accepted)
+      const { count: completedCount } = await supabase
+        .from('pre_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id)
+        .in('status', ['completed', 'accepted'])
+      
+      // Produtos favoritados (likes)
+      const { count: likesCount } = await supabase
+        .from('product_likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id)
+      
+      setBuyerStats({
+        completedOrders: completedCount || 0,
+        favoriteProducts: likesCount || 0
+      })
+    } catch (error) {
+      console.error('Erro ao buscar stats de comprador:', error)
+    }
+  }
+
   useEffect(() => {
     if (!user) return
     if (userProfile?.user_type === 'comprador') {
       fetchFichasRecebimento()
       fetchSourcingRequests()
+      fetchBuyerStats()
     } else {
       fetchUserProducts()
       fetchReceivedOrders()
@@ -448,12 +500,12 @@ const Profile = () => {
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR')
 
   const activeProducts = userProducts.filter(p => p.status === 'active').length
-  const totalViews = userProducts.reduce((sum, p) => sum + (p.views || 0), 0)
-  const totalInterests = userProducts.reduce((sum, p) => sum + (p.interests || 0), 0)
-  // Simulação de estatísticas de comprador
+  const totalComments = userProducts.reduce((sum, p) => sum + (productStats[p.id]?.comments || 0), 0)
+  const totalLikes = userProducts.reduce((sum, p) => sum + (productStats[p.id]?.likes || 0), 0)
+  // Estatísticas reais de comprador vindas do banco de dados
   const totalFichas = fichasRecebimento.length
-  const totalComprasConcluidas = Math.floor(Math.random() * 15)
-  const totalProdutosFavoritos = Math.floor(Math.random() * 25)
+  const totalComprasConcluidas = buyerStats.completedOrders
+  const totalProdutosFavoritos = buyerStats.favoriteProducts
 
   if (loading) return (
     <div className="pb-20 bg-background min-h-screen flex items-center justify-center">
@@ -557,8 +609,8 @@ const Profile = () => {
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-1 gap-4">
               <Card className="text-center"><CardContent className="pt-4"><Package className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{activeProducts}</div><p className="text-xs text-muted-foreground">Produtos Ativos</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><Eye className="h-6 w-6 mx-auto mb-1 text-blue-500"/><div className="text-2xl font-bold text-blue-500">{totalViews}</div><p className="text-xs text-muted-foreground">Visualizações</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-red-500"/><div className="text-2xl font-bold text-red-500">{totalInterests}</div><p className="text-xs text-muted-foreground">Interesses</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Eye className="h-6 w-6 mx-auto mb-1 text-blue-500"/><div className="text-2xl font-bold text-blue-500">{totalComments}</div><p className="text-xs text-muted-foreground">Comentários</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-red-500"/><div className="text-2xl font-bold text-red-500">{totalLikes}</div><p className="text-xs text-muted-foreground">Likes</p></CardContent></Card>
             </div>
           )}
         </div>
@@ -633,8 +685,8 @@ const Profile = () => {
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-3 w-3"/>Colheita: <span className="font-semibold">{formatDate(product.harvest_date)}</span></div>
                           <div className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3"/>Local: <span className="font-semibold">{product.municipality_id}</span></div>
-                          <div className="flex items-center gap-1 text-muted-foreground"><Eye className="h-3 w-3"/>Visualizações: <span className="font-semibold">{product.views}</span></div>
-                          <div className="flex items-center gap-1 text-muted-foreground"><Star className="h-3 w-3"/>Interesses: <span className="font-semibold">{product.interests}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Eye className="h-3 w-3"/>Comentários: <span className="font-semibold">{productStats[product.id]?.comments || 0}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Star className="h-3 w-3"/>Likes: <span className="font-semibold">{productStats[product.id]?.likes || 0}</span></div>
                         </div>
                       </CardContent>
                     </Card>
@@ -839,8 +891,8 @@ const Profile = () => {
                     <>
                       <p className="flex justify-between"><span>Total Produtos Publicados:</span><span className="font-bold">{userProducts.length}</span></p>
                       <p className="flex justify-between"><span>Produtos Ativos:</span><span className="font-bold text-primary">{activeProducts}</span></p>
-                      <p className="flex justify-between"><span>Total Visualizações:</span><span className="font-bold text-blue-500">{totalViews}</span></p>
-                      <p className="flex justify-between"><span>Total Interesses:</span><span className="font-bold text-red-500">{totalInterests}</span></p>
+                      <p className="flex justify-between"><span>Total Comentários:</span><span className="font-bold text-blue-500">{totalComments}</span></p>
+                      <p className="flex justify-between"><span>Total Likes:</span><span className="font-bold text-red-500">{totalLikes}</span></p>
                     </>
                   )}
                 </CardContent>

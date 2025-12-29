@@ -455,29 +455,40 @@ const Profile = () => {
   const totalComprasConcluidas = Math.floor(Math.random() * 15)
   const totalProdutosFavoritos = Math.floor(Math.random() * 25)
 
-  if (loading) return <div className="pb-20 bg-background min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+  if (loading) return (
+    <div className="pb-20 bg-background min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
+        <p className="text-muted-foreground text-sm">Carregando perfil...</p>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="pb-20 bg-background min-h-screen">
+    <div className="pb-20 bg-background min-h-screen safe-bottom">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">Meu Perfil</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}><Settings className="h-5 w-5" /></Button>
-          <Button variant="ghost" size="icon" onClick={() => logout()}><LogOut className="h-5 w-5" /></Button>
+      <div className="sticky top-0 z-10 glass border-b border-border/50 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg sm:text-xl font-bold text-primary">Meu Perfil</h1>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted" onClick={() => setSettingsOpen(true)}>
+            <Settings className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-destructive/10 text-destructive" onClick={() => logout()}>
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
       {/* Conteúdo */}
-      <div className="px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in">
         {/* Coluna esquerda: perfil e estatísticas */}
-        <div className="lg:col-span-1 space-y-6">
-          <Card className="shadow-soft border-card-border">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+          <Card className="bg-card border border-border/50 rounded-2xl shadow-soft">
             <CardHeader className="text-center pb-2">
               <div className="relative mx-auto mb-4">
-                <Avatar className="h-24 w-24">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-primary/20">
                   <AvatarImage src={userProfile?.avatar_url || ""} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">{profileData.full_name.charAt(0) || 'U'}</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xl font-bold">{profileData.full_name.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="absolute -bottom-1 -right-1">
                   <Button size="sm" variant="outline" className="h-8 w-8 p-0" disabled={avatarLoading} onClick={() => document.getElementById('avatar-upload')?.click()}>

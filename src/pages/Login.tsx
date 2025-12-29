@@ -1,61 +1,70 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tractor, BarChart3 } from "lucide-react";
+import { Tractor, BarChart3, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import agrilinkLogo from "@/assets/agrilink-logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background from-primary/5 to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-12">
-          <p className="text-lg text-muted-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-4xl animate-fade-in">
+        {/* Logo & Tagline */}
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="relative inline-block mb-4">
+            <img 
+              src={agrilinkLogo} 
+              alt="AgriLink" 
+              className="h-20 sm:h-24 mx-auto drop-shadow-lg"
+            />
+            <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-accent animate-pulse-soft" />
+          </div>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
             Conectando produtores diretamente a grandes compradores
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Agricultor/Agente */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
-                <Tractor className="h-8 w-8 text-primary" />
+        {/* Cards Grid */}
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+          {/* Agricultor/Agente Card */}
+          <Card className="group bg-card border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl w-fit group-hover:scale-105 transition-transform duration-300">
+                <Tractor className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
               </div>
-              <CardTitle className="text-2xl">Agricultor/Agente</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-bold">Agricultor/Agente</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Publique seus produtos agrícolas e conecte-se com grandes compradores
               </CardDescription>
             </CardHeader>
-            <CardContent className="text-center">
-              <div className="space-y-3">
-                <Button 
-                  size="lg" 
-                  className="w-full"
-                  onClick={() => navigate('/cadastro')}
-                >
-                  Fazer Cadastro
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/publicar-produto')}
-                >
-                  Publicar Produto
-                </Button>
-              </div>
+            <CardContent className="text-center space-y-3">
+              <Button 
+                size="lg" 
+                className="w-full h-12 text-base font-semibold rounded-xl shadow-soft hover:shadow-medium transition-all"
+                onClick={() => navigate('/cadastro')}
+              >
+                Fazer Cadastro
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="w-full h-12 text-base font-semibold rounded-xl border-2 hover:bg-primary/5 transition-all"
+                onClick={() => navigate('/publicar-produto')}
+              >
+                Publicar Produto
+              </Button>
             </CardContent>
           </Card>
 
-          {/* Equipa AgriLink (Admin) */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-3 bg-secondary/10 rounded-full w-fit">
-                <BarChart3 className="h-8 w-8 text-secondary" />
+          {/* Equipa AgriLink Card */}
+          <Card className="group bg-card border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-business/10 to-business/5 rounded-2xl w-fit group-hover:scale-105 transition-transform duration-300">
+                <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-business" />
               </div>
-              <CardTitle className="text-2xl">Equipa AgriLink</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-bold">Equipa AgriLink</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Acesse o dashboard administrativo e gerencie os produtos publicados
               </CardDescription>
             </CardHeader>
@@ -63,7 +72,7 @@ const Login = () => {
               <Button 
                 size="lg" 
                 variant="secondary"
-                className="w-full"
+                className="w-full h-12 text-base font-semibold rounded-xl shadow-soft hover:shadow-medium transition-all"
                 onClick={() => navigate('/dashboard')}
               >
                 Ver Dashboard
@@ -72,9 +81,13 @@ const Login = () => {
           </Card>
         </div>
 
-        <div className="text-center mt-12">
+        {/* Footer */}
+        <div className="text-center mt-8 sm:mt-12 space-y-4">
           <p className="text-sm text-muted-foreground">
-            MVP AgriLink B2B - Wireframe desenvolvido no Lovable
+            MVP AgriLink B2B — Wireframe desenvolvido no Lovable
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            © <span className="font-semibold text-primary">AgriLink Lda</span> 2025
           </p>
         </div>
       </div>

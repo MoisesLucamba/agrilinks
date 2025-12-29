@@ -126,7 +126,7 @@ interface Ficha {
   created_at: string;
 }
 
-type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market" | "admins";
+type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market" | "admins" | "referrals";
 
 interface SourcingRequest {
   id: string;
@@ -146,6 +146,18 @@ interface TopAgent {
   agent_avatar: string | null;
   total_referrals: number;
   total_points: number;
+}
+
+interface Referral {
+  id: string;
+  agent_id: string;
+  referred_user_id: string;
+  points: number;
+  created_at: string;
+  agent_name: string;
+  agent_avatar: string | null;
+  agent_code: string;
+  referred_user_name: string;
 }
 
 // --- Componentes Auxiliares ---
@@ -211,6 +223,7 @@ const AdminDashboard = () => {
   const [fichas, setFichas] = useState<Ficha[]>([]);
   const [sourcingRequests, setSourcingRequests] = useState<SourcingRequest[]>([]);
   const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
+  const [allReferrals, setAllReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -293,7 +306,7 @@ const AdminDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [prodRes, usersRes, transRes, notRes, fichasRes, sourcingRes, topAgentsRes] = await Promise.all([
+      const [prodRes, usersRes, transRes, notRes, fichasRes, sourcingRes, topAgentsRes, referralsRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("users").select("*").order("created_at", { ascending: false }),
         supabase.from("transactions").select("*").order("created_at", { ascending: false }),
@@ -301,6 +314,7 @@ const AdminDashboard = () => {
         supabase.from("fichas_recebimento").select("*").order("created_at", { ascending: false }),
         supabase.from("sourcing_requests").select("*").order("created_at", { ascending: false }),
         supabase.rpc("get_top_agents_by_referrals", { limit_count: 3 }),
+        supabase.from("agent_referrals").select("*").order("created_at", { ascending: false }),
       ]);
       setProducts(prodRes.data || []);
       setUsers(usersRes.data || []);
@@ -309,6 +323,27 @@ const AdminDashboard = () => {
       setFichas(fichasRes.data || []);
       setSourcingRequests(sourcingRes.data || []);
       setTopAgents(topAgentsRes.data || []);
+      
+      // Process referrals with user data
+      if (referralsRes.data && usersRes.data) {
+        const usersMap = new Map(usersRes.data.map(u => [u.id, u]));
+        const processedReferrals: Referral[] = referralsRes.data.map((r: any) => {
+          const agent = usersMap.get(r.agent_id);
+          const referred = usersMap.get(r.referred_user_id);
+          return {
+            id: r.id,
+            agent_id: r.agent_id,
+            referred_user_id: r.referred_user_id,
+            points: r.points,
+            created_at: r.created_at,
+            agent_name: agent?.full_name || 'Agente não encontrado',
+            agent_avatar: agent?.avatar_url || null,
+            agent_code: agent?.agent_code || 'N/A',
+            referred_user_name: referred?.full_name || 'Usuário não encontrado',
+          };
+        });
+        setAllReferrals(processedReferrals);
+      }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -558,6 +593,11 @@ const AdminDashboard = () => {
             {isRootAdmin && (
               <TabButton active={activeTab === "admins"} onClick={() => { setActiveTab("admins"); setMenuOpen(false); }}>
                 <Crown className="h-4 w-4" /> Admins
+              </TabButton>
+            )}
+            {hasPermission("view_analytics") && (
+              <TabButton active={activeTab === "referrals"} onClick={() => { setActiveTab("referrals"); setMenuOpen(false); }} badge={allReferrals.length}>
+                <Star className="h-4 w-4" /> Indicações
               </TabButton>
             )}
           </div>
@@ -1390,6 +1430,269 @@ const AdminDashboard = () => {
             users={users}
             onRefresh={fetchAllData}
           />
+        )}
+
+        {/* REFERRALS TAB */}
+        {activeTab === "referrals" && (
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-white/80">Total Indicações</p>
+                    <p className="text-2xl font-bold mt-1">{allReferrals.length}</p>
+                  </div>
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Users className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-white/80">Total Pontos</p>
+                    <p className="text-2xl font-bold mt-1">{allReferrals.reduce((sum, r) => sum + r.points, 0)}</p>
+                  </div>
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Star className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-white/80">Agentes Ativos</p>
+                    <p className="text-2xl font-bold mt-1">{new Set(allReferrals.map(r => r.agent_id)).size}</p>
+                  </div>
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <BadgeCheck className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-white/80">Média Pts/Indicação</p>
+                    <p className="text-2xl font-bold mt-1">
+                      {allReferrals.length > 0 ? Math.round(allReferrals.reduce((sum, r) => sum + r.points, 0) / allReferrals.length) : 0}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top 3 Agents Leaderboard */}
+            <Card className="border border-border shadow-soft bg-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  Ranking de Agentes - Dados em Tempo Real
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {topAgents.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-sm">Nenhuma indicação registrada no banco de dados</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    {topAgents.map((agent, index) => (
+                      <div
+                        key={agent.agent_id}
+                        className={`relative p-3 sm:p-4 rounded-xl border transition-all hover:scale-[1.02] ${
+                          index === 0 
+                            ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 dark:from-amber-900/20 dark:to-amber-800/20 dark:border-amber-700' 
+                            : index === 1 
+                            ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 dark:from-slate-800/50 dark:to-slate-700/50 dark:border-slate-600'
+                            : 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 dark:border-orange-700'
+                        }`}
+                      >
+                        <div className={`absolute -top-2 -left-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
+                          index === 0 
+                            ? 'bg-amber-500 text-white' 
+                            : index === 1 
+                            ? 'bg-slate-400 text-white'
+                            : 'bg-orange-400 text-white'
+                        }`}>
+                          {index + 1}º
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3 mt-2">
+                          <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20">
+                            <AvatarImage src={agent.agent_avatar || ""} />
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm font-bold">
+                              {agent.agent_name?.charAt(0) || 'A'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-xs sm:text-sm truncate">{agent.agent_name}</p>
+                            <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3 text-primary" />
+                                <span className="text-xs font-medium">{agent.total_referrals} indicações</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 text-amber-500" />
+                                <span className="text-xs font-medium">{agent.total_points} pts</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Complete Referrals Table */}
+            <Card className="border border-border shadow-soft bg-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Histórico Completo de Indicações ({allReferrals.length} registros)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allReferrals.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">Nenhuma indicação registrada no banco de dados</p>
+                    <p className="text-xs text-muted-foreground mt-1">As indicações aparecerão aqui quando os agentes indicarem novos usuários</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">#</TableHead>
+                          <TableHead className="text-xs">Agente</TableHead>
+                          <TableHead className="text-xs">Código</TableHead>
+                          <TableHead className="text-xs">Usuário Indicado</TableHead>
+                          <TableHead className="text-xs">Pontos</TableHead>
+                          <TableHead className="text-xs">Data</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {allReferrals.map((referral, idx) => (
+                          <TableRow key={referral.id} className="hover:bg-muted/50">
+                            <TableCell className="text-xs font-mono text-muted-foreground">{idx + 1}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-7 w-7">
+                                  <AvatarImage src={referral.agent_avatar || ""} />
+                                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                    {referral.agent_name?.charAt(0) || 'A'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs font-medium truncate max-w-[120px]">{referral.agent_name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {referral.agent_code}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs">{referral.referred_user_name}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                                <Star className="h-3 w-3 mr-1" />
+                                {referral.points}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {new Date(referral.created_at).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Stats by Agent */}
+            <Card className="border border-border shadow-soft bg-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  Estatísticas por Agente
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allReferrals.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-sm">Sem dados para exibir</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Array.from(
+                      allReferrals.reduce((acc, r) => {
+                        if (!acc.has(r.agent_id)) {
+                          acc.set(r.agent_id, {
+                            agent_id: r.agent_id,
+                            agent_name: r.agent_name,
+                            agent_avatar: r.agent_avatar,
+                            agent_code: r.agent_code,
+                            total_referrals: 0,
+                            total_points: 0,
+                            referred_users: [] as string[]
+                          });
+                        }
+                        const agent = acc.get(r.agent_id)!;
+                        agent.total_referrals += 1;
+                        agent.total_points += r.points;
+                        agent.referred_users.push(r.referred_user_name);
+                        return acc;
+                      }, new Map<string, any>())
+                    ).map(([agentId, stats]) => (
+                      <div key={agentId} className="p-3 border rounded-xl bg-muted/20">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={stats.agent_avatar || ""} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {stats.agent_name?.charAt(0) || 'A'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-sm truncate">{stats.agent_name}</p>
+                            <Badge variant="outline" className="font-mono text-xs">{stats.agent_code}</Badge>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-center">
+                          <div className="bg-background p-2 rounded-lg">
+                            <p className="text-lg font-bold text-primary">{stats.total_referrals}</p>
+                            <p className="text-xs text-muted-foreground">Indicações</p>
+                          </div>
+                          <div className="bg-background p-2 rounded-lg">
+                            <p className="text-lg font-bold text-amber-500">{stats.total_points}</p>
+                            <p className="text-xs text-muted-foreground">Pontos</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t">
+                          <p className="text-xs text-muted-foreground mb-1">Usuários indicados:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {stats.referred_users.slice(0, 3).map((name: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">{name}</Badge>
+                            ))}
+                            {stats.referred_users.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">+{stats.referred_users.length - 3}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
       </main>
 

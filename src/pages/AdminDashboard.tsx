@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -39,6 +40,7 @@ import {
   Shield,
   UserCog,
   Lock,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
@@ -138,6 +140,14 @@ interface SourcingRequest {
   created_at: string;
 }
 
+interface TopAgent {
+  agent_id: string;
+  agent_name: string;
+  agent_avatar: string | null;
+  total_referrals: number;
+  total_points: number;
+}
+
 // --- Componentes Auxiliares ---
 const MetricCard = ({ title, value, icon, trend, color }: {
   title: string;
@@ -146,19 +156,19 @@ const MetricCard = ({ title, value, icon, trend, color }: {
   trend?: number;
   color: string;
 }) => (
-  <div className={`rounded-2xl p-5 ${color} transition-all hover:scale-[1.02] hover:shadow-lg`}>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-white/80">{title}</p>
-        <p className="text-3xl font-bold text-white mt-1">{value}</p>
+  <div className={`rounded-2xl p-3 sm:p-5 ${color} transition-all hover:scale-[1.02] hover:shadow-lg`}>
+    <div className="flex items-center justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs sm:text-sm font-medium text-white/80 truncate">{title}</p>
+        <p className="text-xl sm:text-3xl font-bold text-white mt-1">{value}</p>
         {trend !== undefined && (
-          <p className="text-sm mt-1 text-white/70 flex items-center gap-1">
+          <p className="text-xs sm:text-sm mt-1 text-white/70 flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
             {trend >= 0 ? "+" : ""}{trend}%
           </p>
         )}
       </div>
-      <div className="p-3 bg-white/20 rounded-xl text-white">
+      <div className="p-2 sm:p-3 bg-white/20 rounded-xl text-white flex-shrink-0">
         {icon}
       </div>
     </div>
@@ -173,15 +183,15 @@ const TabButton = ({ active, onClick, children, badge }: {
 }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${
+    className={`px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
       active 
-        ? "bg-primary text-white shadow-md" 
-        : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-100"
+        ? "bg-primary text-primary-foreground shadow-md" 
+        : "bg-card text-foreground hover:bg-muted border border-border"
     }`}
   >
     {children}
     {badge !== undefined && badge > 0 && (
-      <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
+      <span className="bg-destructive text-destructive-foreground text-[10px] sm:text-xs font-bold rounded-full min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 px-1 sm:px-1.5 flex items-center justify-center">
         {badge > 99 ? '99+' : badge}
       </span>
     )}
@@ -200,6 +210,7 @@ const AdminDashboard = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [fichas, setFichas] = useState<Ficha[]>([]);
   const [sourcingRequests, setSourcingRequests] = useState<SourcingRequest[]>([]);
+  const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -282,13 +293,14 @@ const AdminDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [prodRes, usersRes, transRes, notRes, fichasRes, sourcingRes] = await Promise.all([
+      const [prodRes, usersRes, transRes, notRes, fichasRes, sourcingRes, topAgentsRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("users").select("*").order("created_at", { ascending: false }),
         supabase.from("transactions").select("*").order("created_at", { ascending: false }),
         supabase.from("notifications").select("*").order("created_at", { ascending: false }),
         supabase.from("fichas_recebimento").select("*").order("created_at", { ascending: false }),
         supabase.from("sourcing_requests").select("*").order("created_at", { ascending: false }),
+        supabase.rpc("get_top_agents_by_referrals", { limit_count: 3 }),
       ]);
       setProducts(prodRes.data || []);
       setUsers(usersRes.data || []);
@@ -296,6 +308,7 @@ const AdminDashboard = () => {
       setNotifications(notRes.data || []);
       setFichas(fichasRes.data || []);
       setSourcingRequests(sourcingRes.data || []);
+      setTopAgents(topAgentsRes.data || []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -461,19 +474,19 @@ const AdminDashboard = () => {
 
   if (loading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-          <p className="text-gray-500">Carregando dashboard...</p>
+          <p className="text-muted-foreground">Carregando dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header Moderno */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+      <header className="sticky top-0 z-50 glass border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -565,57 +578,118 @@ const AdminDashboard = () => {
         {/* DASHBOARD */}
         {activeTab === "dashboard" && (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Produtos" value={products.length} icon={<Package className="h-6 w-6" />} trend={12} color="bg-gradient-to-br from-emerald-500 to-green-600" />
-              <MetricCard title="Usuários" value={users.length} icon={<Users className="h-6 w-6" />} trend={8} color="bg-gradient-to-br from-blue-500 to-indigo-600" />
-              <MetricCard title="Pedidos" value={orders.length} icon={<ShoppingCart className="h-6 w-6" />} trend={15} color="bg-gradient-to-br from-amber-500 to-orange-600" />
-              <MetricCard title="Transações" value={transactions.length} icon={<DollarSign className="h-6 w-6" />} trend={5} color="bg-gradient-to-br from-purple-500 to-pink-600" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+              <MetricCard title="Produtos" value={products.length} icon={<Package className="h-5 w-5 sm:h-6 sm:w-6" />} trend={12} color="bg-gradient-to-br from-emerald-500 to-green-600" />
+              <MetricCard title="Usuários" value={users.length} icon={<Users className="h-5 w-5 sm:h-6 sm:w-6" />} trend={8} color="bg-gradient-to-br from-blue-500 to-indigo-600" />
+              <MetricCard title="Pedidos" value={orders.length} icon={<ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />} trend={15} color="bg-gradient-to-br from-amber-500 to-orange-600" />
+              <MetricCard title="Transações" value={transactions.length} icon={<DollarSign className="h-5 w-5 sm:h-6 sm:w-6" />} trend={5} color="bg-gradient-to-br from-purple-500 to-pink-600" />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-sm bg-white/80 backdrop-blur">
+            {/* Top 3 Agentes Leaderboard */}
+            <Card className="border border-border shadow-soft bg-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  Top 3 Agentes - Maiores Indicadores
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {topAgents.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-sm">Nenhum agente com indicações ainda</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    {topAgents.map((agent, index) => (
+                      <div
+                        key={agent.agent_id}
+                        className={`relative p-3 sm:p-4 rounded-xl border transition-all hover:scale-[1.02] ${
+                          index === 0 
+                            ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 dark:from-amber-900/20 dark:to-amber-800/20 dark:border-amber-700' 
+                            : index === 1 
+                            ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 dark:from-slate-800/50 dark:to-slate-700/50 dark:border-slate-600'
+                            : 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 dark:border-orange-700'
+                        }`}
+                      >
+                        <div className={`absolute -top-2 -left-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
+                          index === 0 
+                            ? 'bg-amber-500 text-white' 
+                            : index === 1 
+                            ? 'bg-slate-400 text-white'
+                            : 'bg-orange-400 text-white'
+                        }`}>
+                          {index + 1}º
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3 mt-2">
+                          <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20">
+                            <AvatarImage src={agent.agent_avatar || ""} />
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm font-bold">
+                              {agent.agent_name?.charAt(0) || 'A'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-xs sm:text-sm truncate">{agent.agent_name}</p>
+                            <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3 text-primary" />
+                                <span className="text-xs font-medium">{agent.total_referrals}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 text-amber-500" />
+                                <span className="text-xs font-medium">{agent.total_points} pts</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+              <Card className="border border-border shadow-soft bg-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold">Receita por Data</CardTitle>
+                  <CardTitle className="text-sm sm:text-base font-semibold">Receita por Data</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <LineChart data={chartDataRevenue}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="amount" stroke="#22c55e" strokeWidth={2} dot={{ fill: "#22c55e", r: 3 }} />
+                      <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-sm bg-white/80 backdrop-blur">
+              <Card className="border border-border shadow-soft bg-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold">Top Produtos</CardTitle>
+                  <CardTitle className="text-sm sm:text-base font-semibold">Top Produtos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={220}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <BarChart data={chartDataProducts} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis type="number" tick={{ fontSize: 11 }} />
-                      <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 11 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis type="number" tick={{ fontSize: 10 }} />
+                      <YAxis dataKey="name" type="category" width={60} tick={{ fontSize: 10 }} />
                       <Tooltip />
-                      <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-sm bg-white/80 backdrop-blur lg:col-span-2">
+              <Card className="border border-border shadow-soft bg-card lg:col-span-2">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold">Status das Transações</CardTitle>
+                  <CardTitle className="text-sm sm:text-base font-semibold">Status das Transações</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-center gap-8">
-                    <ResponsiveContainer width={200} height={200}>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+                    <ResponsiveContainer width={160} height={160}>
                       <PieChart>
-                        <Pie data={chartDataTransactionStatus} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, value }) => `${value}`}>
+                        <Pie data={chartDataTransactionStatus} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" label={({ value }) => `${value}`}>
                           {chartDataTransactionStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                         </Pie>
                         <Tooltip />
@@ -625,7 +699,7 @@ const AdminDashboard = () => {
                       {chartDataTransactionStatus.map((item, i) => (
                         <div key={item.name} className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                          <span className="text-sm text-gray-600 capitalize">{item.name}: {item.value}</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground capitalize">{item.name}: {item.value}</span>
                         </div>
                       ))}
                     </div>

@@ -1449,6 +1449,16 @@ export type Database = {
           user_type: Database["public"]["Enums"]["user_type_enum"]
         }[]
       }
+      get_top_agents_by_referrals: {
+        Args: { limit_count?: number }
+        Returns: {
+          agent_avatar: string
+          agent_id: string
+          agent_name: string
+          total_points: number
+          total_referrals: number
+        }[]
+      }
       has_admin_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["admin_permission"]

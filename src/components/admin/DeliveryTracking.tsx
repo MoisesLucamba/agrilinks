@@ -121,6 +121,13 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
   const [newStatus, setNewStatus] = useState("");
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedDeliveryDetails, setSelectedDeliveryDetails] = useState<DeliveryTrack | null>(null);
+  const [acceptedOrderDetails, setAcceptedOrderDetails] = useState<{
+    order: Order;
+    product: Product | null;
+    buyer: UserInfo | null;
+    farmer: UserInfo | null;
+  } | null>(null);
+  const [showAcceptedDetails, setShowAcceptedDetails] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -148,30 +155,34 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
     fetchData();
   }, [fetchData]);
 
-  const assignDelivery = async () => {
-    if (!selectedOrderId) {
-      toast.error("Selecione um pedido");
-      return;
-    }
-
+  const acceptDelivery = async (orderId: string) => {
     try {
       const { error } = await supabase.from("delivery_tracking").insert({
-        order_id: selectedOrderId,
+        order_id: orderId,
         assistant_id: currentUserId,
-        notes: notes || null,
+        notes: null,
         status: "assigned",
       });
 
       if (error) throw error;
 
-      toast.success("Entrega atribuída com sucesso!");
+      // Get order details to show
+      const order = orders.find((o) => o.id === orderId);
+      if (order) {
+        const product = products.find((p) => p.id === order.product_id) || null;
+        const buyer = users.find((u) => u.id === order.user_id) || null;
+        const farmer = product ? users.find((u) => u.id === product.user_id) || null : null;
+        
+        setAcceptedOrderDetails({ order, product, buyer, farmer });
+        setShowAcceptedDetails(true);
+      }
+
+      toast.success("Entrega aceita! Seu tempo começou a contar.");
       setAssignDialogOpen(false);
-      setSelectedOrderId("");
-      setNotes("");
       fetchData();
     } catch (error) {
-      console.error("Error assigning delivery:", error);
-      toast.error("Erro ao atribuir entrega");
+      console.error("Error accepting delivery:", error);
+      toast.error("Erro ao aceitar entrega");
     }
   };
 
@@ -468,61 +479,244 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
         </CardContent>
       </Card>
 
-      {/* Assign Delivery Dialog */}
+      {/* Assign Delivery Dialog - Pending Orders List */}
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" /> Atribuir Nova Entrega
+              <Plus className="h-5 w-5 text-primary" /> Pedidos Disponíveis para Entrega
             </DialogTitle>
             <DialogDescription>
-              Selecione um pedido para acompanhar a entrega
+              Selecione um pedido pendente para aceitar a entrega. Ao aceitar, seu tempo começará a contar.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Pedido</label>
-              <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um pedido" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableOrders.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      Nenhum pedido disponível
-                    </SelectItem>
-                  ) : (
-                    availableOrders.map((order) => {
-                      const product = products.find((p) => p.id === order.product_id);
-                      const buyer = users.find((u) => u.id === order.user_id);
-                      return (
-                        <SelectItem key={order.id} value={order.id}>
-                          {product?.product_type || "Produto"} - {buyer?.full_name || "Cliente"} ({order.quantity}kg)
-                        </SelectItem>
-                      );
-                    })
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            {availableOrders.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="font-medium">Nenhum pedido disponível</p>
+                <p className="text-sm">Todos os pedidos já foram atribuídos</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {availableOrders.map((order) => {
+                  const product = products.find((p) => p.id === order.product_id);
+                  const buyer = users.find((u) => u.id === order.user_id);
+                  const farmer = product ? users.find((u) => u.id === product.user_id) : null;
+                  
+                  return (
+                    <Card key={order.id} className="border hover:border-primary/50 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          {/* Order Info */}
+                          <div className="flex-1 space-y-3">
+                            {/* Product Header */}
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-primary/10 rounded-lg">
+                                <Package className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <h4 className="font-semibold">{product?.product_type || "Produto"}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {order.quantity}kg • Kz {order.total_price?.toLocaleString()}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="ml-auto">
+                                {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                              </Badge>
+                            </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Notas (opcional)</label>
-              <Textarea
-                placeholder="Adicione notas sobre esta entrega..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
+                            {/* Location */}
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              <span>{order.location}</span>
+                            </div>
+
+                            {/* Participants */}
+                            <div className="grid grid-cols-2 gap-3">
+                              {/* Farmer */}
+                              <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                                <Tractor className="h-4 w-4 text-green-600" />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-green-600 font-medium">Agricultor</p>
+                                  <p className="text-sm font-medium truncate">{farmer?.full_name || product?.farmer_name || "-"}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Buyer */}
+                              <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
+                                <ShoppingCart className="h-4 w-4 text-amber-600" />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-amber-600 font-medium">Comprador</p>
+                                  <p className="text-sm font-medium truncate">{buyer?.full_name || "-"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Accept Button */}
+                          <div className="flex flex-col items-center gap-2">
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => acceptDelivery(order.id)}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Aceitar
+                            </Button>
+                            <p className="text-xs text-muted-foreground text-center">
+                              Aceitar inicia<br/>o cronômetro
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-              Cancelar
+              Fechar
             </Button>
-            <Button onClick={assignDelivery} disabled={!selectedOrderId}>
-              <Truck className="h-4 w-4 mr-1" /> Atribuir Entrega
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Accepted Delivery Details Dialog */}
+      <Dialog open={showAcceptedDetails} onOpenChange={setShowAcceptedDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" /> Entrega Aceita!
+            </DialogTitle>
+            <DialogDescription>
+              Seu tempo começou a contar. Aqui estão os dados dos participantes para contato.
+            </DialogDescription>
+          </DialogHeader>
+
+          {acceptedOrderDetails && (
+            <div className="space-y-4">
+              {/* Timer Indicator */}
+              <div className="flex items-center justify-center gap-3 p-4 bg-primary/10 rounded-lg">
+                <Timer className="h-6 w-6 text-primary animate-pulse" />
+                <div className="text-center">
+                  <p className="font-semibold text-primary">Cronômetro Ativo</p>
+                  <p className="text-sm text-muted-foreground">Acompanhe seu tempo no painel</p>
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  <h4 className="font-semibold">{acceptedOrderDetails.product?.product_type || "Produto"}</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p><span className="text-muted-foreground">Quantidade:</span> {acceptedOrderDetails.order.quantity}kg</p>
+                  <p><span className="text-muted-foreground">Valor:</span> Kz {acceptedOrderDetails.order.total_price?.toLocaleString()}</p>
+                  <p className="col-span-2 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="text-muted-foreground">Entrega:</span> {acceptedOrderDetails.order.location}
+                  </p>
+                </div>
+              </div>
+
+              {/* Contact Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Farmer Contact */}
+                <Card className="border-2 border-green-200 bg-green-50/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-green-700">
+                      <Tractor className="h-4 w-4" /> Agricultor
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={acceptedOrderDetails.farmer?.avatar_url || ""} />
+                        <AvatarFallback className="bg-green-200 text-green-700">
+                          {acceptedOrderDetails.farmer?.full_name?.charAt(0) || acceptedOrderDetails.product?.farmer_name?.charAt(0) || "A"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{acceptedOrderDetails.farmer?.full_name || acceptedOrderDetails.product?.farmer_name || "-"}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      {(acceptedOrderDetails.farmer?.phone || acceptedOrderDetails.product?.contact) && (
+                        <a 
+                          href={`tel:${acceptedOrderDetails.farmer?.phone || acceptedOrderDetails.product?.contact}`} 
+                          className="flex items-center gap-2 text-green-600 hover:underline"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {acceptedOrderDetails.farmer?.phone || acceptedOrderDetails.product?.contact}
+                        </a>
+                      )}
+                      {acceptedOrderDetails.farmer?.email && (
+                        <a 
+                          href={`mailto:${acceptedOrderDetails.farmer.email}`} 
+                          className="flex items-center gap-2 text-green-600 hover:underline"
+                        >
+                          <Mail className="h-3 w-3" />
+                          {acceptedOrderDetails.farmer.email}
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Buyer Contact */}
+                <Card className="border-2 border-amber-200 bg-amber-50/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
+                      <ShoppingCart className="h-4 w-4" /> Comprador
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={acceptedOrderDetails.buyer?.avatar_url || ""} />
+                        <AvatarFallback className="bg-amber-200 text-amber-700">
+                          {acceptedOrderDetails.buyer?.full_name?.charAt(0) || "C"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{acceptedOrderDetails.buyer?.full_name || "-"}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      {acceptedOrderDetails.buyer?.phone && (
+                        <a 
+                          href={`tel:${acceptedOrderDetails.buyer.phone}`} 
+                          className="flex items-center gap-2 text-amber-600 hover:underline"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {acceptedOrderDetails.buyer.phone}
+                        </a>
+                      )}
+                      {acceptedOrderDetails.buyer?.email && (
+                        <a 
+                          href={`mailto:${acceptedOrderDetails.buyer.email}`} 
+                          className="flex items-center gap-2 text-amber-600 hover:underline"
+                        >
+                          <Mail className="h-3 w-3" />
+                          {acceptedOrderDetails.buyer.email}
+                        </a>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setShowAcceptedDetails(false)}>
+              Entendido
             </Button>
           </DialogFooter>
         </DialogContent>

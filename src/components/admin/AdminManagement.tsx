@@ -23,6 +23,7 @@ import {
   ChevronUp,
   AlertTriangle,
   Sparkles,
+  Headphones,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -131,6 +132,7 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
   onRefresh,
 }) => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [supportAgents, setSupportAgents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
@@ -142,61 +144,78 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
   const [adminToRevoke, setAdminToRevoke] = useState<AdminUser | null>(null);
   const [promoteToRootDialogOpen, setPromoteToRootDialogOpen] = useState(false);
   const [userToPromoteRoot, setUserToPromoteRoot] = useState<AdminUser | null>(null);
-
+  const [promoteToSupportAgentDialogOpen, setPromoteToSupportAgentDialogOpen] = useState(false);
+  const [userToPromoteSupportAgent, setUserToPromoteSupportAgent] = useState<User | null>(null);
+  const [revokeSupportAgentDialogOpen, setRevokeSupportAgentDialogOpen] = useState(false);
+  const [agentToRevoke, setAgentToRevoke] = useState<User | null>(null);
   const fetchAdmins = useCallback(async () => {
     setLoading(true);
     try {
-      // Get all admin users
-      const { data: adminRoles, error: rolesError } = await supabase
+      // Get all roles
+      const { data: allRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
+        .select("user_id, role");
 
       if (rolesError) throw rolesError;
 
-      if (!adminRoles || adminRoles.length === 0) {
+      // Separate admin roles and support agent roles
+      const adminUserIds = (allRoles || []).filter(r => r.role === "admin").map((r) => r.user_id);
+      const supportAgentUserIds = (allRoles || []).filter(r => r.role === "support_agent").map((r) => r.user_id);
+
+      if (adminUserIds.length === 0) {
         setAdmins([]);
-        return;
+      } else {
+        // Get user details for admins
+        const { data: adminUsers, error: usersError } = await supabase
+          .from("users")
+          .select("id, full_name, email, user_type, is_root_admin, is_super_root, created_at")
+          .in("id", adminUserIds);
+
+        if (usersError) throw usersError;
+
+        // Get permissions for each admin
+        const { data: permissions, error: permError } = await supabase
+          .from("admin_permissions")
+          .select("user_id, permission")
+          .in("user_id", adminUserIds);
+
+        if (permError) throw permError;
+
+        // Combine data
+        const adminList: AdminUser[] = (adminUsers || []).map((user) => ({
+          ...user,
+          is_root_admin: user.is_root_admin || false,
+          is_super_root: (user as any).is_super_root || false,
+          permissions: (permissions || [])
+            .filter((p) => p.user_id === user.id)
+            .map((p) => p.permission as PermissionKey),
+        }));
+
+        // Sort: super roots first, then root admins, then by name
+        adminList.sort((a, b) => {
+          if (a.is_super_root && !b.is_super_root) return -1;
+          if (!a.is_super_root && b.is_super_root) return 1;
+          if (a.is_root_admin && !b.is_root_admin) return -1;
+          if (!a.is_root_admin && b.is_root_admin) return 1;
+          return a.full_name.localeCompare(b.full_name);
+        });
+
+        setAdmins(adminList);
       }
 
-      const adminUserIds = adminRoles.map((r) => r.user_id);
+      // Fetch support agents
+      if (supportAgentUserIds.length > 0) {
+        const { data: agentUsers, error: agentError } = await supabase
+          .from("users")
+          .select("id, full_name, email, user_type")
+          .in("id", supportAgentUserIds);
 
-      // Get user details
-      const { data: adminUsers, error: usersError } = await supabase
-        .from("users")
-        .select("id, full_name, email, user_type, is_root_admin, is_super_root, created_at")
-        .in("id", adminUserIds);
-
-      if (usersError) throw usersError;
-
-      // Get permissions for each admin
-      const { data: permissions, error: permError } = await supabase
-        .from("admin_permissions")
-        .select("user_id, permission")
-        .in("user_id", adminUserIds);
-
-      if (permError) throw permError;
-
-      // Combine data
-      const adminList: AdminUser[] = (adminUsers || []).map((user) => ({
-        ...user,
-        is_root_admin: user.is_root_admin || false,
-        is_super_root: (user as any).is_super_root || false,
-        permissions: (permissions || [])
-          .filter((p) => p.user_id === user.id)
-          .map((p) => p.permission as PermissionKey),
-      }));
-
-      // Sort: super roots first, then root admins, then by name
-      adminList.sort((a, b) => {
-        if (a.is_super_root && !b.is_super_root) return -1;
-        if (!a.is_super_root && b.is_super_root) return 1;
-        if (a.is_root_admin && !b.is_root_admin) return -1;
-        if (!a.is_root_admin && b.is_root_admin) return 1;
-        return a.full_name.localeCompare(b.full_name);
-      });
-
-      setAdmins(adminList);
+        if (!agentError && agentUsers) {
+          setSupportAgents(agentUsers);
+        }
+      } else {
+        setSupportAgents([]);
+      }
     } catch (error) {
       console.error("Error fetching admins:", error);
       toast.error("Erro ao carregar administradores");
@@ -376,8 +395,59 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
     }
   };
 
+  // Promote to Support Agent
+  const promoteToSupportAgent = async () => {
+    if (!userToPromoteSupportAgent) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userToPromoteSupportAgent.id, role: "support_agent" });
+
+      if (error && !error.message.includes("duplicate")) throw error;
+
+      toast.success(`${userToPromoteSupportAgent.full_name} promovido a Assistente de Atendimento!`);
+      setPromoteToSupportAgentDialogOpen(false);
+      setUserToPromoteSupportAgent(null);
+      fetchAdmins();
+      onRefresh();
+    } catch (error) {
+      console.error("Error promoting to support agent:", error);
+      toast.error("Erro ao promover a Assistente de Atendimento");
+    }
+  };
+
+  // Revoke Support Agent role
+  const revokeSupportAgent = async () => {
+    if (!agentToRevoke) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", agentToRevoke.id)
+        .eq("role", "support_agent");
+
+      if (error) throw error;
+
+      toast.success(`${agentToRevoke.full_name} removido de Assistente de Atendimento`);
+      setRevokeSupportAgentDialogOpen(false);
+      setAgentToRevoke(null);
+      fetchAdmins();
+      onRefresh();
+    } catch (error) {
+      console.error("Error revoking support agent:", error);
+      toast.error("Erro ao revogar Assistente de Atendimento");
+    }
+  };
+
   const nonAdminUsers = users.filter(
     (u) => !admins.find((a) => a.id === u.id)
+  );
+
+  // Get agents (user_type === 'agente') that are not already support agents
+  const availableAgents = users.filter(
+    (u) => u.user_type === "agente" && !supportAgents.find((a) => a.id === u.id)
   );
 
   const filteredNonAdminUsers = nonAdminUsers.filter(
@@ -613,6 +683,70 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
         </CardContent>
       </Card>
 
+      {/* Support Agents Section */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Headphones className="h-5 w-5 text-green-600" /> Assistentes de Atendimento ({supportAgents.length})
+            </CardTitle>
+            <CardDescription>
+              Funcionários da AgriLink que auxiliam usuários e gerenciam entregas
+            </CardDescription>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="border-green-200 text-green-700 hover:bg-green-50"
+            onClick={() => setPromoteToSupportAgentDialogOpen(true)}
+          >
+            <Headphones className="h-4 w-4 mr-1" /> Promover Assistente
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {supportAgents.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Headphones className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>Nenhum assistente de atendimento</p>
+              <p className="text-sm mt-1">Promova agentes para que trabalhem como assistentes</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {supportAgents.map((agent) => (
+                <div
+                  key={agent.id}
+                  className="flex items-center justify-between p-4 rounded-xl border bg-green-50/50 border-green-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Headphones className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{agent.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{agent.email || "Sem email"}</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-700">
+                      Assistente
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      setAgentToRevoke(agent);
+                      setRevokeSupportAgentDialogOpen(true);
+                    }}
+                  >
+                    <ShieldX className="h-4 w-4 mr-1" /> Revogar
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Promote User Dialog */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
         <DialogContent className="max-w-lg">
@@ -822,6 +956,99 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
               onClick={promoteToRoot}
             >
               <Crown className="h-4 w-4 mr-1" /> Promover a Root
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote to Support Agent Dialog */}
+      <Dialog open={promoteToSupportAgentDialogOpen} onOpenChange={setPromoteToSupportAgentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Headphones className="h-5 w-5" /> Promover a Assistente de Atendimento
+            </DialogTitle>
+            <DialogDescription>
+              Selecione um agente para promover a Assistente de Atendimento AgriLink.
+              O tempo de trabalho será rastreado automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Selecionar Agente</label>
+              <div className="max-h-60 overflow-y-auto border rounded-lg">
+                {availableAgents.length === 0 ? (
+                  <p className="text-sm text-gray-500 p-3 text-center">
+                    Nenhum agente disponível para promoção
+                  </p>
+                ) : (
+                  availableAgents.map((agent) => (
+                    <button
+                      key={agent.id}
+                      onClick={() => setUserToPromoteSupportAgent(agent)}
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-3 border-b last:border-0 ${
+                        userToPromoteSupportAgent?.id === agent.id ? "bg-green-50" : ""
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{agent.full_name}</p>
+                        <p className="text-xs text-gray-500 truncate">{agent.email || "Sem email"}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs capitalize">agente</Badge>
+                    </button>
+                  ))
+                )}
+              </div>
+              {userToPromoteSupportAgent && (
+                <div className="mt-2 p-2 bg-green-50 rounded-lg flex items-center gap-2">
+                  <Headphones className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium">Selecionado: {userToPromoteSupportAgent.full_name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setPromoteToSupportAgentDialogOpen(false);
+              setUserToPromoteSupportAgent(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={promoteToSupportAgent}
+              disabled={!userToPromoteSupportAgent}
+            >
+              <Headphones className="h-4 w-4 mr-1" /> Promover
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revoke Support Agent Dialog */}
+      <Dialog open={revokeSupportAgentDialogOpen} onOpenChange={setRevokeSupportAgentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <ShieldX className="h-5 w-5" /> Revogar Assistente de Atendimento
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja remover{" "}
+              <strong>{agentToRevoke?.full_name}</strong> da equipe de Assistentes de Atendimento?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setRevokeSupportAgentDialogOpen(false);
+              setAgentToRevoke(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={revokeSupportAgent}>
+              <ShieldX className="h-4 w-4 mr-1" /> Revogar
             </Button>
           </DialogFooter>
         </DialogContent>

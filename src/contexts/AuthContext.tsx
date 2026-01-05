@@ -11,6 +11,7 @@ interface AuthContextType {
   isAdmin: boolean
   isRootAdmin: boolean
   isSuperRoot: boolean
+  isSupportAgent: boolean
   login: (email: string, password: string) => Promise<{ error: any }>
   register: (userData: RegisterData) => Promise<{ error: any; data?: any }>
   logout: () => Promise<void>
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false)
   const [isRootAdmin, setIsRootAdmin] = useState(false)
   const [isSuperRoot, setIsSuperRoot] = useState(false)
+  const [isSupportAgent, setIsSupportAgent] = useState(false)
 
   const checkAdminRole = async (userId: string) => {
     try {
@@ -64,6 +66,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: superRootData, error: superRootError } = await supabase.rpc('is_super_root', { 
         _user_id: userId 
       })
+
+      // Check if user is support agent
+      const { data: isSupportAgentData, error: supportError } = await supabase.rpc('is_support_agent', { 
+        _user_id: userId 
+      })
       
       if (!roleError) {
         setIsAdmin(hasAdminRole === true || rootAdminData === true)
@@ -76,11 +83,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!superRootError) {
         setIsSuperRoot(superRootData === true)
       }
+
+      if (!supportError) {
+        setIsSupportAgent(isSupportAgentData === true)
+      }
     } catch (error) {
       console.error('Error checking admin role:', error)
       setIsAdmin(false)
       setIsRootAdmin(false)
       setIsSuperRoot(false)
+      setIsSupportAgent(false)
     }
   }
 
@@ -131,6 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAdmin(false)
           setIsRootAdmin(false)
           setIsSuperRoot(false)
+          setIsSupportAgent(false)
         }
         setLoading(false)
       }
@@ -286,6 +299,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin,
     isRootAdmin,
     isSuperRoot,
+    isSupportAgent,
     login,
     register,
     logout,

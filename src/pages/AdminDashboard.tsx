@@ -41,6 +41,7 @@ import {
   UserCog,
   Lock,
   Star,
+  Truck,
 } from "lucide-react";
 import {
   Dialog,
@@ -58,6 +59,9 @@ import {
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import AgrilinkLogo from "@/assets/agrilink-logo.png";
 import AdminManagement from "@/components/admin/AdminManagement";
+import DeliveryTracking from "@/components/admin/DeliveryTracking";
+import WorkSessionTimer from "@/components/admin/WorkSessionTimer";
+import { useWorkSession } from "@/hooks/useWorkSession";
 
 type AdminPermission = "manage_users" | "manage_products" | "manage_orders" | "manage_support" | "manage_sourcing" | "view_analytics" | "manage_admins";
 
@@ -126,7 +130,7 @@ interface Ficha {
   created_at: string;
 }
 
-type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market" | "admins" | "referrals";
+type TabType = "dashboard" | "products" | "users" | "transactions" | "notifications" | "orders" | "fichas" | "sourcing" | "market" | "admins" | "referrals" | "deliveries";
 
 interface SourcingRequest {
   id: string;
@@ -239,7 +243,16 @@ const AdminDashboard = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isRootAdmin, setIsRootAdmin] = useState(false);
   const [isSuperRoot, setIsSuperRoot] = useState(false);
+  const [isSupportAgent, setIsSupportAgent] = useState(false);
   const [userPermissions, setUserPermissions] = useState<AdminPermission[]>([]);
+
+  // Work session tracking for support agents
+  const {
+    elapsedTimeFormatted,
+    isSessionActive,
+    stats: workSessionStats,
+    endSession
+  } = useWorkSession(currentUserId, isSupportAgent);
 
   // Check admin permissions on mount
   useEffect(() => {
@@ -263,6 +276,12 @@ const AdminDashboard = () => {
       
       if ((userData as any)?.is_super_root) {
         setIsSuperRoot(true);
+      }
+
+      // Check if support agent
+      const { data: isSupportAgentData } = await supabase.rpc('is_support_agent', { _user_id: user.id });
+      if (isSupportAgentData) {
+        setIsSupportAgent(true);
       }
 
       // Get specific permissions for non-root admins
@@ -607,11 +626,26 @@ const AdminDashboard = () => {
                 <Star className="h-4 w-4" /> Indicações
               </TabButton>
             )}
+            {(isSupportAgent || hasPermission("manage_orders")) && (
+              <TabButton active={activeTab === "deliveries"} onClick={() => { setActiveTab("deliveries"); setMenuOpen(false); }}>
+                <Truck className="h-4 w-4" /> Entregas
+              </TabButton>
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 space-y-6">
+        {/* Support Agent Work Timer */}
+        {isSupportAgent && (
+          <WorkSessionTimer
+            elapsedTimeFormatted={elapsedTimeFormatted}
+            isSessionActive={isSessionActive}
+            stats={workSessionStats}
+            onEndSession={endSession}
+          />
+        )}
+
         {/* Root Admin Badge */}
         {isRootAdmin && (
           <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-xl">
@@ -1701,6 +1735,11 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* DELIVERIES TAB */}
+        {activeTab === "deliveries" && currentUserId && (
+          <DeliveryTracking currentUserId={currentUserId} />
         )}
       </main>
 

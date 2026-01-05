@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { BarChart3, Search, LayoutDashboard, ShoppingCart, Bell, Phone } from 'lucide-react'
@@ -17,6 +18,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY293Z2QwaGRwMmlyNGlwNW4
 
 
 const AppHome = () => {
+  const { t } = useTranslation()
   const { user, isAdmin } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -284,7 +286,7 @@ const AppHome = () => {
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
-          <span className="text-sm text-muted-foreground">Carregando...</span>
+          <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
         </div>
       </div>
     )
@@ -404,7 +406,7 @@ const AppHome = () => {
             {/* Form Fields */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Quantidade (kg)</label>
+                <label className="text-sm font-medium">{t('order.quantity')}</label>
                 <Input
                   type="number"
                   value={orderData.quantity || ''}
@@ -414,14 +416,14 @@ const AppHome = () => {
                   className="h-11"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Disponível: {selectedProduct?.quantity.toLocaleString()} kg
+                  {t('order.available')}: {selectedProduct?.quantity.toLocaleString()} kg
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Local de Entrega</label>
+                <label className="text-sm font-medium">{t('order.deliveryLocation')}</label>
                 <Input
-                  placeholder="Ex: Luanda, Maianga"
+                  placeholder={t('order.deliveryPlaceholder')}
                   value={orderData.location}
                   onChange={(e) => setOrderData({ ...orderData, location: e.target.value })}
                   className="h-11"
@@ -432,15 +434,15 @@ const AppHome = () => {
             {/* Price Summary */}
             <div className="bg-muted/50 p-4 rounded-xl space-y-2.5">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal:</span>
+                <span className="text-muted-foreground">{t('order.subtotal')}:</span>
                 <span className="font-medium">{formatPrice(orderData.quantity * (selectedProduct?.price || 0))}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Taxa de Logística (7,8%):</span>
+                <span className="text-muted-foreground">{t('order.logisticsFee')}:</span>
                 <span className="font-medium">{formatPrice(orderData.quantity * (selectedProduct?.price || 0) * 0.078)}</span>
               </div>
               <div className="border-t border-border pt-2.5 flex justify-between">
-                <span className="font-semibold">Total:</span>
+                <span className="font-semibold">{t('order.total')}:</span>
                 <span className="font-bold text-lg text-primary">{formatPrice(totalPrice)}</span>
               </div>
             </div>
@@ -448,7 +450,7 @@ const AppHome = () => {
 
           <DialogFooter className="p-5 pt-4 border-t border-border gap-3 sm:gap-3">
             <Button variant="outline" onClick={() => setModalOpen(false)} className="flex-1 sm:flex-none">
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handlePreOrderSubmit}
@@ -458,10 +460,10 @@ const AppHome = () => {
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin h-4 w-4 rounded-full border-2 border-primary-foreground border-t-transparent" />
-                  Processando...
+                  {t('order.processing')}
                 </span>
               ) : (
-                'Confirmar Pedido'
+                t('order.confirm')
               )}
             </Button>
           </DialogFooter>
@@ -492,7 +494,7 @@ const AppHome = () => {
 
       {/* Texto principal */}
       <p className="text-green-700 text-lg font-semibold flex items-center gap-2">
-        Processando Pedido
+        {t('order.processingOrder')}
       </p>
 
       {/* Subtexto com ícone */}
@@ -508,7 +510,7 @@ const AppHome = () => {
           <path d="M12 8v4l3 2" />
           <circle cx="12" cy="12" r="10" />
         </svg>
-        Aguarde um instante…
+        {t('common.wait')}
       </p>
     </div>
   </div>

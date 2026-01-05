@@ -120,6 +120,7 @@ interface AdminManagementProps {
   currentUserId: string;
   isRootAdmin: boolean;
   isSuperRoot: boolean;
+  hasManageAdminsPermission?: boolean;
   users: User[];
   onRefresh: () => void;
 }
@@ -128,6 +129,7 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
   currentUserId,
   isRootAdmin,
   isSuperRoot,
+  hasManageAdminsPermission = false,
   users,
   onRefresh,
 }) => {
@@ -456,12 +458,15 @@ const AdminManagement: React.FC<AdminManagementProps> = ({
       (u.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isRootAdmin) {
+  // Allow access for root admins or users with manage_admins permission
+  const canManageAdmins = isRootAdmin || hasManageAdminsPermission;
+
+  if (!canManageAdmins) {
     return (
       <Card className="border-0 shadow-sm">
         <CardContent className="py-12 text-center">
           <Shield className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500">Apenas administradores root podem gerenciar outros admins</p>
+          <p className="text-gray-500">Você não tem permissão para gerenciar administradores</p>
         </CardContent>
       </Card>
     );

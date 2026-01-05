@@ -616,7 +616,7 @@ const AdminDashboard = () => {
                 <Activity className="h-4 w-4" /> Mercado
               </TabButton>
             )}
-            {isRootAdmin && (
+            {(isRootAdmin || hasPermission("manage_admins")) && (
               <TabButton active={activeTab === "admins"} onClick={() => { setActiveTab("admins"); setMenuOpen(false); }}>
                 <Crown className="h-4 w-4" /> Admins
               </TabButton>
@@ -1469,6 +1469,7 @@ const AdminDashboard = () => {
             currentUserId={currentUserId}
             isRootAdmin={isRootAdmin}
             isSuperRoot={isSuperRoot}
+            hasManageAdminsPermission={hasPermission("manage_admins")}
             users={users}
             onRefresh={fetchAllData}
           />

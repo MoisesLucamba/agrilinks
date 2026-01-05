@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import {
   Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card'
@@ -11,9 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   User, Edit, Package, MapPin, Phone, Mail, Calendar, BarChart3, 
-  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart, Search, BadgeCheck 
+  Settings, LogOut, Trash2, Eye, Camera, CheckCircle, Share2, Star, Users, ClipboardList, Bell, ShoppingCart, Search, BadgeCheck, Globe 
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
@@ -901,6 +903,64 @@ const Profile = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Modal de Definições */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              {t('profile.settings')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Seletor de Idioma */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                {t('common.language') || 'Idioma'}
+              </Label>
+              <Select
+                value={i18n.language}
+                onValueChange={(value) => {
+                  i18n.changeLanguage(value)
+                  localStorage.setItem('agrilink_language', value)
+                  toast({ title: t('common.success'), description: t('common.languageChanged') || 'Idioma alterado com sucesso!' })
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pt">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇦🇴</span>
+                      <span>Português</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="en">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇬🇧</span>
+                      <span>English</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="fr">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇫🇷</span>
+                      <span>Français</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettingsOpen(false)}>
+              {t('common.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

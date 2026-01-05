@@ -41,7 +41,9 @@
     "pending": "En Attente",
     "completed": "Terminé",
     "cancelled": "Annulé",
-    "inProgress": "En Cours"
+    "inProgress": "En Cours",
+    "language": "Langue",
+    "languageChanged": "Langue changée avec succès!"
   },
   "auth": {
     "login": "Connexion",

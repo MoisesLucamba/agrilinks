@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-
+import { LanguageWelcomeBanner } from "@/components/LanguageWelcomeBanner";
 // Pages
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
@@ -257,6 +257,7 @@ useEffect(() => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <LanguageWelcomeBanner />
           <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>

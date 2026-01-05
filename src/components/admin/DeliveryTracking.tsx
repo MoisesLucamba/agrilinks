@@ -39,7 +39,14 @@ import {
   Plus,
   Timer,
   User,
+  Phone,
+  Mail,
+  Eye,
+  Tractor,
+  ShoppingCart,
+  Headphones,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Order {
   id: string;
@@ -69,11 +76,23 @@ interface Product {
   id: string;
   product_type: string;
   farmer_name: string;
+  contact: string;
+  user_id: string;
+  quantity: number;
+  price: number;
+  province_id: string;
+  municipality_id: string;
 }
 
-interface User {
+interface UserInfo {
   id: string;
   full_name: string;
+  email?: string | null;
+  phone?: string | null;
+  user_type?: string | null;
+  avatar_url?: string | null;
+  province_id?: string;
+  municipality_id?: string;
 }
 
 interface DeliveryTrackingProps {
@@ -92,7 +111,7 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
   const [deliveries, setDeliveries] = useState<DeliveryTrack[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string>("");
@@ -100,6 +119,8 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryTrack | null>(null);
   const [newStatus, setNewStatus] = useState("");
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedDeliveryDetails, setSelectedDeliveryDetails] = useState<DeliveryTrack | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -107,8 +128,8 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
       const [deliveriesRes, ordersRes, productsRes, usersRes] = await Promise.all([
         supabase.from("delivery_tracking").select("*").order("assigned_at", { ascending: false }),
         supabase.from("orders").select("*").order("created_at", { ascending: false }),
-        supabase.from("products").select("id, product_type, farmer_name"),
-        supabase.from("users").select("id, full_name"),
+        supabase.from("products").select("id, product_type, farmer_name, contact, user_id, quantity, price, province_id, municipality_id"),
+        supabase.from("users").select("id, full_name, email, phone, user_type, avatar_url, province_id, municipality_id"),
       ]);
 
       if (deliveriesRes.data) setDeliveries(deliveriesRes.data);
@@ -211,7 +232,7 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
 
   const getOrderInfo = (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
-    if (!order) return { product: "-", buyer: "-", location: "-" };
+    if (!order) return { product: "-", buyer: "-", location: "-", quantity: 0, totalPrice: 0 };
 
     const product = products.find((p) => p.id === order.product_id);
     const buyer = users.find((u) => u.id === order.user_id);
@@ -220,12 +241,31 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
       product: product?.product_type || "-",
       buyer: buyer?.full_name || "-",
       location: order.location,
+      quantity: order.quantity,
+      totalPrice: order.total_price,
     };
   };
 
   const getAssistantName = (assistantId: string) => {
     const assistant = users.find((u) => u.id === assistantId);
     return assistant?.full_name || "Assistente";
+  };
+
+  // Get full details for a delivery
+  const getDeliveryFullDetails = (delivery: DeliveryTrack) => {
+    const order = orders.find((o) => o.id === delivery.order_id);
+    const product = order ? products.find((p) => p.id === order.product_id) : null;
+    const buyer = order ? users.find((u) => u.id === order.user_id) : null;
+    const farmer = product ? users.find((u) => u.id === product.user_id) : null;
+    const assistant = users.find((u) => u.id === delivery.assistant_id);
+
+    return {
+      order,
+      product,
+      buyer,
+      farmer,
+      assistant,
+    };
   };
 
   // Filter orders that don't have active deliveries
@@ -391,19 +431,32 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
                           {new Date(delivery.assigned_at).toLocaleDateString("pt-BR")}
                         </TableCell>
                         <TableCell>
-                          {delivery.status !== "delivered" && delivery.status !== "cancelled" && (
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => {
-                                setSelectedDelivery(delivery);
-                                setNewStatus(delivery.status);
-                                setUpdateDialogOpen(true);
+                                setSelectedDeliveryDetails(delivery);
+                                setDetailsDialogOpen(true);
                               }}
+                              title="Ver detalhes"
                             >
-                              Atualizar
+                              <Eye className="h-4 w-4" />
                             </Button>
-                          )}
+                            {delivery.status !== "delivered" && delivery.status !== "cancelled" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedDelivery(delivery);
+                                  setNewStatus(delivery.status);
+                                  setUpdateDialogOpen(true);
+                                }}
+                              >
+                                Atualizar
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -512,6 +565,244 @@ const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({ currentUserId }) =>
             <Button onClick={updateDeliveryStatus} disabled={!newStatus}>
               Salvar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delivery Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" /> Detalhes da Entrega
+            </DialogTitle>
+            <DialogDescription>
+              Informações completas dos participantes da entrega
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedDeliveryDetails && (() => {
+            const details = getDeliveryFullDetails(selectedDeliveryDetails);
+            return (
+              <div className="space-y-6">
+                {/* Status and Order Info */}
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Produto</p>
+                    <p className="font-semibold text-lg">{details.product?.product_type || "-"}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {details.order?.quantity}kg • Kz {details.order?.total_price?.toLocaleString()}
+                    </p>
+                  </div>
+                  {getStatusBadge(selectedDeliveryDetails.status)}
+                </div>
+
+                {/* Delivery Location */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <h4 className="font-semibold">Local de Entrega</h4>
+                  </div>
+                  <p className="text-muted-foreground">{details.order?.location || "-"}</p>
+                </div>
+
+                {/* Participants Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Assistant Card */}
+                  <Card className="border-2 border-blue-200 bg-blue-50/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2 text-blue-700">
+                        <Headphones className="h-4 w-4" /> Assistente
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={details.assistant?.avatar_url || ""} />
+                          <AvatarFallback className="bg-blue-200 text-blue-700">
+                            {details.assistant?.full_name?.charAt(0) || "A"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{details.assistant?.full_name || "-"}</p>
+                          <Badge variant="secondary" className="text-xs">{details.assistant?.user_type || "Assistente"}</Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {details.assistant?.phone && (
+                          <a href={`tel:${details.assistant.phone}`} className="flex items-center gap-2 text-blue-600 hover:underline">
+                            <Phone className="h-3 w-3" />
+                            {details.assistant.phone}
+                          </a>
+                        )}
+                        {details.assistant?.email && (
+                          <a href={`mailto:${details.assistant.email}`} className="flex items-center gap-2 text-blue-600 hover:underline">
+                            <Mail className="h-3 w-3" />
+                            {details.assistant.email}
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Farmer Card */}
+                  <Card className="border-2 border-green-200 bg-green-50/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2 text-green-700">
+                        <Tractor className="h-4 w-4" /> Agricultor
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={details.farmer?.avatar_url || ""} />
+                          <AvatarFallback className="bg-green-200 text-green-700">
+                            {details.farmer?.full_name?.charAt(0) || details.product?.farmer_name?.charAt(0) || "F"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{details.farmer?.full_name || details.product?.farmer_name || "-"}</p>
+                          <Badge variant="secondary" className="text-xs">Agricultor</Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {(details.farmer?.phone || details.product?.contact) && (
+                          <a href={`tel:${details.farmer?.phone || details.product?.contact}`} className="flex items-center gap-2 text-green-600 hover:underline">
+                            <Phone className="h-3 w-3" />
+                            {details.farmer?.phone || details.product?.contact}
+                          </a>
+                        )}
+                        {details.farmer?.email && (
+                          <a href={`mailto:${details.farmer.email}`} className="flex items-center gap-2 text-green-600 hover:underline">
+                            <Mail className="h-3 w-3" />
+                            {details.farmer.email}
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Buyer Card */}
+                  <Card className="border-2 border-amber-200 bg-amber-50/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
+                        <ShoppingCart className="h-4 w-4" /> Comprador
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={details.buyer?.avatar_url || ""} />
+                          <AvatarFallback className="bg-amber-200 text-amber-700">
+                            {details.buyer?.full_name?.charAt(0) || "C"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{details.buyer?.full_name || "-"}</p>
+                          <Badge variant="secondary" className="text-xs">{details.buyer?.user_type || "Comprador"}</Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {details.buyer?.phone && (
+                          <a href={`tel:${details.buyer.phone}`} className="flex items-center gap-2 text-amber-600 hover:underline">
+                            <Phone className="h-3 w-3" />
+                            {details.buyer.phone}
+                          </a>
+                        )}
+                        {details.buyer?.email && (
+                          <a href={`mailto:${details.buyer.email}`} className="flex items-center gap-2 text-amber-600 hover:underline">
+                            <Mail className="h-3 w-3" />
+                            {details.buyer.email}
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Timeline */}
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" /> Linha do Tempo
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${selectedDeliveryDetails.assigned_at ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                      <div>
+                        <p className="text-sm font-medium">Atribuído</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedDeliveryDetails.assigned_at 
+                            ? new Date(selectedDeliveryDetails.assigned_at).toLocaleString("pt-BR")
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${selectedDeliveryDetails.pickup_at ? 'bg-amber-500' : 'bg-gray-300'}`} />
+                      <div>
+                        <p className="text-sm font-medium">Coleta</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedDeliveryDetails.pickup_at 
+                            ? new Date(selectedDeliveryDetails.pickup_at).toLocaleString("pt-BR")
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${selectedDeliveryDetails.in_transit_at ? 'bg-purple-500' : 'bg-gray-300'}`} />
+                      <div>
+                        <p className="text-sm font-medium">Em Trânsito</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedDeliveryDetails.in_transit_at 
+                            ? new Date(selectedDeliveryDetails.in_transit_at).toLocaleString("pt-BR")
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${selectedDeliveryDetails.delivered_at ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <div>
+                        <p className="text-sm font-medium">Entregue</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedDeliveryDetails.delivered_at 
+                            ? new Date(selectedDeliveryDetails.delivered_at).toLocaleString("pt-BR")
+                            : "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedDeliveryDetails.total_duration_minutes && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm text-muted-foreground">Tempo total: <span className="font-semibold text-foreground">{formatDuration(selectedDeliveryDetails.total_duration_minutes)}</span></p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                {selectedDeliveryDetails.notes && (
+                  <div className="p-4 border rounded-lg bg-muted/30">
+                    <h4 className="font-semibold mb-2">Notas</h4>
+                    <p className="text-sm text-muted-foreground">{selectedDeliveryDetails.notes}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+              Fechar
+            </Button>
+            {selectedDeliveryDetails && selectedDeliveryDetails.status !== "delivered" && selectedDeliveryDetails.status !== "cancelled" && (
+              <Button onClick={() => {
+                setSelectedDelivery(selectedDeliveryDetails);
+                setNewStatus(selectedDeliveryDetails.status);
+                setDetailsDialogOpen(false);
+                setUpdateDialogOpen(true);
+              }}>
+                Atualizar Status
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

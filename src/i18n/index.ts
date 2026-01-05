@@ -13,11 +13,33 @@ export const countryToLanguage: Record<string, string> = {
   'GB': 'en', // UK - English
 };
 
-// Get saved language or default to Portuguese
+// Supported languages
+const supportedLanguages = ['pt', 'en', 'fr'];
+
+// Detect browser language
+const detectBrowserLanguage = (): string => {
+  try {
+    const browserLang = navigator.language || (navigator as any).userLanguage;
+    const langCode = browserLang?.split('-')[0]?.toLowerCase();
+    
+    if (langCode && supportedLanguages.includes(langCode)) {
+      return langCode;
+    }
+    return 'pt'; // Default to Portuguese
+  } catch {
+    return 'pt';
+  }
+};
+
+// Get saved language or detect from browser
 const getSavedLanguage = () => {
   try {
     const saved = localStorage.getItem('agrilink_language');
-    return saved || 'pt';
+    if (saved && supportedLanguages.includes(saved)) {
+      return saved;
+    }
+    // No saved language, detect from browser
+    return detectBrowserLanguage();
   } catch {
     return 'pt';
   }

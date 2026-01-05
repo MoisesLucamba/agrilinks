@@ -372,6 +372,73 @@ export type Database = {
           },
         ]
       }
+      delivery_tracking: {
+        Row: {
+          assigned_at: string
+          assistant_id: string
+          created_at: string
+          delivered_at: string | null
+          id: string
+          in_transit_at: string | null
+          notes: string | null
+          order_id: string
+          pickup_at: string | null
+          status: string
+          total_duration_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assistant_id: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          in_transit_at?: string | null
+          notes?: string | null
+          order_id: string
+          pickup_at?: string | null
+          status?: string
+          total_duration_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assistant_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          in_transit_at?: string | null
+          notes?: string | null
+          order_id?: string
+          pickup_at?: string | null
+          status?: string
+          total_duration_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_tracking_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_tracking_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_tracking_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_verification_codes: {
         Row: {
           code: string
@@ -1349,6 +1416,51 @@ export type Database = {
           },
         ]
       }
+      work_sessions: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       users_public: {
@@ -1462,6 +1574,14 @@ export type Database = {
           total_referrals: number
         }[]
       }
+      get_work_session_stats: {
+        Args: { p_end_date?: string; p_start_date?: string; p_user_id: string }
+        Returns: {
+          avg_session_minutes: number
+          total_minutes: number
+          total_sessions: number
+        }[]
+      }
       has_admin_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["admin_permission"]
@@ -1478,6 +1598,7 @@ export type Database = {
       }
       is_root_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_root: { Args: { _user_id: string }; Returns: boolean }
+      is_support_agent: { Args: { _user_id: string }; Returns: boolean }
       process_deposit: {
         Args: { p_amount: number; p_description?: string; p_user_id: string }
         Returns: string

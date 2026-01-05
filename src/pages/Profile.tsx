@@ -513,7 +513,7 @@ const Profile = () => {
     <div className="pb-20 bg-background min-h-screen flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
-        <p className="text-muted-foreground text-sm">Carregando perfil...</p>
+        <p className="text-muted-foreground text-sm">{t('profile.loadingProfile')}</p>
       </div>
     </div>
   )
@@ -522,7 +522,7 @@ const Profile = () => {
     <div className="pb-20 bg-background min-h-screen safe-bottom">
       {/* Header */}
       <div className="sticky top-0 z-10 glass border-b border-border/50 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg sm:text-xl font-bold text-primary">Meu Perfil</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-primary">{t('profile.title')}</h1>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted" onClick={() => setSettingsOpen(true)}>
             <Settings className="h-5 w-5" />
@@ -578,19 +578,19 @@ const Profile = () => {
                   {userProfile?.user_type === 'agente' && (
                     <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
                       <p className="text-xs text-muted-foreground mb-1">{t('profile.agentCode')}</p>
-                      <p className="text-lg font-mono font-bold text-primary">{(userProfile as any).agent_code || 'Gerando...'}</p>
+                      <p className="text-lg font-mono font-bold text-primary">{(userProfile as any).agent_code || t('profile.generating')}</p>
                       <p className="text-xs text-muted-foreground mt-1">{t('profile.shareMessage')}</p>
                     </div>
                   )}
                   
-                  <Button onClick={() => setEditMode(true)} className="w-full mt-4" variant="outline"><Edit className="h-4 w-4 mr-2"/>Editar Perfil</Button>
+                  <Button onClick={() => setEditMode(true)} className="w-full mt-4" variant="outline"><Edit className="h-4 w-4 mr-2"/>{t('profile.editProfile')}</Button>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-2"><Label>Nome Completo</Label><Input value={profileData.full_name} onChange={e=>setProfileData(prev=>({...prev, full_name:e.target.value}))}/></div>
-                  <div className="space-y-2"><Label>Telefone</Label><Input value={profileData.phone} onChange={e=>setProfileData(prev=>({...prev, phone:e.target.value}))}/></div>
-                  <div className="space-y-2"><Label>Email</Label><Input type="email" value={profileData.email} onChange={e=>setProfileData(prev=>({...prev, email:e.target.value}))}/></div>
-                  <div className="flex gap-2"><Button onClick={updateProfile} className="flex-1">Salvar</Button><Button variant="outline" onClick={()=>setEditMode(false)} className="flex-1">Cancelar</Button></div>
+                  <div className="space-y-2"><Label>{t('profile.fullName')}</Label><Input value={profileData.full_name} onChange={e=>setProfileData(prev=>({...prev, full_name:e.target.value}))}/></div>
+                  <div className="space-y-2"><Label>{t('profile.phone')}</Label><Input value={profileData.phone} onChange={e=>setProfileData(prev=>({...prev, phone:e.target.value}))}/></div>
+                  <div className="space-y-2"><Label>{t('profile.email')}</Label><Input type="email" value={profileData.email} onChange={e=>setProfileData(prev=>({...prev, email:e.target.value}))}/></div>
+                  <div className="flex gap-2"><Button onClick={updateProfile} className="flex-1">{t('common.save')}</Button><Button variant="outline" onClick={()=>setEditMode(false)} className="flex-1">{t('common.cancel')}</Button></div>
                 </div>
               )}
             </CardContent>
@@ -599,20 +599,20 @@ const Profile = () => {
           {/* Estatísticas */}
           {userProfile?.user_type === 'agente' ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-primary">{agentStats?.totalReferrals || 0}</div><p className="text-xs text-muted-foreground">Usuários Indicados</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-accent">{agentStats?.totalPoints || 0}</div><p className="text-xs text-muted-foreground">Pontos Ganhos</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-primary">{agentStats?.totalReferrals || 0}</div><p className="text-xs text-muted-foreground">{t('profile.usersReferred')}</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><div className="text-2xl font-bold text-accent">{agentStats?.totalPoints || 0}</div><p className="text-xs text-muted-foreground">{t('profile.pointsEarned')}</p></CardContent></Card>
             </div>
           ) : userProfile?.user_type === 'comprador' ? (
             <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-              <Card className="text-center"><CardContent className="pt-4"><ClipboardList className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{totalFichas}</div><p className="text-xs text-muted-foreground">Fichas Criadas</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><ShoppingCart className="h-6 w-6 mx-auto mb-1 text-green-600"/><div className="text-2xl font-bold text-green-600">{totalComprasConcluidas}</div><p className="text-xs text-muted-foreground">Compras Concluídas</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-yellow-500"/><div className="text-2xl font-bold text-yellow-500">{totalProdutosFavoritos}</div><p className="text-xs text-muted-foreground">Produtos Favoritos</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><ClipboardList className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{totalFichas}</div><p className="text-xs text-muted-foreground">{t('profile.fichasCreated')}</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><ShoppingCart className="h-6 w-6 mx-auto mb-1 text-green-600"/><div className="text-2xl font-bold text-green-600">{totalComprasConcluidas}</div><p className="text-xs text-muted-foreground">{t('profile.purchasesCompleted')}</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-yellow-500"/><div className="text-2xl font-bold text-yellow-500">{totalProdutosFavoritos}</div><p className="text-xs text-muted-foreground">{t('profile.favoriteProducts')}</p></CardContent></Card>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-1 gap-4">
-              <Card className="text-center"><CardContent className="pt-4"><Package className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{activeProducts}</div><p className="text-xs text-muted-foreground">Produtos Ativos</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><Eye className="h-6 w-6 mx-auto mb-1 text-blue-500"/><div className="text-2xl font-bold text-blue-500">{totalComments}</div><p className="text-xs text-muted-foreground">Comentários</p></CardContent></Card>
-              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-red-500"/><div className="text-2xl font-bold text-red-500">{totalLikes}</div><p className="text-xs text-muted-foreground">Likes</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Package className="h-6 w-6 mx-auto mb-1 text-primary"/><div className="text-2xl font-bold text-primary">{activeProducts}</div><p className="text-xs text-muted-foreground">{t('profile.activeProducts')}</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Eye className="h-6 w-6 mx-auto mb-1 text-blue-500"/><div className="text-2xl font-bold text-blue-500">{totalComments}</div><p className="text-xs text-muted-foreground">{t('profile.comments')}</p></CardContent></Card>
+              <Card className="text-center"><CardContent className="pt-4"><Star className="h-6 w-6 mx-auto mb-1 text-red-500"/><div className="text-2xl font-bold text-red-500">{totalLikes}</div><p className="text-xs text-muted-foreground">{t('profile.likes')}</p></CardContent></Card>
             </div>
           )}
         </div>
@@ -621,7 +621,7 @@ const Profile = () => {
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="products" className="w-full">
             <TabsList className={`grid w-full ${userProfile?.user_type === 'agente' ? 'grid-cols-4' : userProfile?.user_type === 'comprador' ? 'grid-cols-3' : 'grid-cols-3'}`}>
-              <TabsTrigger value="products" className="flex items-center justify-center gap-1" title={userProfile?.user_type==='comprador'?'Minhas Fichas':'Meus Produtos'}>
+              <TabsTrigger value="products" className="flex items-center justify-center gap-1" title={userProfile?.user_type==='comprador'? t('profile.myFichas') : t('profile.myProducts')}>
                 {userProfile?.user_type==='comprador' ? <ClipboardList className="h-5 w-5" /> : <Package className="h-5 w-5" />}
               </TabsTrigger>
               {userProfile?.user_type === 'comprador' && (
@@ -630,15 +630,15 @@ const Profile = () => {
                 </TabsTrigger>
               )}
               {(userProfile?.user_type === 'agricultor' || userProfile?.user_type === 'agente') && (
-                <TabsTrigger value="orders" className="flex items-center justify-center gap-1 relative" title="Pedidos Recebidos">
+                <TabsTrigger value="orders" className="flex items-center justify-center gap-1 relative" title={t('profile.receivedOrders')}>
                   <ShoppingCart className="h-5 w-5" />
                   {receivedOrders.length > 0 && (
                     <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">{receivedOrders.length}</Badge>
                   )}
                 </TabsTrigger>
               )}
-              {userProfile?.user_type === 'agente' && <TabsTrigger value="referrals" className="flex items-center justify-center" title="Minhas Indicações"><Users className="h-5 w-5" /></TabsTrigger>}
-              <TabsTrigger value="statistics" className="flex items-center justify-center" title="Estatísticas"><BarChart3 className="h-5 w-5" /></TabsTrigger>
+              {userProfile?.user_type === 'agente' && <TabsTrigger value="referrals" className="flex items-center justify-center" title={t('profile.myReferrals')}><Users className="h-5 w-5" /></TabsTrigger>}
+              <TabsTrigger value="statistics" className="flex items-center justify-center" title={t('profile.statistics')}><BarChart3 className="h-5 w-5" /></TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="space-y-4 mt-4">
@@ -650,22 +650,22 @@ const Profile = () => {
                         <div className="flex justify-between items-start">
                           <h3 className="font-bold text-lg text-primary">{ficha.nomeFicha}</h3>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" title="Editar Ficha"><Edit className="h-4 w-4 text-blue-500"/></Button>
-                            <Button variant="ghost" size="icon" title="Notificações"><Bell className="h-4 w-4 text-yellow-500"/></Button>
-                            <Button variant="ghost" size="icon" title="Remover Ficha"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                            <Button variant="ghost" size="icon" title={t('profile.editFicha')}><Edit className="h-4 w-4 text-blue-500"/></Button>
+                            <Button variant="ghost" size="icon" title={t('profile.notifications')}><Bell className="h-4 w-4 text-yellow-500"/></Button>
+                            <Button variant="ghost" size="icon" title={t('profile.removeFicha')}><Trash2 className="h-4 w-4 text-destructive"/></Button>
                           </div>
                         </div>
                         <div className="text-sm space-y-1">
-                          <p className="flex items-center gap-2"><Package className="h-4 w-4 text-muted-foreground"/>Produto: <span className="font-semibold">{ficha.produto}</span></p>
-                          <p className="flex items-center gap-2"><Star className="h-4 w-4 text-muted-foreground"/>Qualidade: <span className="font-semibold">{ficha.qualidade}</span></p>
-                          <p className="flex items-center gap-2"><ClipboardList className="h-4 w-4 text-muted-foreground"/>Embalagem: <span className="font-semibold">{ficha.embalagem}</span></p>
-                          <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/>Locais de Entrega: <span className="font-semibold">{ficha.locaisEntrega?.length || 0}</span></p>
-                          <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground"/>Criado em: <span className="font-semibold">{formatDate(ficha.created_at)}</span></p>
+                          <p className="flex items-center gap-2"><Package className="h-4 w-4 text-muted-foreground"/>{t('profile.product')}: <span className="font-semibold">{ficha.produto}</span></p>
+                          <p className="flex items-center gap-2"><Star className="h-4 w-4 text-muted-foreground"/>{t('profile.quality')}: <span className="font-semibold">{ficha.qualidade}</span></p>
+                          <p className="flex items-center gap-2"><ClipboardList className="h-4 w-4 text-muted-foreground"/>{t('profile.packaging')}: <span className="font-semibold">{ficha.embalagem}</span></p>
+                          <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/>{t('profile.deliveryLocations')}: <span className="font-semibold">{ficha.locaisEntrega?.length || 0}</span></p>
+                          <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground"/>{t('profile.createdAt')}: <span className="font-semibold">{formatDate(ficha.created_at)}</span></p>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
-                  {fichasRecebimento.length===0 && <p className="text-center text-muted-foreground py-8">Nenhuma ficha de recebimento criada.</p>}
+                  {fichasRecebimento.length===0 && <p className="text-center text-muted-foreground py-8">{t('profile.noFichasCreated')}</p>}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -678,22 +678,22 @@ const Profile = () => {
                             <div className="text-sm text-muted-foreground"><span>{product.quantity.toLocaleString()} kg</span> • <span className="font-bold text-green-600">{product.price.toLocaleString()} Kz</span></div>
                           </div>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" title="Editar Produto"><Edit className="h-4 w-4 text-blue-500"/></Button>
-                            <Button variant="ghost" size="icon" title="Ver Estatísticas"><BarChart3 className="h-4 w-4 text-yellow-500"/></Button>
-                            <Button variant="ghost" size="icon" title="Promover/Partilhar"><Share2 className="h-4 w-4 text-primary"/></Button>
-                            {product.status !== 'removed' && <Button variant="ghost" size="icon" onClick={()=>deleteProduct(product.id)} title="Remover Produto"><Trash2 className="h-4 w-4 text-destructive"/></Button>}
+                            <Button variant="ghost" size="icon" title={t('profile.editProduct')}><Edit className="h-4 w-4 text-blue-500"/></Button>
+                            <Button variant="ghost" size="icon" title={t('profile.viewStats')}><BarChart3 className="h-4 w-4 text-yellow-500"/></Button>
+                            <Button variant="ghost" size="icon" title={t('profile.promoteShare')}><Share2 className="h-4 w-4 text-primary"/></Button>
+                            {product.status !== 'removed' && <Button variant="ghost" size="icon" onClick={()=>deleteProduct(product.id)} title={t('profile.removeProduct')}><Trash2 className="h-4 w-4 text-destructive"/></Button>}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-3 w-3"/>Colheita: <span className="font-semibold">{formatDate(product.harvest_date)}</span></div>
-                          <div className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3"/>Local: <span className="font-semibold">{product.municipality_id}</span></div>
-                          <div className="flex items-center gap-1 text-muted-foreground"><Eye className="h-3 w-3"/>Comentários: <span className="font-semibold">{productStats[product.id]?.comments || 0}</span></div>
-                          <div className="flex items-center gap-1 text-muted-foreground"><Star className="h-3 w-3"/>Likes: <span className="font-semibold">{productStats[product.id]?.likes || 0}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Calendar className="h-3 w-3"/>{t('profile.harvest')}: <span className="font-semibold">{formatDate(product.harvest_date)}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3"/>{t('profile.location')}: <span className="font-semibold">{product.municipality_id}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Eye className="h-3 w-3"/>{t('profile.comments')}: <span className="font-semibold">{productStats[product.id]?.comments || 0}</span></div>
+                          <div className="flex items-center gap-1 text-muted-foreground"><Star className="h-3 w-3"/>{t('profile.likes')}: <span className="font-semibold">{productStats[product.id]?.likes || 0}</span></div>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
-                  {userProducts.length===0 && <p className="text-center text-muted-foreground py-8">Nenhum produto publicado ainda.</p>}
+                  {userProducts.length===0 && <p className="text-center text-muted-foreground py-8">{t('profile.noProductsPublished')}</p>}
                 </div>
               )}
             </TabsContent>
@@ -764,9 +764,9 @@ const Profile = () => {
                           <CardContent className="p-4 space-y-3">
                             <div className="flex justify-between items-start">
                               <div className="space-y-1">
-                                <h3 className="font-bold text-lg text-primary">{order.product?.product_type || 'Produto'}</h3>
+                                <h3 className="font-bold text-lg text-primary">{order.product?.product_type || t('profile.product')}</h3>
                                 <Badge variant={order.status === 'pending' ? 'secondary' : order.status === 'accepted' ? 'default' : 'destructive'}>
-                                  {order.status === 'pending' ? 'Pendente' : order.status === 'accepted' ? 'Aceito' : 'Rejeitado'}
+                                  {order.status === 'pending' ? t('profile.pending') : order.status === 'accepted' ? t('profile.accepted') : t('profile.rejected')}
                                 </Badge>
                               </div>
                               <div className="text-right">
@@ -780,19 +780,19 @@ const Profile = () => {
                             <div className="space-y-2 text-sm">
                               <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" />
-                                <span>Comprador: <span className="font-semibold">{order.buyer?.full_name || 'Usuário'}</span></span>
+                                <span>{t('profile.buyer')}: <span className="font-semibold">{order.buyer?.full_name || 'User'}</span></span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Phone className="h-4 w-4 text-muted-foreground" />
-                                <span>{order.buyer?.phone || 'Sem telefone'}</span>
+                                <span>{order.buyer?.phone || t('profile.noPhone')}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <span>Entrega: <span className="font-semibold">{order.location}</span></span>
+                                <span>{t('profile.delivery')}: <span className="font-semibold">{order.location}</span></span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span>Data: <span className="font-semibold">{formatDate(order.created_at)}</span></span>
+                                <span>{t('profile.date')}: <span className="font-semibold">{formatDate(order.created_at)}</span></span>
                               </div>
                             </div>
 
@@ -800,11 +800,11 @@ const Profile = () => {
                               <div className="flex gap-2 pt-2">
                                 <Button size="sm" className="flex-1" variant="default" onClick={() => acceptOrder(order.id)}>
                                   <CheckCircle className="h-4 w-4 mr-1" />
-                                  Aceitar
+                                  {t('profile.accept')}
                                 </Button>
                                 <Button size="sm" className="flex-1" variant="destructive" onClick={() => rejectOrder(order.id)}>
                                   <Trash2 className="h-4 w-4 mr-1" />
-                                  Rejeitar
+                                  {t('profile.reject')}
                                 </Button>
                                 <Button size="sm" variant="outline" onClick={() => contactBuyer(order)}>
                                   <Phone className="h-4 w-4" />
@@ -814,7 +814,7 @@ const Profile = () => {
                               <div className="flex gap-2 pt-2">
                                 <Button size="sm" className="flex-1" variant="outline" onClick={() => contactBuyer(order)}>
                                   <Phone className="h-4 w-4 mr-1" />
-                                  Contactar
+                                  {t('profile.contact')}
                                 </Button>
                               </div>
                             )}
@@ -825,8 +825,8 @@ const Profile = () => {
                   ) : (
                     <div className="text-center py-8">
                       <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                      <p className="text-muted-foreground">Nenhum pedido recebido ainda</p>
-                      <p className="text-sm text-muted-foreground mt-2">Quando alguém fizer um pedido nos seus produtos, aparecerá aqui.</p>
+                      <p className="text-muted-foreground">{t('profile.noOrdersReceived')}</p>
+                      <p className="text-sm text-muted-foreground mt-2">{t('profile.ordersWillAppear')}</p>
                     </div>
                   )}
                 </div>
@@ -840,9 +840,9 @@ const Profile = () => {
                   {agentStats && agentStats.recentReferrals && agentStats.recentReferrals.length > 0 ? (
                     <div className="space-y-4">
                   <div className="flex gap-2">
-                    <Badge variant="secondary" className="cursor-pointer">Todos</Badge>
-                    <Badge variant="outline" className="cursor-pointer">Agricultores</Badge>
-                    <Badge variant="outline" className="cursor-pointer">Compradores</Badge>
+                    <Badge variant="secondary" className="cursor-pointer">{t('profile.all')}</Badge>
+                    <Badge variant="outline" className="cursor-pointer">{t('profile.farmers')}</Badge>
+                    <Badge variant="outline" className="cursor-pointer">{t('profile.buyers')}</Badge>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {agentStats.recentReferrals.map((referral: any, idx: number) => (
@@ -865,8 +865,8 @@ const Profile = () => {
                   ) : (
                     <div className="text-center py-8">
                       <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50"/>
-                      <p className="text-muted-foreground">Você ainda não indicou nenhum usuário</p>
-                      <p className="text-sm text-muted-foreground mt-2">Compartilhe seu código de agente para começar a ganhar pontos!</p>
+                      <p className="text-muted-foreground">{t('profile.noReferralsYet')}</p>
+                      <p className="text-sm text-muted-foreground mt-2">{t('profile.shareToEarnPoints')}</p>
                     </div>
                   )}
                 </div>
@@ -875,26 +875,26 @@ const Profile = () => {
 
             <TabsContent value="statistics" className="space-y-4 mt-4">
               <Card>
-                <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5"/>Resumo de Performance</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5"/>{t('profile.performanceSummary')}</CardTitle></CardHeader>
                 <CardContent>
                    {userProfile?.user_type==='agente' ? (
                     <div className="space-y-2">
-                      <p className="flex justify-between"><span>Total de Indicações:</span><span className="font-bold">{agentStats?.totalReferrals || 0}</span></p>
-                      <p className="flex justify-between"><span>Total de Pontos:</span><span className="font-bold text-primary">{agentStats?.totalPoints || 0}</span></p>
-                      <p className="text-sm text-muted-foreground mt-4">Cada usuário indicado vale 10 pontos!</p>
+                      <p className="flex justify-between"><span>{t('profile.totalReferrals')}:</span><span className="font-bold">{agentStats?.totalReferrals || 0}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.totalPoints')}:</span><span className="font-bold text-primary">{agentStats?.totalPoints || 0}</span></p>
+                      <p className="text-sm text-muted-foreground mt-4">{t('profile.eachUserWorth')}</p>
                     </div>
                   ) : userProfile?.user_type==='comprador' ? (
                     <>
-                      <p className="flex justify-between"><span>Total Fichas Recebimento:</span><span className="font-bold">{totalFichas}</span></p>
-                      <p className="flex justify-between"><span>Compras Concluídas (Simulação):</span><span className="font-bold text-green-600">{totalComprasConcluidas}</span></p>
-                      <p className="flex justify-between"><span>Produtos Favoritos (Simulação):</span><span className="font-bold text-red-500">{totalProdutosFavoritos}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.totalReceipts')}:</span><span className="font-bold">{totalFichas}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.purchasesSimulation')}:</span><span className="font-bold text-green-600">{totalComprasConcluidas}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.favoritesSimulation')}:</span><span className="font-bold text-red-500">{totalProdutosFavoritos}</span></p>
                     </>
                   ) : (
                     <>
-                      <p className="flex justify-between"><span>Total Produtos Publicados:</span><span className="font-bold">{userProducts.length}</span></p>
-                      <p className="flex justify-between"><span>Produtos Ativos:</span><span className="font-bold text-primary">{activeProducts}</span></p>
-                      <p className="flex justify-between"><span>Total Comentários:</span><span className="font-bold text-blue-500">{totalComments}</span></p>
-                      <p className="flex justify-between"><span>Total Likes:</span><span className="font-bold text-red-500">{totalLikes}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.totalProductsPublished')}:</span><span className="font-bold">{userProducts.length}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.activeProducts')}:</span><span className="font-bold text-primary">{activeProducts}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.totalComments')}:</span><span className="font-bold text-blue-500">{totalComments}</span></p>
+                      <p className="flex justify-between"><span>{t('profile.totalLikes')}:</span><span className="font-bold text-red-500">{totalLikes}</span></p>
                     </>
                   )}
                 </CardContent>

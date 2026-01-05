@@ -1541,7 +1541,7 @@ export type Database = {
         | "manage_sourcing"
         | "view_analytics"
         | "manage_admins"
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "support_agent"
       transaction_status:
         | "pending"
         | "blocked"
@@ -1694,7 +1694,7 @@ export const Constants = {
         "view_analytics",
         "manage_admins",
       ],
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "support_agent"],
       transaction_status: [
         "pending",
         "blocked",

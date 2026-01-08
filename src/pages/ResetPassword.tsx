@@ -19,15 +19,34 @@ const ResetPassword = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if we have a valid session from the reset link
+    // Listen for the PASSWORD_RECOVERY event from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked on reset link - they can now update their password
+        console.log('Password recovery mode active')
+      } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+        toast.error('Link de recuperação inválido ou expirado')
+        navigate('/login')
+      }
+    })
+
+    // Check if we already have a session (user may have already clicked the link)
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      // Only redirect if there's no session AND no hash in URL (means no reset token)
+      if (!session && !window.location.hash.includes('access_token')) {
         toast.error('Link de recuperação inválido ou expirado')
         navigate('/login')
       }
     }
-    checkSession()
+    
+    // Small delay to allow Supabase to process the URL hash
+    const timer = setTimeout(checkSession, 500)
+    
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timer)
+    }
   }, [navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {

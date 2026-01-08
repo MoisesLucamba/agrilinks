@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Home, Map, Bell, MessageSquare, User, Plus, FileText, LayoutDashboard } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
 
 const BottomNavigation = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { userProfile, isAdmin, user } = useAuth()
@@ -70,9 +72,9 @@ const BottomNavigation = () => {
     if (!userProfile) return null
     
     if (userProfile.user_type === 'comprador') {
-      return { icon: FileText, label: 'Ficha', path: '/ficharecebimento', badge: 0 }
+      return { icon: FileText, label: t('profile.fichas'), path: '/ficharecebimento', badge: 0 }
     } else {
-      return { icon: Plus, label: 'Publicar', path: '/publicar-produto', badge: 0 }
+      return { icon: Plus, label: t('navigation.publish'), path: '/publicar-produto', badge: 0 }
     }
   }
 
@@ -80,15 +82,15 @@ const BottomNavigation = () => {
 
   // Para admins, mostrar Dashboard em vez de Mapa
   const navItems = [
-    { icon: Home, label: 'Home', path: '/app', badge: 0 },
+    { icon: Home, label: t('navigation.home'), path: '/app', badge: 0 },
     ...(publishAction ? [publishAction] : []),
     // Admins veem Dashboard, outros veem Mapa
     isAdmin 
-      ? { icon: LayoutDashboard, label: 'Dashboard', path: '/admindashboard', badge: 0 }
-      : { icon: Map, label: 'Mapa', path: '/mapa', badge: 0 },
-    { icon: Bell, label: 'Alertas', path: '/notificacoes', badge: unreadNotifications },
-    { icon: MessageSquare, label: 'Chat', path: '/listamensagens', badge: unreadMessages },
-    { icon: User, label: 'Perfil', path: '/perfil', badge: 0 }
+      ? { icon: LayoutDashboard, label: t('navigation.dashboard'), path: '/admindashboard', badge: 0 }
+      : { icon: Map, label: t('navigation.map'), path: '/mapa', badge: 0 },
+    { icon: Bell, label: t('navigation.notifications'), path: '/notificacoes', badge: unreadNotifications },
+    { icon: MessageSquare, label: t('navigation.messages'), path: '/listamensagens', badge: unreadMessages },
+    { icon: User, label: t('navigation.profile'), path: '/perfil', badge: 0 }
   ]
 
   const isActive = (path: string) => location.pathname === path

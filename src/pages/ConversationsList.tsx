@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ const debounce = (func: Function, delay = 300) => {
 // --- Componente Principal ---
 
 const ConversationsList = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -88,8 +90,8 @@ const ConversationsList = () => {
     } catch (error) {
       console.error("Erro ao carregar conversas:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar as conversas",
+        title: t('common.error'),
+        description: t('messages.noMessages'),
         variant: "destructive",
       });
     } finally {
@@ -156,8 +158,8 @@ const ConversationsList = () => {
       } catch (err) {
         console.error("Erro na busca:", err);
         toast({
-          title: "Erro na busca",
-          description: "Não foi possível realizar a busca",
+          title: t('common.error'),
+          description: t('messages.noResults'),
           variant: "destructive"
         });
       }
@@ -202,8 +204,8 @@ const ConversationsList = () => {
     if (searchError) {
       console.error("Erro ao buscar conversa existente:", searchError);
       toast({
-        title: "Erro",
-        description: "Não foi possível verificar conversas existentes.",
+        title: t('common.error'),
+        description: t('messages.noResults'),
         variant: "destructive"
       });
       return;
@@ -241,12 +243,12 @@ const ConversationsList = () => {
     } catch (error) {
       console.error("Erro ao criar nova conversa:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível iniciar uma nova conversa.",
+        title: t('common.error'),
+        description: t('messages.noResults'),
         variant: "destructive"
       });
     }
-  }, [user, navigate, toast]);
+  }, [user, navigate, toast, t]);
 
   // Função para formatar o tempo
   const formatTime = (timestamp: string) => {
@@ -262,9 +264,9 @@ const ConversationsList = () => {
         minute: "2-digit" 
       });
     } else if (days === 1) {
-      return "Ontem";
+      return t('messages.yesterday');
     } else if (days < 7) {
-      return `${days}d atrás`;
+      return `${days}${t('messages.daysAgo')}`;
     } else {
       return date.toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -290,8 +292,8 @@ const ConversationsList = () => {
       if (error) {
         console.error("Erro ao buscar usuários:", error);
         toast({
-          title: "Erro",
-          description: "Não foi possível carregar os usuários",
+          title: t('common.error'),
+          description: t('messages.noUserFound'),
           variant: "destructive"
         });
       } else {
@@ -314,7 +316,7 @@ const ConversationsList = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+        <p className="text-muted-foreground">{t('common.loading')}</p>
       </div>
     );
   }
@@ -324,7 +326,7 @@ const ConversationsList = () => {
       {/* Cabeçalho fixo */}
       <header className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3 z-10 flex-shrink-0 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold">Mensagens</h1>
+          <h1 className="text-2xl font-bold">{t('messages.title')}</h1>
           <Button
             size="icon"
             onClick={openNewConversationDialog}
@@ -336,7 +338,7 @@ const ConversationsList = () => {
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar conversas ou usuários..."
+            placeholder={t('messages.searchConversations')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -348,7 +350,7 @@ const ConversationsList = () => {
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {loading && searchTerm.trim() !== "" && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Buscando...
+            {t('messages.searching')}
           </p>
         )}
 
@@ -356,7 +358,7 @@ const ConversationsList = () => {
         {userResults.length > 0 && searchTerm.trim() !== "" && (
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide px-2">
-              Usuários
+              {t('messages.users')}
             </p>
             <div className="space-y-2">
               {userResults.map((usr) => (
@@ -377,7 +379,7 @@ const ConversationsList = () => {
                         {highlightText(usr.full_name, searchTerm)}
                       </span>
                       <p className="text-xs text-muted-foreground">
-                        Clique para iniciar conversa
+                        {t('messages.clickToStart')}
                       </p>
                     </div>
                   </CardContent>
@@ -392,7 +394,7 @@ const ConversationsList = () => {
           <div>
             {userResults.length > 0 && searchTerm.trim() !== "" && (
               <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide px-2">
-                Conversas
+                {t('messages.conversations')}
               </p>
             )}
             <div className="space-y-2">
@@ -415,7 +417,7 @@ const ConversationsList = () => {
                           {highlightText(conv.title, searchTerm)}
                         </span>
                         <span className="text-xs text-muted-foreground line-clamp-1">
-                          {conv.last_message || "Nenhuma mensagem ainda"}
+                          {conv.last_message || t('messages.noMessageYet')}
                         </span>
                       </div>
                     </div>
@@ -440,9 +442,9 @@ const ConversationsList = () => {
         {!loading && searchTerm.trim() !== "" && userResults.length === 0 && conversationResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">Nenhum resultado encontrado</p>
+            <p className="text-muted-foreground">{t('messages.noResults')}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Tente buscar por outro nome
+              {t('messages.tryAnotherName')}
             </p>
           </div>
         )}
@@ -450,9 +452,9 @@ const ConversationsList = () => {
         {!loading && searchTerm.trim() === "" && conversationResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">Nenhuma conversa ainda</p>
+            <p className="text-muted-foreground">{t('messages.noConversations')}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Comece uma nova conversa com o botão +
+              {t('messages.startWithButton')}
             </p>
           </div>
         )}
@@ -462,13 +464,13 @@ const ConversationsList = () => {
       <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nova Conversa</DialogTitle>
+            <DialogTitle>{t('messages.newConversation')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar usuário..."
+                placeholder={t('messages.searchUser')}
                 value={newConvSearchTerm}
                 onChange={(e) => setNewConvSearchTerm(e.target.value)}
                 className="pl-9"
@@ -477,7 +479,7 @@ const ConversationsList = () => {
             <div className="max-h-[400px] overflow-y-auto space-y-2">
               {filteredUsers.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  {newConvSearchTerm ? "Nenhum usuário encontrado" : "Carregue os usuários clicando no botão '+'"}
+                  {newConvSearchTerm ? t('messages.noUserFound') : t('messages.startWithButton')}
                 </p>
               ) : (
                 filteredUsers.map((usr) => (

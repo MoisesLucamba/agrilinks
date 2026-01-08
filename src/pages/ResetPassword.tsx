@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import { toast } from 'sonner'
 import agrilinkLogo from '@/assets/agrilink-logo.png'
 
 const ResetPassword = () => {
+  const { t } = useTranslation()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -25,7 +27,7 @@ const ResetPassword = () => {
         // User clicked on reset link - they can now update their password
         console.log('Password recovery mode active')
       } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
-        toast.error('Link de recuperação inválido ou expirado')
+        toast.error(t('resetPassword.invalidLink'))
         navigate('/login')
       }
     })
@@ -35,7 +37,7 @@ const ResetPassword = () => {
       const { data: { session } } = await supabase.auth.getSession()
       // Only redirect if there's no session AND no hash in URL (means no reset token)
       if (!session && !window.location.hash.includes('access_token')) {
-        toast.error('Link de recuperação inválido ou expirado')
+        toast.error(t('resetPassword.invalidLink'))
         navigate('/login')
       }
     }
@@ -53,12 +55,12 @@ const ResetPassword = () => {
     e.preventDefault()
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres')
+      toast.error(t('resetPassword.minLengthError'))
       return
     }
 
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem')
+      toast.error(t('resetPassword.passwordsNotMatch'))
       return
     }
 
@@ -71,7 +73,7 @@ const ResetPassword = () => {
       if (error) throw error
 
       setSuccess(true)
-      toast.success('Senha atualizada com sucesso!')
+      toast.success(t('resetPassword.passwordUpdated'))
       
       // Redirect to app after 2 seconds
       setTimeout(() => {
@@ -79,7 +81,7 @@ const ResetPassword = () => {
       }, 2000)
     } catch (error: any) {
       console.error('Error updating password:', error)
-      toast.error('Erro ao atualizar senha: ' + error.message)
+      toast.error(t('resetPassword.errorUpdating') + ': ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -93,9 +95,9 @@ const ResetPassword = () => {
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
               <CheckCircle2 className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-xl font-semibold text-center">Senha Atualizada!</h2>
+            <h2 className="text-xl font-semibold text-center">{t('resetPassword.passwordUpdated')}</h2>
             <p className="text-muted-foreground text-center">
-              Sua senha foi atualizada com sucesso. Redirecionando...
+              {t('resetPassword.passwordUpdatedMessage')}
             </p>
           </CardContent>
         </Card>
@@ -109,17 +111,17 @@ const ResetPassword = () => {
         {/* Logo */}
         <div className="text-center mb-6">
           <img src={agrilinkLogo} alt="AgriLink" className="h-28 mx-auto mb-4" />
-          <p className="text-primary/70">Redefinir Senha</p>
+          <p className="text-primary/70">{t('resetPassword.title')}</p>
         </div>
 
         <Card className="shadow-strong border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <KeyRound className="w-6 h-6 text-primary" />
-              Nova Senha
+              {t('resetPassword.newPassword')}
             </CardTitle>
             <CardDescription className="text-center">
-              Digite sua nova senha abaixo
+              {t('auth.recoverDescription')}
             </CardDescription>
           </CardHeader>
 
@@ -127,13 +129,13 @@ const ResetPassword = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Nova Senha */}
               <div className="space-y-2">
-                <Label htmlFor="password">Nova Senha</Label>
+                <Label htmlFor="password">{t('resetPassword.newPassword')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={t('resetPassword.minCharacters')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -152,13 +154,13 @@ const ResetPassword = () => {
 
               {/* Confirmar Senha */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                <Label htmlFor="confirmPassword">{t('resetPassword.confirmNewPassword')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Repita a senha"
+                    placeholder={t('resetPassword.repeatPassword')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -180,7 +182,7 @@ const ResetPassword = () => {
                 className="w-full bg-primary hover:bg-primary-hover"
                 disabled={loading}
               >
-                {loading ? 'Atualizando...' : 'Atualizar Senha'}
+                {loading ? t('resetPassword.updating') : t('resetPassword.updatePassword')}
               </Button>
             </form>
           </CardContent>

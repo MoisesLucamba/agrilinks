@@ -1507,6 +1507,7 @@ export type Database = {
         }
         Returns: string
       }
+      cleanup_unverified_users: { Args: never; Returns: undefined }
       create_admin_notifications: {
         Args: {
           p_message: string

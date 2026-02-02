@@ -57,7 +57,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import AgrilinkLogo from "@/assets/agrilink-logo.png";
+import OrbisLinkLogo from "@/assets/orbislink-logo.png";
 import AdminManagement from "@/components/admin/AdminManagement";
 import DeliveryTracking from "@/components/admin/DeliveryTracking";
 import WorkSessionTimer from "@/components/admin/WorkSessionTimer";
@@ -467,7 +467,7 @@ const AdminDashboard = () => {
     }
     setAnalyzingMarket(true);
     try {
-      const savedLang = localStorage.getItem('agrilink_language') || 'pt';
+      const savedLang = localStorage.getItem('orbislink_language') || 'pt';
       const { data, error } = await supabase.functions.invoke('market-analysis', {
         body: { products, language: savedLang }
       });
@@ -551,10 +551,10 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={AgrilinkLogo} alt="Agrilink" className="h-9" />
+              <img src={OrbisLinkLogo} alt="OrbisLink" className="h-9" />
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-gray-900">Painel Admin</h1>
-                <p className="text-xs text-gray-500">Gerenciamento AgriLink</p>
+                <h1 className="text-lg font-bold text-foreground">Painel Admin</h1>
+                <p className="text-xs text-muted-foreground">Gerenciamento OrbisLink</p>
               </div>
             </div>
 
@@ -1119,7 +1119,7 @@ const AdminDashboard = () => {
           <Card className="border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" /> AgriLink Sourcing - Pedidos Especiais ({sourcingRequests.length})
+                <TrendingUp className="h-5 w-5 text-primary" /> OrbisLink Sourcing - Pedidos Especiais ({sourcingRequests.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto">

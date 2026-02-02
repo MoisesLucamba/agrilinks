@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff, Info } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/integrations/supabase/client'
-import agrilinkLogo from '@/assets/agrilink-logo.png'
+import orbisLinkLogo from '@/assets/orbislink-logo.png'
 import { OtpVerificationModal } from '@/components/OtpVerificationModal'
 import { toast } from '@/hooks/use-toast'
 
@@ -179,7 +179,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md space-y-6 animate-fade-in">
         {/* Logo e mensagem */}
         <div className="text-center mb-6">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-24 sm:h-28 mx-auto mb-4 drop-shadow-lg" />
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-24 sm:h-28 mx-auto mb-4 drop-shadow-lg" />
           <p className="text-muted-foreground text-base sm:text-lg">Conecta-te ao Mercado</p>
         </div>
 
@@ -302,12 +302,12 @@ const LoginPage = () => {
             to="/termos-publicidade"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            Termos de Publicidade AgriLink
+            Termos de Publicidade OrbisLink
           </Link>
 
           <footer className="pt-4 border-t border-border/50">
             <p className="text-xs text-muted-foreground">
-              © <span className="font-semibold text-primary">AgriLink Lda</span> 2025 — Todos os direitos reservados.
+              © <span className="font-semibold text-primary">OrbisLink Lda</span> 2025 — Todos os direitos reservados.
             </p>
           </footer>
         </div>

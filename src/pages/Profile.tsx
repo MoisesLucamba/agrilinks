@@ -924,7 +924,7 @@ const Profile = () => {
                 value={i18n.language}
                 onValueChange={(value) => {
                   i18n.changeLanguage(value)
-                  localStorage.setItem('agrilink_language', value)
+                  localStorage.setItem('orbislink_language', value)
                   toast({ title: t('common.success'), description: t('common.languageChanged') || 'Idioma alterado com sucesso!' })
                 }}
               >

@@ -11,7 +11,7 @@ import { User, CreditCard, Mail, Lock, Eye, EyeOff, Users, UserPlus } from "luci
 import { getProvincesForCountry, getProvinceLabel, getMunicipalityLabel } from "@/data/country-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import agrilinkLogo from "@/assets/agrilink-logo.png";
+import orbisLinkLogo from "@/assets/orbislink-logo.png";
 import { toast } from "@/hooks/use-toast";
 import { CountryPhoneInput, countries, Country } from "@/components/CountryPhoneInput";
 import { changeLanguage, getSavedCountry } from "@/i18n";
@@ -156,7 +156,7 @@ const Registration = () => {
 
 
         <div className="text-center mb-6 sm:mb-8">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-12 sm:h-16 mx-auto mb-2 drop-shadow-glow" />
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-12 sm:h-16 mx-auto mb-2 drop-shadow-glow" />
           <h1 className="text-2xl sm:text-3xl font-bold text-primary">{t('registration.title')}</h1>
           <p className="text-muted-foreground text-sm sm:text-base">{t('registration.subtitle')}</p>
         </div>

@@ -91,7 +91,7 @@ const ProductCatalog = () => {
             Catálogo de Produtos
           </h2>
           <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-            Produtos agrícolas disponíveis na plataforma AgriLink.
+            Produtos agrícolas disponíveis na plataforma OrbisLink.
           </p>
         </div>
 
@@ -194,7 +194,7 @@ const ProductCatalog = () => {
                 Quer vender seus produtos?
               </h3>
               <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-                Cadastre-se como agricultor e comece a vender na plataforma AgriLink.
+                Cadastre-se como agricultor e comece a vender na plataforma OrbisLink.
               </p>
               <Button 
                 variant="business" 

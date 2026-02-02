@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import agrilinkLogo from '@/assets/agrilink-logo.png'
+import orbisLinkLogo from '@/assets/orbislink-logo.png'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -534,7 +534,7 @@ const MapView = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <img src={agrilinkLogo} alt="AgriLink" className="h-10" />
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-10" />
           <h1 className="text-xl font-bold">Mapa de Produtos</h1>
         </div>
         <Button

@@ -15,7 +15,7 @@ export const LanguageWelcomeBanner = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('agrilink_welcome_seen');
+    const hasSeenWelcome = localStorage.getItem('orbislink_welcome_seen');
     if (!hasSeenWelcome) {
       setShowBanner(true);
     }
@@ -23,8 +23,8 @@ export const LanguageWelcomeBanner = () => {
 
   const handleConfirm = () => {
     i18n.changeLanguage(selectedLanguage);
-    localStorage.setItem('agrilink_language', selectedLanguage);
-    localStorage.setItem('agrilink_welcome_seen', 'true');
+    localStorage.setItem('orbislink_language', selectedLanguage);
+    localStorage.setItem('orbislink_welcome_seen', 'true');
     setShowBanner(false);
   };
 
@@ -40,7 +40,7 @@ export const LanguageWelcomeBanner = () => {
         </div>
         
         <h2 className="text-xl font-bold text-center text-foreground mb-2">
-          Bem-vindo ao AgriLink! 🌱
+          Bem-vindo ao OrbisLink! 🌱
         </h2>
         <p className="text-center text-muted-foreground mb-6 text-sm">
           Welcome! Choose your preferred language / Choisissez votre langue

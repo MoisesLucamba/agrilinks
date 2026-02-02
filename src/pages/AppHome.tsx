@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { BarChart3, Search, LayoutDashboard, ShoppingCart, Bell, Phone } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import agrilinkLogo from '@/assets/agrilink-logo.png'
+import orbisLinkLogo from '@/assets/orbislink-logo.png'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import mapboxgl from 'mapbox-gl'
@@ -299,8 +299,8 @@ const AppHome = () => {
         <div className="content-container py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
-              src={agrilinkLogo} 
-              alt="AgriLink" 
+              src={orbisLinkLogo} 
+              alt="OrbisLink" 
               className="h-10 sm:h-11 drop-shadow-glow transition-transform hover:scale-105" 
             />
             <button

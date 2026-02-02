@@ -86,7 +86,7 @@ const TechnicalSheet = () => {
     // Header
     doc.setFontSize(24);
     doc.setTextColor(34, 139, 34);
-    doc.text("AgriLink B2B", pageWidth / 2, 20, { align: "center" });
+    doc.text("OrbisLink B2B", pageWidth / 2, 20, { align: "center" });
     
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
@@ -204,7 +204,7 @@ const TechnicalSheet = () => {
           <Card className="print:shadow-none print:border-none">
             <CardHeader className="text-center pb-6">
               <div className="mb-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">AgriLink B2B</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">OrbisLink B2B</h1>
                 <p className="text-muted-foreground">Ficha Técnica do Produto</p>
               </div>
               <Separator />
@@ -322,7 +322,7 @@ const TechnicalSheet = () => {
               <div className="text-center text-sm text-muted-foreground space-y-2">
                 <p>🔹 Esta ficha pode ser impressa ou enviada para compradores B2B</p>
                 <p>
-                  <strong>AgriLink B2B</strong> - Conectando produtores a grandes compradores
+                  <strong>OrbisLink B2B</strong> - Conectando produtores a grandes compradores
                 </p>
                 <p>
                   Data de geração: {new Date().toLocaleDateString("pt-AO")}

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import agrilinkLogo from "@/assets/agrilink-logo.png";
+import orbisLinkLogo from "@/assets/orbislink-logo.png";
 
 const EmailConfirmation = () => {
   const navigate = useNavigate();
@@ -110,8 +110,8 @@ const EmailConfirmation = () => {
     <div className="min-h-screen bg-gradient-to-b from-primary/10 to-background p-4 flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-16 mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary">AgriLink</h1>
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-16 mx-auto mb-2" />
+          <h1 className="text-3xl font-bold text-primary">OrbisLink</h1>
         </div>
 
         <Card className="border-0 shadow-xl rounded-2xl">

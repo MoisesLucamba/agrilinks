@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tractor, BarChart3, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import agrilinkLogo from "@/assets/agrilink-logo.png";
+import orbisLinkLogo from "@/assets/orbislink-logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,8 +14,8 @@ const Login = () => {
         <div className="text-center mb-8 sm:mb-12">
           <div className="relative inline-block mb-4">
             <img 
-              src={agrilinkLogo} 
-              alt="AgriLink" 
+              src={orbisLinkLogo} 
+              alt="OrbisLink" 
               className="h-20 sm:h-24 mx-auto drop-shadow-lg"
             />
             <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-accent animate-pulse-soft" />
@@ -57,13 +57,13 @@ const Login = () => {
             </CardContent>
           </Card>
 
-          {/* Equipa AgriLink Card */}
+          {/* Equipa OrbisLink Card */}
           <Card className="group bg-card border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-business/10 to-business/5 rounded-2xl w-fit group-hover:scale-105 transition-transform duration-300">
                 <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-business" />
               </div>
-              <CardTitle className="text-xl sm:text-2xl font-bold">Equipa AgriLink</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold">Equipa OrbisLink</CardTitle>
               <CardDescription className="text-sm sm:text-base">
                 Acesse o dashboard administrativo e gerencie os produtos publicados
               </CardDescription>
@@ -84,10 +84,10 @@ const Login = () => {
         {/* Footer */}
         <div className="text-center mt-8 sm:mt-12 space-y-4">
           <p className="text-sm text-muted-foreground">
-            MVP AgriLink B2B — Wireframe desenvolvido no Lovable
+            MVP OrbisLink B2B — Wireframe desenvolvido no Lovable
           </p>
           <p className="text-xs text-muted-foreground/70">
-            © <span className="font-semibold text-primary">AgriLink Lda</span> 2025
+            © <span className="font-semibold text-primary">OrbisLink Lda</span> 2025
           </p>
         </div>
       </div>

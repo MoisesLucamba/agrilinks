@@ -356,7 +356,7 @@ const MarketData = () => {
         {marketData && marketData.stats.length > 0 && (
           <div className="p-4 bg-muted/30 rounded-lg border border-border">
             <p className="text-xs text-muted-foreground text-center">
-              * Os dados apresentados são baseados em produtos ativos na plataforma AgriLink. 
+              * Os dados apresentados são baseados em produtos ativos na plataforma OrbisLink. 
               Última atualização: {new Date(marketData.generatedAt).toLocaleString("pt-AO")}
             </p>
           </div>

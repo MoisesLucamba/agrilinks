@@ -173,7 +173,7 @@ const UserProfile = () => {
 
   const getUserTypeLabel = (type: string | null) => {
     switch (type) {
-      case 'agricultor': return 'Agricultor';
+      case 'agricultor': return 'Fornecedor';
       case 'comprador': return 'Comprador';
       case 'agente': return 'Agente';
       default: return 'Usuário';
@@ -182,7 +182,7 @@ const UserProfile = () => {
 
   const getUserTypeColor = (type: string | null) => {
     switch (type) {
-      case 'agricultor': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'agricultor': return 'bg-accent/10 text-accent border-accent/20';
       case 'comprador': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
       case 'agente': return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
       default: return 'bg-muted text-muted-foreground';

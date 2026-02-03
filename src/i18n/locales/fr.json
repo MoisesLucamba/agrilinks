@@ -57,9 +57,9 @@
     "loginTitle": "Connexion à la plateforme",
     "loginDescription": "Connectez-vous pour accéder à votre compte",
     "noAccount": "Vous n'avez pas de compte? Inscrivez-vous comme:",
-    "farmerAgentBuyer": "Agriculteur, Agent ou Acheteur",
+    "farmerAgentBuyer": "Fournisseur, Agent ou Acheteur",
     "viewSite": "Voir le site institutionnel",
-    "termsLink": "Conditions publicitaires AgriLink",
+    "termsLink": "Conditions publicitaires OrbisLink",
     "recoverPassword": "Récupérer le mot de passe",
     "recoverDescription": "Entrez votre email pour recevoir un lien de récupération",
     "sendLink": "Envoyer le lien",
@@ -69,7 +69,7 @@
     "understood": "Compris"
   },
   "registration": {
-    "title": "Inscription AgriLink",
+    "title": "Inscription OrbisLink",
     "subtitle": "Créez votre compte sur la plateforme",
     "infoTitle": "Informations d'inscription",
     "userType": "Type d'utilisateur",
@@ -98,7 +98,7 @@
     "alreadyHaveAccount": "Vous avez déjà un compte?",
     "loginHere": "Connectez-vous ici",
     "accountCreated": "Compte créé avec succès!",
-    "welcomeMessage": "Bienvenue sur AgriLink!"
+    "welcomeMessage": "Bienvenue sur OrbisLink!"
   },
   "profile": {
     "title": "Mon Profil",
@@ -116,14 +116,14 @@
     "copyCode": "Copier le Code",
     "codeShared": "Code partagé!",
     "codeCopied": "Code copié!",
-    "shareMessage": "Inscrivez-vous sur AgriLink avec mon code agent",
+    "shareMessage": "Inscrivez-vous sur OrbisLink avec mon code agent",
     "totalReferrals": "Total des Références",
     "totalPoints": "Total des Points",
     "activeProducts": "Produits Actifs",
     "totalViews": "Total des Vues",
     "totalInterests": "Total des Intérêts",
     "sourcing": "Commandes Spéciales",
-    "sourcingDescription": "Demandez des produits spécifiques et AgriLink négociera pour vous",
+    "sourcingDescription": "Demandez des produits spécifiques et OrbisLink négociera pour vous",
     "loadingProfile": "Chargement du profil...",
     "fullName": "Nom Complet",
     "phone": "Téléphone",
@@ -212,7 +212,7 @@
     "transactions": "Transactions",
     "notifications": "Notifications",
     "fichas": "Fiches",
-    "sourcing": "AgriLink Sourcing",
+    "sourcing": "OrbisLink Sourcing",
     "sourcingRequests": "Demandes de Sourcing",
     "noSourcingRequests": "Aucune demande de sourcing",
     "updateStatus": "Mettre à Jour le Statut",
@@ -461,8 +461,8 @@
     "settings": "Paramètres"
   },
   "home": {
-    "welcome": "Bienvenue sur AgriLink",
-    "subtitle": "Connecter agriculteurs et acheteurs",
+    "welcome": "Bienvenue sur OrbisLink",
+    "subtitle": "Connecter fournisseurs et acheteurs",
     "featuredProducts": "Produits en Vedette",
     "recentProducts": "Produits Récents",
     "viewAll": "Voir Tout",
@@ -511,6 +511,6 @@
     "transactions": "Transactions"
   },
   "footer": {
-    "copyright": "© AgriLink Lda 2025 — Tous droits réservés."
+    "copyright": "© OrbisLink Lda 2025 — Tous droits réservés."
   }
 }

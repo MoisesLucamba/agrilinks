@@ -1,94 +1,143 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tractor, BarChart3, Sparkles } from "lucide-react";
+import { Tractor, BarChart3, Truck, Building2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import orbisLinkLogo from "@/assets/orbislink-logo.png";
+import supplyChainHero from "@/assets/supply-chain-hero.jpg";
 
 const Login = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-4xl animate-fade-in">
-        {/* Logo & Tagline */}
-        <div className="text-center mb-8 sm:mb-12">
-          <div className="relative inline-block mb-4">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Side - Hero Image */}
+      <div className="relative lg:w-1/2 h-64 lg:h-auto">
+        <img 
+          src={supplyChainHero} 
+          alt="Supply Chain Operations" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-business/90 via-business/70 to-transparent lg:bg-gradient-to-t lg:from-business/80 lg:via-business/40 lg:to-transparent" />
+        
+        {/* Overlay Content */}
+        <div className="absolute inset-0 flex flex-col justify-end p-6 lg:p-12">
+          <div className="text-white max-w-lg">
+            <h2 className="text-2xl lg:text-4xl font-black mb-3 leading-tight">
+              Conectando produção, logística e mercados em escala
+            </h2>
+            <p className="text-sm lg:text-base text-white/90 font-medium">
+              Infraestrutura B2B que organiza cadeias de abastecimento e reduz intermediários.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Login Options */}
+      <div className="flex-1 bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-xl animate-fade-in">
+          {/* Logo & Tagline */}
+          <div className="text-center mb-10">
             <img 
               src={orbisLinkLogo} 
               alt="OrbisLink" 
-              className="h-20 sm:h-24 mx-auto drop-shadow-lg"
+              className="h-16 lg:h-20 mx-auto mb-4"
             />
-            <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-accent animate-pulse-soft" />
+            <p className="text-base lg:text-lg text-muted-foreground font-semibold">
+              Seu elo com os mercados globais
+            </p>
           </div>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
-            Conectando produtores diretamente a grandes compradores
-          </p>
-        </div>
 
-        {/* Cards Grid */}
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Agricultor/Agente Card */}
-          <Card className="group bg-card border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl w-fit group-hover:scale-105 transition-transform duration-300">
-                <Tractor className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+          {/* Cards Grid */}
+          <div className="grid gap-5">
+            {/* Agricultor/Agente Card */}
+            <Card className="group border-2 border-border hover:border-accent rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+              <div className="flex flex-col sm:flex-row">
+                <div className="sm:w-2/5 bg-gradient-to-br from-primary to-primary-hover p-6 flex items-center justify-center">
+                  <div className="flex items-center gap-3">
+                    <Tractor className="h-10 w-10 text-white" />
+                    <Building2 className="h-8 w-8 text-accent" />
+                  </div>
+                </div>
+                <div className="flex-1 p-5">
+                  <CardTitle className="text-xl font-black mb-2 text-foreground">
+                    Produtor / Agente
+                  </CardTitle>
+                  <CardDescription className="text-sm font-medium mb-4">
+                    Publique produtos e conecte-se com grandes compradores
+                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      className="flex-1 h-11 font-bold rounded-xl bg-accent text-accent-foreground hover:bg-accent-hover shadow-soft"
+                      onClick={() => navigate('/cadastro')}
+                    >
+                      Cadastrar
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="flex-1 h-11 font-bold rounded-xl border-2 hover:bg-primary/5"
+                      onClick={() => navigate('/publicar-produto')}
+                    >
+                      Publicar
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <CardTitle className="text-xl sm:text-2xl font-bold">Agricultor/Agente</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                Publique seus produtos agrícolas e conecte-se com grandes compradores
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-3">
-              <Button 
-                size="lg" 
-                className="w-full h-12 text-base font-semibold rounded-xl shadow-soft hover:shadow-medium transition-all"
-                onClick={() => navigate('/cadastro')}
-              >
-                Fazer Cadastro
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="w-full h-12 text-base font-semibold rounded-xl border-2 hover:bg-primary/5 transition-all"
-                onClick={() => navigate('/publicar-produto')}
-              >
-                Publicar Produto
-              </Button>
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* Equipa OrbisLink Card */}
-          <Card className="group bg-card border border-border/50 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-business/10 to-business/5 rounded-2xl w-fit group-hover:scale-105 transition-transform duration-300">
-                <BarChart3 className="h-8 w-8 sm:h-10 sm:w-10 text-business" />
+            {/* Equipa OrbisLink Card */}
+            <Card className="group border-2 border-border hover:border-primary rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+              <div className="flex flex-col sm:flex-row">
+                <div className="sm:w-2/5 bg-gradient-to-br from-business to-business-light p-6 flex items-center justify-center">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="h-10 w-10 text-white" />
+                    <Truck className="h-8 w-8 text-accent" />
+                  </div>
+                </div>
+                <div className="flex-1 p-5">
+                  <CardTitle className="text-xl font-black mb-2 text-foreground">
+                    Equipa OrbisLink
+                  </CardTitle>
+                  <CardDescription className="text-sm font-medium mb-4">
+                    Dashboard administrativo e gestão de operações
+                  </CardDescription>
+                  <Button 
+                    className="w-full h-11 font-bold rounded-xl bg-primary hover:bg-primary-hover shadow-soft"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    Aceder Dashboard
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
-              <CardTitle className="text-xl sm:text-2xl font-bold">Equipa OrbisLink</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                Acesse o dashboard administrativo e gerencie os produtos publicados
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="w-full h-12 text-base font-semibold rounded-xl shadow-soft hover:shadow-medium transition-all"
-                onClick={() => navigate('/dashboard')}
-              >
-                Ver Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </Card>
+          </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 sm:mt-12 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            MVP OrbisLink B2B — Wireframe desenvolvido no Lovable
-          </p>
-          <p className="text-xs text-muted-foreground/70">
-            © <span className="font-semibold text-primary">OrbisLink Lda</span> 2025
-          </p>
+          {/* Features Strip */}
+          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 bg-card rounded-xl border border-border">
+              <div className="text-2xl font-black text-primary">B2B</div>
+              <div className="text-xs font-semibold text-muted-foreground">Exclusivo</div>
+            </div>
+            <div className="p-3 bg-card rounded-xl border border-border">
+              <div className="text-2xl font-black text-accent">24/7</div>
+              <div className="text-xs font-semibold text-muted-foreground">Suporte</div>
+            </div>
+            <div className="p-3 bg-card rounded-xl border border-border">
+              <div className="text-2xl font-black text-primary">100%</div>
+              <div className="text-xs font-semibold text-muted-foreground">Digital</div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-8 space-y-2">
+            <p className="text-xs text-muted-foreground font-semibold">
+              Conectando mercados. Movendo economias.
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              © <span className="font-bold text-primary">OrbisLink Lda</span> 2025
+            </p>
+          </div>
         </div>
       </div>
     </div>

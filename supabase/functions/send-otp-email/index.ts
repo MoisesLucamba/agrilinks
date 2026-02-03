@@ -45,21 +45,21 @@ serve(async (req: Request): Promise<Response> => {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "AgriLink <onboarding@resend.dev>",
+      from: "OrbisLink <onboarding@resend.dev>",
       to: [email],
-      subject: "Código de Verificação - AgriLink",
+      subject: "Código de Verificação - OrbisLink",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #16a34a; margin: 0;">AgriLink</h1>
-            <p style="color: #666; margin: 5px 0;">Conectando produtores e compradores</p>
+            <h1 style="color: #1e56a0; margin: 0;">OrbisLink</h1>
+            <p style="color: #666; margin: 5px 0;">Conectando fornecedores e compradores</p>
           </div>
           
           <div style="background: #f9fafb; border-radius: 12px; padding: 30px; text-align: center;">
             <h2 style="color: #1f2937; margin-bottom: 10px;">Olá, ${full_name}!</h2>
             <p style="color: #6b7280; margin-bottom: 20px;">Use o código abaixo para verificar seu e-mail:</p>
             
-            <div style="background: #16a34a; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 40px; border-radius: 8px; display: inline-block;">
+            <div style="background: #d4a017; color: #0a1628; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px 40px; border-radius: 8px; display: inline-block;">
               ${otpCode}
             </div>
             

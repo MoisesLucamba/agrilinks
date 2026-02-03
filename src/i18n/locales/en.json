@@ -57,9 +57,9 @@
     "loginTitle": "Login to Platform",
     "loginDescription": "Login to access your account",
     "noAccount": "Don't have an account? Register as:",
-    "farmerAgentBuyer": "Farmer, Agent or Buyer",
+    "farmerAgentBuyer": "Supplier, Agent or Buyer",
     "viewSite": "View institutional site",
-    "termsLink": "AgriLink Advertising Terms",
+    "termsLink": "OrbisLink Advertising Terms",
     "recoverPassword": "Recover Password",
     "recoverDescription": "Enter your email to receive a recovery link",
     "sendLink": "Send Link",
@@ -69,12 +69,12 @@
     "understood": "Got it"
   },
   "registration": {
-    "title": "AgriLink Registration",
+    "title": "OrbisLink Registration",
     "subtitle": "Create your account on the platform",
     "infoTitle": "Registration Information",
     "userType": "User Type",
     "selectUserType": "Select user type",
-    "farmer": "Farmer",
+    "farmer": "Supplier",
     "agent": "Agent",
     "buyer": "Buyer",
     "fullName": "Full Name",
@@ -98,7 +98,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "loginHere": "Login here",
     "accountCreated": "Account created successfully!",
-    "welcomeMessage": "Welcome to AgriLink!"
+    "welcomeMessage": "Welcome to OrbisLink!"
   },
   "profile": {
     "title": "My Profile",
@@ -116,14 +116,14 @@
     "copyCode": "Copy Code",
     "codeShared": "Code shared!",
     "codeCopied": "Code copied!",
-    "shareMessage": "Sign up at AgriLink using my agent code",
+    "shareMessage": "Sign up at OrbisLink using my agent code",
     "totalReferrals": "Total Referrals",
     "totalPoints": "Total Points",
     "activeProducts": "Active Products",
     "totalViews": "Total Views",
     "totalInterests": "Total Interests",
     "sourcing": "Special Orders",
-    "sourcingDescription": "Request specific products and AgriLink will negotiate for you",
+    "sourcingDescription": "Request specific products and OrbisLink will negotiate for you",
     "loadingProfile": "Loading profile...",
     "fullName": "Full Name",
     "phone": "Phone",
@@ -182,8 +182,8 @@
     "rejected": "Rejected"
   },
   "sourcing": {
-    "title": "AgriLink Sourcing",
-    "subtitle": "Let AgriLink find the best products for you",
+    "title": "OrbisLink Sourcing",
+    "subtitle": "Let OrbisLink find the best products for you",
     "newRequest": "New Request",
     "productName": "Product Name",
     "productNamePlaceholder": "E.g.: Corn, Beans, Tomatoes...",
@@ -196,7 +196,7 @@
     "myRequests": "My Requests",
     "noRequests": "You don't have any sourcing requests yet",
     "requestSent": "Request sent successfully!",
-    "requestSentMessage": "The AgriLink team will contact you soon.",
+    "requestSentMessage": "The OrbisLink team will contact you soon.",
     "status": {
       "pending": "Pending",
       "processing": "Processing",
@@ -212,7 +212,7 @@
     "transactions": "Transactions",
     "notifications": "Notifications",
     "fichas": "Cards",
-    "sourcing": "AgriLink Sourcing",
+    "sourcing": "OrbisLink Sourcing",
     "sourcingRequests": "Sourcing Requests",
     "noSourcingRequests": "No sourcing requests",
     "updateStatus": "Update Status",
@@ -461,8 +461,8 @@
     "settings": "Settings"
   },
   "home": {
-    "welcome": "Welcome to AgriLink",
-    "subtitle": "Connecting farmers and buyers",
+    "welcome": "Welcome to OrbisLink",
+    "subtitle": "Connecting suppliers and buyers",
     "featuredProducts": "Featured Products",
     "recentProducts": "Recent Products",
     "viewAll": "View All",
@@ -486,7 +486,7 @@
     "processingOrder": "Processing Order",
     "waitMoment": "Please wait a moment...",
     "orderSent": "Order Sent!",
-    "orderSentDescription": "Your order has been sent to the farmer"
+    "orderSentDescription": "Your order has been sent to the supplier"
   },
   "map": {
     "title": "Product Map",
@@ -511,6 +511,6 @@
     "transactions": "Transactions"
   },
   "footer": {
-    "copyright": "© AgriLink Lda 2025 — All rights reserved."
+    "copyright": "© OrbisLink Lda 2025 — All rights reserved."
   }
 }

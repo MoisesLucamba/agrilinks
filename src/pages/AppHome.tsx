@@ -293,20 +293,20 @@ const AppHome = () => {
   }
 
   return (
-    <div className="bg-background min-h-screen safe-bottom">
-      {/* HEADER - Refined glass effect */}
-      <header className="sticky top-0 z-30 glass border-b border-border/50">
+    <div className="bg-[#0a1628] min-h-screen safe-bottom">
+      {/* HEADER - Dark blue with accent */}
+      <header className="sticky top-0 z-30 bg-[#0a1628]/95 backdrop-blur-md border-b border-accent/20">
         <div className="content-container py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
               src={orbisLinkLogo} 
               alt="OrbisLink" 
-              className="h-10 sm:h-11 drop-shadow-glow transition-transform hover:scale-105" 
+              className="h-10 sm:h-11 transition-transform hover:scale-105" 
             />
             <button
               onClick={() => navigate('/search')}
               className="flex items-center justify-center p-2.5 rounded-full 
-                         bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary
+                         bg-accent/20 hover:bg-accent/30 text-accent
                          transition-all duration-200"
               aria-label="Pesquisar"
             >
@@ -320,7 +320,7 @@ const AppHome = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/admindashboard')}
-                className="hover:bg-primary/10 hover:text-primary"
+                className="text-accent hover:bg-accent/20"
               >
                 <LayoutDashboard className="h-5 w-5" />
               </Button>
@@ -329,7 +329,7 @@ const AppHome = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/mercado')}
-                className="hover:bg-primary/10 hover:text-primary"
+                className="text-accent hover:bg-accent/20"
               >
                 <BarChart3 className="h-5 w-5" />
               </Button>
@@ -359,11 +359,11 @@ const AppHome = () => {
         
         {products.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-              <Search className="h-8 w-8 text-muted-foreground" />
+            <div className="w-16 h-16 mb-4 rounded-full bg-accent/20 flex items-center justify-center">
+              <Search className="h-8 w-8 text-accent" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum produto encontrado</h3>
-            <p className="text-sm text-muted-foreground">Novos produtos serão exibidos aqui.</p>
+            <h3 className="text-lg font-semibold text-white mb-1">Nenhum produto encontrado</h3>
+            <p className="text-sm text-white/60">Novos produtos serão exibidos aqui.</p>
           </div>
         )}
       </main>

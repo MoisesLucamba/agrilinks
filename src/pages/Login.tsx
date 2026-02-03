@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tractor, BarChart3, Truck, Building2, ArrowRight } from "lucide-react";
+import { Building2, BarChart3, Truck, ArrowRight, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import orbisLinkLogo from "@/assets/orbislink-logo.png";
 import supplyChainHero from "@/assets/supply-chain-hero.jpg";
@@ -17,7 +17,7 @@ const Login = () => {
           alt="Supply Chain Operations" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-business/90 via-business/70 to-transparent lg:bg-gradient-to-t lg:from-business/80 lg:via-business/40 lg:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/95 via-[#0a1628]/80 to-transparent lg:bg-gradient-to-t lg:from-[#0a1628]/90 lg:via-[#0a1628]/50 lg:to-transparent" />
         
         {/* Overlay Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-6 lg:p-12">
@@ -33,7 +33,7 @@ const Login = () => {
       </div>
 
       {/* Right Side - Login Options */}
-      <div className="flex-1 bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-6 lg:p-12">
+      <div className="flex-1 bg-[#0a1628] flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-xl animate-fade-in">
           {/* Logo & Tagline */}
           <div className="text-center mb-10">
@@ -42,27 +42,27 @@ const Login = () => {
               alt="OrbisLink" 
               className="h-16 lg:h-20 mx-auto mb-4"
             />
-            <p className="text-base lg:text-lg text-muted-foreground font-semibold">
+            <p className="text-base lg:text-lg text-white/70 font-semibold">
               Seu elo com os mercados globais
             </p>
           </div>
 
           {/* Cards Grid */}
           <div className="grid gap-5">
-            {/* Agricultor/Agente Card */}
-            <Card className="group border-2 border-border hover:border-accent rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            {/* Fornecedor/Agente Card */}
+            <Card className="group border-2 border-white/10 hover:border-accent bg-white/5 backdrop-blur-sm rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
               <div className="flex flex-col sm:flex-row">
-                <div className="sm:w-2/5 bg-gradient-to-br from-primary to-primary-hover p-6 flex items-center justify-center">
+                <div className="sm:w-2/5 bg-gradient-to-br from-accent to-accent-hover p-6 flex items-center justify-center">
                   <div className="flex items-center gap-3">
-                    <Tractor className="h-10 w-10 text-white" />
-                    <Building2 className="h-8 w-8 text-accent" />
+                    <Package className="h-10 w-10 text-accent-foreground" />
+                    <Building2 className="h-8 w-8 text-accent-foreground/80" />
                   </div>
                 </div>
                 <div className="flex-1 p-5">
-                  <CardTitle className="text-xl font-black mb-2 text-foreground">
-                    Produtor / Agente
+                  <CardTitle className="text-xl font-black mb-2 text-white">
+                    Fornecedor / Agente
                   </CardTitle>
-                  <CardDescription className="text-sm font-medium mb-4">
+                  <CardDescription className="text-sm font-medium text-white/60 mb-4">
                     Publique produtos e conecte-se com grandes compradores
                   </CardDescription>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -75,7 +75,7 @@ const Login = () => {
                     </Button>
                     <Button 
                       variant="outline"
-                      className="flex-1 h-11 font-bold rounded-xl border-2 hover:bg-primary/5"
+                      className="flex-1 h-11 font-bold rounded-xl border-2 border-white/20 text-white hover:bg-white/10"
                       onClick={() => navigate('/publicar-produto')}
                     >
                       Publicar
@@ -86,19 +86,19 @@ const Login = () => {
             </Card>
 
             {/* Equipa OrbisLink Card */}
-            <Card className="group border-2 border-border hover:border-primary rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <Card className="group border-2 border-white/10 hover:border-primary bg-white/5 backdrop-blur-sm rounded-2xl shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 overflow-hidden">
               <div className="flex flex-col sm:flex-row">
-                <div className="sm:w-2/5 bg-gradient-to-br from-business to-business-light p-6 flex items-center justify-center">
+                <div className="sm:w-2/5 bg-gradient-to-br from-primary to-primary-light p-6 flex items-center justify-center">
                   <div className="flex items-center gap-3">
                     <BarChart3 className="h-10 w-10 text-white" />
                     <Truck className="h-8 w-8 text-accent" />
                   </div>
                 </div>
                 <div className="flex-1 p-5">
-                  <CardTitle className="text-xl font-black mb-2 text-foreground">
+                  <CardTitle className="text-xl font-black mb-2 text-white">
                     Equipa OrbisLink
                   </CardTitle>
-                  <CardDescription className="text-sm font-medium mb-4">
+                  <CardDescription className="text-sm font-medium text-white/60 mb-4">
                     Dashboard administrativo e gestão de operações
                   </CardDescription>
                   <Button 
@@ -115,27 +115,27 @@ const Login = () => {
 
           {/* Features Strip */}
           <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-            <div className="p-3 bg-card rounded-xl border border-border">
-              <div className="text-2xl font-black text-primary">B2B</div>
-              <div className="text-xs font-semibold text-muted-foreground">Exclusivo</div>
+            <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+              <div className="text-2xl font-black text-accent">B2B</div>
+              <div className="text-xs font-semibold text-white/50">Exclusivo</div>
             </div>
-            <div className="p-3 bg-card rounded-xl border border-border">
+            <div className="p-3 bg-white/5 rounded-xl border border-white/10">
               <div className="text-2xl font-black text-accent">24/7</div>
-              <div className="text-xs font-semibold text-muted-foreground">Suporte</div>
+              <div className="text-xs font-semibold text-white/50">Suporte</div>
             </div>
-            <div className="p-3 bg-card rounded-xl border border-border">
-              <div className="text-2xl font-black text-primary">100%</div>
-              <div className="text-xs font-semibold text-muted-foreground">Digital</div>
+            <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+              <div className="text-2xl font-black text-accent">100%</div>
+              <div className="text-xs font-semibold text-white/50">Digital</div>
             </div>
           </div>
 
           {/* Footer */}
           <div className="text-center mt-8 space-y-2">
-            <p className="text-xs text-muted-foreground font-semibold">
+            <p className="text-xs text-white/50 font-semibold">
               Conectando mercados. Movendo economias.
             </p>
-            <p className="text-xs text-muted-foreground/70">
-              © <span className="font-bold text-primary">OrbisLink Lda</span> 2025
+            <p className="text-xs text-white/40">
+              © <span className="font-bold text-accent">OrbisLink Lda</span> 2025
             </p>
           </div>
         </div>

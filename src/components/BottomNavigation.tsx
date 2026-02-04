@@ -97,7 +97,7 @@ const BottomNavigation = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-[#B8860B] border-t border-[#996B00] shadow-lg"
       style={{ paddingBottom: 'var(--safe-area-inset-bottom, 0px)' }}
     >
       <div className="grid grid-cols-6 gap-0.5 px-1 py-1.5 max-w-lg mx-auto">
@@ -113,20 +113,20 @@ const BottomNavigation = () => {
                 relative flex flex-col items-center gap-0.5 h-auto py-2 px-1 rounded-xl
                 transition-all duration-200
                 ${active 
-                  ? 'text-primary bg-primary/10' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'text-white bg-white/20' 
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
                 }
               `}
             >
               <div className="relative">
-                <item.icon className={`h-5 w-5 transition-transform ${active ? 'scale-110' : ''}`} />
+                <item.icon className={`h-6 w-6 transition-transform stroke-[2.5] ${active ? 'scale-110' : ''}`} />
                 {item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full px-1 animate-pulse-soft">
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-white text-[#B8860B] text-[9px] font-bold rounded-full px-1 animate-pulse-soft">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
+              <span className={`text-[10px] leading-tight ${active ? 'font-bold' : 'font-semibold'}`}>
                 {item.label}
               </span>
             </Button>

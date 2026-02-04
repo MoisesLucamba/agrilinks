@@ -293,9 +293,9 @@ const AppHome = () => {
   }
 
   return (
-    <div className="bg-[#0a1628] min-h-screen safe-bottom">
+    <div className="bg-white min-h-screen safe-bottom">
       {/* HEADER - Dark blue with accent */}
-      <header className="sticky top-0 z-30 bg-[#0a1628]/95 backdrop-blur-md border-b border-accent/20">
+      <header className="sticky top-0 z-30 bg-[#0a1628] border-b border-accent/20">
         <div className="content-container py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
@@ -338,7 +338,7 @@ const AppHome = () => {
         </div>
       </header>
 
-      {/* FEED - Improved responsive grid */}
+      {/* FEED - White background */}
       <main className="content-container py-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {products.map((product, index) => (
@@ -359,11 +359,11 @@ const AppHome = () => {
         
         {products.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-accent/20 flex items-center justify-center">
-              <Search className="h-8 w-8 text-accent" />
+            <div className="w-16 h-16 mb-4 rounded-full bg-[#B8860B]/20 flex items-center justify-center">
+              <Search className="h-8 w-8 text-[#B8860B]" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-1">Nenhum produto encontrado</h3>
-            <p className="text-sm text-white/60">Novos produtos serão exibidos aqui.</p>
+            <h3 className="text-lg font-semibold text-[#0a1628] mb-1">Nenhum produto encontrado</h3>
+            <p className="text-sm text-muted-foreground">Novos produtos serão exibidos aqui.</p>
           </div>
         )}
       </main>

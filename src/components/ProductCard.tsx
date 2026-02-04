@@ -275,36 +275,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <>
-      <Card className="overflow-hidden bg-card border border-border rounded-2xl shadow-soft hover:shadow-medium transition-all duration-300 group">
-        {/* Header */}
-        <div className="p-3.5 flex items-center gap-3 border-b border-border/50">
+      <Card className="overflow-hidden bg-white border-2 border-[#0a1628]/10 rounded-2xl shadow-md hover:shadow-lg hover:border-[#B8860B]/30 transition-all duration-300 group">
+        {/* Header - Dark Blue */}
+        <div className="p-3.5 flex items-center gap-3 bg-[#0a1628] text-white">
           <Avatar 
-            className="h-10 w-10 ring-2 ring-border cursor-pointer hover:ring-primary/50 transition-all"
+            className="h-10 w-10 ring-2 ring-[#B8860B] cursor-pointer hover:ring-[#B8860B]/70 transition-all"
             onClick={() => navigate(`/perfil/${product.user_id}`)}
           >
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+            <AvatarFallback className="bg-[#B8860B] text-white font-bold text-sm">
               {product.farmer_name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <h3 
-                className="font-semibold text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                className="font-bold text-sm truncate cursor-pointer hover:text-[#B8860B] transition-colors text-white"
                 onClick={() => navigate(`/perfil/${product.user_id}`)}
               >
                 {product.farmer_name}
               </h3>
               {product.user_verified && (
-                <span title="Perfil verificado pela AgriLink">
-                  <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
+                <span title="Perfil verificado pela OrbisLink">
+                  <BadgeCheck className="h-4 w-4 text-[#B8860B] flex-shrink-0" />
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-white/70 truncate">
               {product.province_id}, {product.municipality_id}
             </p>
           </div>
-          <Badge variant="secondary" className="text-xs shrink-0 font-medium">
+          <Badge className="text-xs shrink-0 font-bold bg-[#B8860B] text-white border-0 hover:bg-[#B8860B]/90">
             {product.product_type}
           </Badge>
         </div>
@@ -331,35 +331,35 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-4 space-y-3 bg-white">
           {/* Price and Info */}
           <div className="flex justify-between items-start gap-3">
             <div className="min-w-0">
-              <h4 className="font-bold text-base leading-tight">{product.product_type}</h4>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <h4 className="font-bold text-base leading-tight text-[#0a1628]">{product.product_type}</h4>
+              <p className="text-sm text-[#0a1628]/60 mt-0.5 font-medium">
                 {product.quantity.toLocaleString()} kg disponíveis
               </p>
             </div>
-            <span className="text-lg font-bold text-primary whitespace-nowrap">
+            <span className="text-lg font-black text-[#B8860B] whitespace-nowrap bg-[#B8860B]/10 px-3 py-1 rounded-lg">
               {formatPrice(product.price)}
             </span>
           </div>
 
           {product.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-sm text-[#0a1628]/70 line-clamp-2 leading-relaxed">
               {product.description}
             </p>
           )}
 
           {/* Date and Location */}
-          <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-3 text-sm text-[#0a1628]/60 flex-wrap font-medium">
             <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" /> {formatDate(product.harvest_date)}
+              <Calendar className="h-4 w-4 text-[#0a1628]" /> {formatDate(product.harvest_date)}
             </span>
             {product.location_lat && product.location_lng && (
               <button
                 onClick={handleOpenMap}
-                className="flex items-center gap-1.5 text-primary hover:underline font-medium transition-colors"
+                className="flex items-center gap-1.5 text-[#B8860B] hover:underline font-bold transition-colors"
               >
                 <MapPin className="h-4 w-4" /> Ver no Mapa
               </button>
@@ -367,7 +367,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <div className="flex items-center justify-between pt-3 border-t border-[#0a1628]/10">
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -375,13 +375,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 onClick={toggleLike}
                 className={`h-9 px-2.5 rounded-xl ${
                   product.is_liked 
-                    ? 'text-destructive hover:text-destructive' 
-                    : 'text-muted-foreground hover:text-destructive'
+                    ? 'text-red-500 hover:text-red-600' 
+                    : 'text-[#0a1628]/50 hover:text-red-500'
                 }`}
               >
                 <Heart className={`h-5 w-5 ${product.is_liked ? 'fill-current' : ''}`} />
                 {product.likes_count ? (
-                  <span className="ml-1 text-sm font-medium">{product.likes_count}</span>
+                  <span className="ml-1 text-sm font-bold">{product.likes_count}</span>
                 ) : null}
               </Button>
 
@@ -389,11 +389,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setCommentVisible(!commentVisible)}
-                className="h-9 px-2.5 rounded-xl text-muted-foreground hover:text-primary"
+                className="h-9 px-2.5 rounded-xl text-[#0a1628]/50 hover:text-[#0a1628]"
               >
                 <MessageCircle className="h-5 w-5" />
                 {product.comments?.length ? (
-                  <span className="ml-1 text-sm font-medium">{product.comments.length}</span>
+                  <span className="ml-1 text-sm font-bold">{product.comments.length}</span>
                 ) : null}
               </Button>
             </div>
@@ -402,7 +402,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Button
                 size="sm"
                 onClick={() => onOpenPreOrder(product)}
-                className="h-9 px-4 rounded-xl shadow-soft"
+                className="h-9 px-4 rounded-xl shadow-md bg-[#0a1628] hover:bg-[#0a1628]/90 text-white font-bold"
               >
                 <ShoppingCart className="h-4 w-4 mr-1.5" />
                 Pré-Compra
@@ -412,16 +412,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Comments Section */}
           {commentVisible && (
-            <div className="pt-3 space-y-3 border-t border-border/50">
+            <div className="pt-3 space-y-3 border-t border-[#0a1628]/10">
               <div className="flex gap-2">
                 <Input
                   placeholder="Escreva um comentário..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   onKeyPress={(e) => { if (e.key === 'Enter') addComment() }}
-                  className="flex-1 h-10 text-sm rounded-xl"
+                  className="flex-1 h-10 text-sm rounded-xl border-[#0a1628]/20 focus:border-[#B8860B] focus:ring-[#B8860B]/20"
                 />
-                <Button size="sm" onClick={addComment} className="h-10 w-10 p-0 rounded-xl">
+                <Button size="sm" onClick={addComment} className="h-10 w-10 p-0 rounded-xl bg-[#B8860B] hover:bg-[#B8860B]/90">
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
@@ -429,7 +429,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               {product.comments?.length ? (
                 <div className="space-y-2.5 max-h-72 overflow-y-auto scrollbar-hide">
                   {product.comments.map(c => (
-                    <div key={c.id} className="bg-muted/50 rounded-xl p-3">
+                    <div key={c.id} className="bg-[#0a1628]/5 rounded-xl p-3 border border-[#0a1628]/10">
                       <div className="flex items-start gap-2">
                         <Avatar className="h-7 w-7">
                           {c.user_avatar ? (

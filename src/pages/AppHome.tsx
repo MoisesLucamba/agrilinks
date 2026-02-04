@@ -294,8 +294,8 @@ const AppHome = () => {
 
   return (
     <div className="bg-white min-h-screen safe-bottom">
-      {/* HEADER - Dark blue with accent */}
-      <header className="sticky top-0 z-30 bg-[#0a1628] border-b border-accent/20">
+      {/* HEADER - White background */}
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
         <div className="content-container py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
@@ -306,7 +306,7 @@ const AppHome = () => {
             <button
               onClick={() => navigate('/search')}
               className="flex items-center justify-center p-2.5 rounded-full 
-                         bg-accent/20 hover:bg-accent/30 text-accent
+                         bg-gray-100 hover:bg-gray-200 text-gray-700
                          transition-all duration-200"
               aria-label="Pesquisar"
             >
@@ -320,7 +320,7 @@ const AppHome = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/admindashboard')}
-                className="text-accent hover:bg-accent/20"
+                className="text-gray-700 hover:bg-gray-100"
               >
                 <LayoutDashboard className="h-5 w-5" />
               </Button>
@@ -329,7 +329,7 @@ const AppHome = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/mercado')}
-                className="text-accent hover:bg-accent/20"
+                className="text-gray-700 hover:bg-gray-100"
               >
                 <BarChart3 className="h-5 w-5" />
               </Button>

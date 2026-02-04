@@ -113,8 +113,8 @@ const BottomNavigation = () => {
                 relative flex flex-col items-center gap-0.5 h-auto py-2 px-1 rounded-xl
                 transition-all duration-200
                 ${active 
-                  ? 'text-white bg-white/20' 
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
+                  ? 'text-black bg-black/10' 
+                  : 'text-black/80 hover:text-black hover:bg-black/10'
                 }
               `}
             >

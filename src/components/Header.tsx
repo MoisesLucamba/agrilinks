@@ -17,7 +17,7 @@ const Header = () => {
   ];
 
   return (
-    <header className="glass border-b border-border/50 sticky top-0 z-50">
+    <header className="bg-[#FFF159] border-b border-[#FFF159] sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <img src={OrbisLinkLogo} alt="OrbisLink Logo" className="h-9 sm:h-10 drop-shadow-sm" />    
@@ -29,7 +29,7 @@ const Header = () => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-foreground/80 hover:text-primary transition-colors duration-300 font-medium text-sm"
+                  className="text-[#2D3277] hover:opacity-70 transition-colors duration-300 font-bold text-sm"
                 >
                   {item.name}
                 </a>
@@ -42,17 +42,17 @@ const Header = () => {
             <Button 
               variant="ghost" 
               size="sm"
-              className="h-9 rounded-lg text-sm"
+              className="h-9 rounded-lg text-sm text-[#2D3277] hover:bg-[#2D3277]/10"
               onClick={() => navigate('/mercado')}
             >
               <TrendingUp className="h-4 w-4" />
               Dados de Mercado
             </Button>
-            <Button variant="outline" size="sm" className="h-9 rounded-lg text-sm">
+            <Button variant="outline" size="sm" className="h-9 rounded-lg text-sm border-[#2D3277] text-[#2D3277] hover:bg-[#2D3277] hover:text-white">
               <Phone className="h-4 w-4" />
               Contato
             </Button>
-            <Button size="sm" className="h-9 rounded-lg text-sm shadow-soft">
+            <Button size="sm" className="h-9 rounded-lg text-sm shadow-soft bg-[#3483FA] hover:bg-[#3483FA]/90 text-white border-none">
               <ShoppingCart className="h-4 w-4" />
               Fazer Pedido
             </Button>
@@ -83,7 +83,7 @@ const Header = () => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="block px-4 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-muted rounded-xl transition-colors duration-200"
+                  className="block px-4 py-3 text-base font-bold text-[#2D3277] hover:opacity-70 hover:bg-muted rounded-xl transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}

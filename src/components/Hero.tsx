@@ -12,7 +12,7 @@ const Hero = () => {
           alt="Supply Chain" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-business/95 via-business/85 to-primary/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FFF159]/90 via-[#FFF159]/70 to-transparent"></div>
       </div>
 
       {/* Content */}
@@ -26,93 +26,93 @@ const Hero = () => {
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#2D3277] mb-6 leading-tight animate-slide-up">
               Conectando{" "}
-              <span className="text-accent">produção</span>, {" "}
-              <span className="text-accent">logística</span> e{" "}
-              <span className="text-accent">mercados</span> em escala
+              <span className="text-[#3483FA]">produção</span>, {" "}
+              <span className="text-[#3483FA]">logística</span> e{" "}
+              <span className="text-[#3483FA]">mercados</span> em escala
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed font-medium max-w-2xl">
+            <p className="text-lg md:text-xl text-[#2D3277]/80 mb-8 leading-relaxed font-bold max-w-2xl animate-slide-up stagger-1">
               A OrbisLink conecta fabricantes, distribuidores e grandes compradores em um único ecossistema digital, 
               permitindo entregas diretas da fábrica para supermercados, grossistas e revendedores.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-              <Button size="lg" className="h-14 px-8 text-lg font-black rounded-xl bg-accent text-accent-foreground hover:bg-accent-hover shadow-strong">
+              <Button size="lg" className="h-14 px-8 text-lg font-black rounded-xl bg-[#3483FA] text-white hover:bg-[#3483FA]/90 shadow-strong animate-bounce-in">
                 Começar Agora
                 <ArrowRight className="h-5 w-5 ml-2" />
               </Button>
-              <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-bold rounded-xl border-2 border-white text-white hover:bg-white hover:text-business">
+              <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-bold rounded-xl border-2 border-[#2D3277] text-[#2D3277] hover:bg-[#2D3277] hover:text-white animate-bounce-in stagger-1">
                 Como Funciona
               </Button>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="text-2xl lg:text-3xl font-black text-accent">100+</div>
-                <div className="text-white/80 text-sm font-semibold">Parceiros</div>
+              <div className="bg-[#FFF159]/20 backdrop-blur-sm rounded-xl p-4 border border-[#FFF159]/50 hover:bg-[#FFF159]/30 transition-all duration-300 animate-slide-up stagger-2">
+                <div className="text-2xl lg:text-3xl font-black text-[#3483FA]">100+</div>
+                <div className="text-[#2D3277] text-sm font-bold">Parceiros</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="text-2xl lg:text-3xl font-black text-accent">Nacional</div>
-                <div className="text-white/80 text-sm font-semibold">Cobertura</div>
+              <div className="bg-[#FFF159]/20 backdrop-blur-sm rounded-xl p-4 border border-[#FFF159]/50 hover:bg-[#FFF159]/30 transition-all duration-300 animate-slide-up stagger-3">
+                <div className="text-2xl lg:text-3xl font-black text-[#3483FA]">Nacional</div>
+                <div className="text-[#2D3277] text-sm font-bold">Cobertura</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="text-2xl lg:text-3xl font-black text-accent">24/7</div>
-                <div className="text-white/80 text-sm font-semibold">Operação</div>
+              <div className="bg-[#FFF159]/20 backdrop-blur-sm rounded-xl p-4 border border-[#FFF159]/50 hover:bg-[#FFF159]/30 transition-all duration-300 animate-slide-up stagger-4">
+                <div className="text-2xl lg:text-3xl font-black text-[#3483FA]">24/7</div>
+                <div className="text-[#2D3277] text-sm font-bold">Operação</div>
               </div>
             </div>
           </div>
 
           {/* Features Cards */}
           <div className="grid gap-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-strong hover:bg-white/15 transition-all duration-300">
+            <div className="bg-gradient-to-br from-[#FFF159]/20 to-[#3483FA]/10 backdrop-blur-md rounded-2xl p-6 border border-[#FFF159]/30 shadow-strong hover:shadow-lg hover:border-[#FFF159]/60 transition-all duration-300 group hover:scale-105">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-accent rounded-xl">
-                  <Truck className="h-7 w-7 text-accent-foreground" />
+                <div className="p-3 bg-[#3483FA] rounded-xl group-hover:bg-[#FFF159] transition-colors">
+                  <Truck className="h-7 w-7 text-white group-hover:text-[#2D3277]" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">Logística Integrada</h3>
-                  <p className="text-white/80 font-medium">Entregas com parceiros certificados</p>
+                  <p className="text-white/80 font-bold">Entregas com parceiros certificados</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-strong hover:bg-white/15 transition-all duration-300">
+            <div className="bg-gradient-to-br from-[#FFF159]/20 to-[#3483FA]/10 backdrop-blur-md rounded-2xl p-6 border border-[#FFF159]/30 shadow-strong hover:shadow-lg hover:border-[#FFF159]/60 transition-all duration-300 group hover:scale-105">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-accent rounded-xl">
-                  <Building2 className="h-7 w-7 text-accent-foreground" />
+                <div className="p-3 bg-[#3483FA] rounded-xl group-hover:bg-[#FFF159] transition-colors">
+                  <Building2 className="h-7 w-7 text-white group-hover:text-[#2D3277]" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">Menos Intermediários</h3>
-                  <p className="text-white/80 font-medium">Conexão direta fábrica-comprador</p>
+                  <p className="text-white/80 font-bold">Conexão direta fábrica-comprador</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-strong hover:bg-white/15 transition-all duration-300">
+            <div className="bg-gradient-to-br from-[#FFF159]/20 to-[#3483FA]/10 backdrop-blur-md rounded-2xl p-6 border border-[#FFF159]/30 shadow-strong hover:shadow-lg hover:border-[#FFF159]/60 transition-all duration-300 group hover:scale-105">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-accent rounded-xl">
-                  <BarChart3 className="h-7 w-7 text-accent-foreground" />
+                <div className="p-3 bg-[#3483FA] rounded-xl group-hover:bg-[#FFF159] transition-colors">
+                  <BarChart3 className="h-7 w-7 text-white group-hover:text-[#2D3277]" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">Dados Estratégicos</h3>
-                  <p className="text-white/80 font-medium">Inteligência de mercado em tempo real</p>
+                  <p className="text-white/80 font-bold">Inteligência de mercado em tempo real</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-strong hover:bg-white/15 transition-all duration-300">
+            <div className="bg-gradient-to-br from-[#FFF159]/20 to-[#3483FA]/10 backdrop-blur-md rounded-2xl p-6 border border-[#FFF159]/30 shadow-strong hover:shadow-lg hover:border-[#FFF159]/60 transition-all duration-300 group hover:scale-105">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-accent rounded-xl">
-                  <Shield className="h-7 w-7 text-accent-foreground" />
+                <div className="p-3 bg-[#3483FA] rounded-xl group-hover:bg-[#FFF159] transition-colors">
+                  <Shield className="h-7 w-7 text-white group-hover:text-[#2D3277]" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">Parceiros Validados</h3>
-                  <p className="text-white/80 font-medium">Processos claros e confiáveis</p>
+                  <p className="text-white/80 font-bold">Processos claros e confiáveis</p>
                 </div>
               </div>
             </div>

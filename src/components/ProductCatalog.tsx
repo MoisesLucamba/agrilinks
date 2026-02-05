@@ -83,14 +83,14 @@ const ProductCatalog = () => {
   }
 
   return (
-    <section id="catalogo" className="py-12 sm:py-16 lg:py-24 bg-background">
+    <section id="catalogo" className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-background via-[#FFF159]/5 to-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2D3277] mb-3 sm:mb-4 animate-slide-up">
             Catálogo de Produtos
           </h2>
-          <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
+          <p className="text-base sm:text-xl text-[#2D3277]/70 max-w-3xl mx-auto px-4 font-bold animate-slide-up stagger-1">
             Produtos agrícolas disponíveis na plataforma OrbisLink.
           </p>
         </div>
@@ -119,11 +119,11 @@ const ProductCatalog = () => {
             {filteredProducts.map((product) => (
               <Card 
                 key={product.id} 
-                className="p-4 sm:p-6 hover:shadow-medium transition-all duration-300 border-card-border"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all duration-300 border-2 border-[#FFF159]/30 hover:border-[#FFF159] bg-white/80 hover:bg-white animate-fade-in"
               >
                 <div className="text-center mb-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Package className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full bg-[#FFF159]/30 flex items-center justify-center animate-float">
+                    <Package className="h-8 w-8 sm:h-10 sm:w-10 text-[#2D3277]" />
                   </div>
                   <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
                     <Badge variant="default">Disponível</Badge>
@@ -140,10 +140,10 @@ const ProductCatalog = () => {
                 </p>
 
                 <div className="space-y-2 mb-4 sm:mb-6 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Preço:</span>
-                    <span className="font-semibold text-primary">
-                      {formatPrice(product.price)}/kg
+                  <div className="flex justify-between items-center bg-[#FFF159]/20 p-2 rounded-lg border border-[#FFF159]/50">
+                    <span className="text-[#2D3277] font-bold text-xs">Preço:</span>
+                    <span className="font-black text-[#3483FA] text-xs animate-pulse">
+                      Consultar no App
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -161,11 +161,11 @@ const ProductCatalog = () => {
                 </div>
 
                 <Button 
-                  className="w-full gap-2" 
+                  className="w-full gap-2 bg-[#3483FA] hover:bg-[#3483FA]/90 text-white font-bold transition-all duration-300 hover:scale-105" 
                   onClick={() => handleViewProduct(product.id)}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  Ver Detalhes
+                  Consultar no App
                 </Button>
               </Card>
             ))}

@@ -522,7 +522,7 @@ const Notifications = () => {
   }
 
   return (
-    <div className="pb-20 bg-[#0a1628] min-h-screen">
+    <div className="pb-20 bg-white min-h-screen">
       {/* Toasts de Notificação */}
       <AnimatePresence>
         {toastNotifications.map((toast) => (
@@ -536,7 +536,7 @@ const Notifications = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0a1628]/95 backdrop-blur-sm border-b border-[#B8860B]/30">
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-[#B8860B]/30">
         <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={orbisLinkLogo} alt="OrbisLink" className="h-10" />
@@ -544,11 +544,11 @@ const Notifications = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="hover:bg-white/10 text-white"
+              className="hover:bg-gray-100 text-[#0a1628]"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-white">Notificações</h1>
+            <h1 className="text-2xl font-bold text-[#0a1628]">Notificações</h1>
             {unreadCount > 0 && (
               <Badge className="bg-[#B8860B] text-white text-sm">{unreadCount}</Badge>
             )}
@@ -561,7 +561,7 @@ const Notifications = () => {
               size="icon"
               onClick={() => setSoundEnabled(!soundEnabled)}
               title={soundEnabled ? 'Som ativado' : 'Som desativado'}
-              className="hover:bg-white/10"
+              className="hover:bg-gray-100"
             >
               {soundEnabled ? (
                 <Volume2 className="h-5 w-5 text-[#B8860B]" />
@@ -576,7 +576,7 @@ const Notifications = () => {
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-xs text-[#B8860B] hover:bg-white/10"
+                className="text-xs text-[#B8860B] hover:bg-gray-100"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Marcar todas
@@ -584,8 +584,8 @@ const Notifications = () => {
             )}
 
             {/* Botão de Configurações */}
-            <Button variant="ghost" size="icon" className="hover:bg-white/10 text-white">
-              <Settings className="h-5 w-5 text-white" />
+            <Button variant="ghost" size="icon" className="hover:bg-gray-100 text-[#0a1628]">
+              <Settings className="h-5 w-5 text-[#0a1628]" />
             </Button>
           </div>
         </div>
@@ -671,8 +671,8 @@ const Notifications = () => {
         {notifications.length === 0 && (
           <div className="text-center py-16">
             <Bell className="h-16 w-16 mx-auto mb-4 text-[#B8860B]/50" />
-            <p className="text-white font-medium">Nenhuma notificação</p>
-            <p className="text-sm text-white/60 mt-2">
+            <p className="text-[#0a1628] font-medium">Nenhuma notificação</p>
+            <p className="text-sm text-[#0a1628]/60 mt-2">
               Você receberá alertas sobre atividades importantes
             </p>
           </div>

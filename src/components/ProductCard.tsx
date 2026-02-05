@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, memo } from 'react'
 import Slider from 'react-slick'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Heart, MessageCircle, Calendar, MapPin, Send, ChevronLeft, ChevronRight, ShoppingCart, Reply, ThumbsUp, BadgeCheck } from 'lucide-react'
+import { 
+  Heart, MessageCircle, Calendar, MapPin, Send, ChevronLeft, ChevronRight, 
+  ShoppingCart, Reply, ThumbsUp, BadgeCheck, TrendingUp, Clock, Eye, Share2
+} from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -68,19 +71,30 @@ interface ProductCardProps {
   onOpenPreOrder?: (product: Product) => void
 }
 
-const CustomPrevArrow = ({ onClick }: { onClick?: () => void }) => (
-  <button onClick={onClick} className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full z-10 transition-all">
-    <ChevronLeft className="h-4 w-4" />
+const CustomPrevArrow = memo(({ onClick }: { onClick?: () => void }) => (
+  <button 
+    onClick={onClick} 
+    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
+    aria-label="Imagem anterior"
+  >
+    <ChevronLeft className="h-5 w-5" />
   </button>
-)
+))
 
-const CustomNextArrow = ({ onClick }: { onClick?: () => void }) => (
-  <button onClick={onClick} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full z-10 transition-all">
-    <ChevronRight className="h-4 w-4" />
+const CustomNextArrow = memo(({ onClick }: { onClick?: () => void }) => (
+  <button 
+    onClick={onClick} 
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
+    aria-label="Próxima imagem"
+  >
+    <ChevronRight className="h-5 w-5" />
   </button>
-)
+))
 
-export const ProductCard: React.FC<ProductCardProps> = ({ 
+CustomPrevArrow.displayName = 'CustomPrevArrow'
+CustomNextArrow.displayName = 'CustomNextArrow'
+
+export const ProductCard: React.FC<ProductCardProps> = memo(({ 
   product, 
   onProductUpdate,
   onOpenMap,
@@ -93,20 +107,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
   const [mapModalOpen, setMapModalOpen] = useState(false)
-  const mapContainerRef = React.useRef<HTMLDivElement>(null)
-  const mapRef = React.useRef<mapboxgl.Map | null>(null)
+  const [isHovered, setIsHovered] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR')
-  const formatPrice = (p: number) => `${p.toLocaleString()} Kz`
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+  const formatPrice = (p: number) => p.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' }).replace('AOA', 'Kz')
+  
+  // Calcula desconto fictício para marketing (baseado em quantidade)
+  const discount = product.quantity > 100 ? 15 : product.quantity > 50 ? 10 : 0
+  const originalPrice = discount > 0 ? product.price / (1 - discount / 100) : product.price
 
-  // Inicializar mapa quando modal abre
-  React.useEffect(() => {
+  // Verificar se é produto "novo" (últimos 7 dias)
+  const isNew = (new Date().getTime() - new Date(product.created_at).getTime()) / (1000 * 60 * 60 * 24) < 7
+
+  useEffect(() => {
     if (mapModalOpen && mapContainerRef.current && product.location_lat && product.location_lng) {
       mapboxgl.accessToken = 'pk.eyJ1IjoiYWdyaWxpbmthbyIsImEiOiJjbWJyaWNjOW8wYm5jMnFxdHJjNTZkZGN0In0.gYkUQOzg2xHYeS4CCbU-cw'
       
-      if (mapRef.current) {
-        mapRef.current.remove()
-      }
+      if (mapRef.current) mapRef.current.remove()
 
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -134,15 +154,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const toggleLike = async () => {
     if (!user) return toast.error('Faça login para dar like')
     if (!onProductUpdate) return
+    
+    const optimisticUpdate = {
+      ...product,
+      is_liked: !product.is_liked,
+      likes_count: product.is_liked ? (product.likes_count || 1) - 1 : (product.likes_count || 0) + 1
+    }
+    onProductUpdate(optimisticUpdate)
+
     try {
       if (product.is_liked) {
         await supabase.from('product_likes').delete().eq('product_id', product.id).eq('user_id', user.id)
-        onProductUpdate({ ...product, is_liked: false, likes_count: (product.likes_count || 1) - 1 })
       } else {
         await supabase.from('product_likes').insert({ product_id: product.id, user_id: user.id })
-        onProductUpdate({ ...product, is_liked: true, likes_count: (product.likes_count || 0) + 1 })
       }
     } catch {
+      onProductUpdate(product)
       toast.error('Erro ao processar like')
     }
   }
@@ -150,6 +177,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const addComment = async () => {
     if (!user || !comment.trim()) return toast.error('Faça login ou escreva um comentário')
     if (!onProductUpdate) return
+    
     try {
       const { data: newComment } = await supabase
         .from('product_comments')
@@ -195,16 +223,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         await supabase.from('comment_likes').insert({ comment_id: commentId, user_id: user.id })
       }
       
-      const updatedComments = product.comments?.map(c => {
-        if (c.id === commentId) {
-          return {
-            ...c,
-            is_liked: !isLiked,
-            likes_count: isLiked ? (c.likes_count || 1) - 1 : (c.likes_count || 0) + 1
-          }
-        }
-        return c
-      })
+      const updatedComments = product.comments?.map(c => 
+        c.id === commentId ? {
+          ...c,
+          is_liked: !isLiked,
+          likes_count: isLiked ? (c.likes_count || 1) - 1 : (c.likes_count || 0) + 1
+        } : c
+      )
       
       onProductUpdate({ ...product, comments: updatedComments })
     } catch {
@@ -235,12 +260,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         user_type: userData?.user_type || 'agricultor'
       }
 
-      const updatedComments = product.comments?.map(c => {
-        if (c.id === commentId) {
-          return { ...c, replies: [...(c.replies || []), replyWithUser] }
-        }
-        return c
-      })
+      const updatedComments = product.comments?.map(c =>
+        c.id === commentId ? { ...c, replies: [...(c.replies || []), replyWithUser] } : c
+      )
 
       onProductUpdate({ ...product, comments: updatedComments })
       setReplyText('')
@@ -251,137 +273,216 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   }
 
-  const handleOpenMap = () => {
-    if (product.location_lat && product.location_lng) {
-      setMapModalOpen(true)
-    } else if (onOpenMap) {
-      onOpenMap(product)
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.product_type,
+          text: `Confira ${product.product_type} por ${formatPrice(product.price)}!`,
+          url: window.location.href
+        })
+      } catch (err) {
+        console.log('Share cancelled')
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+      toast.success('Link copiado!')
     }
   }
 
   const sliderSettings = {
     dots: true,
-    infinite: true,
+    infinite: product.photos && product.photos.length > 1,
     fade: true,
-    speed: 600,
+    speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 4000,
-    arrows: true,
+    arrows: product.photos && product.photos.length > 1,
     nextArrow: <CustomNextArrow />,
-    prevArrow: <CustomPrevArrow />
+    prevArrow: <CustomPrevArrow />,
+    lazyLoad: 'progressive' as const,
   }
 
   return (
     <>
-      <Card className="overflow-hidden bg-white border-2 border-[#0a1628]/10 rounded-2xl shadow-md hover:shadow-lg hover:border-[#B8860B]/30 transition-all duration-300 group">
-        {/* Header - Dark Blue */}
-        <div className="p-3.5 flex items-center gap-3 bg-[#0a1628] text-white">
-          <Avatar 
-            className="h-10 w-10 ring-2 ring-[#B8860B] cursor-pointer hover:ring-[#B8860B]/70 transition-all"
-            onClick={() => navigate(`/perfil/${product.user_id}`)}
-          >
-            <AvatarFallback className="bg-[#B8860B] text-white font-bold text-sm">
-              {product.farmer_name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h3 
-                className="font-bold text-sm truncate cursor-pointer hover:text-[#B8860B] transition-colors text-white"
-                onClick={() => navigate(`/perfil/${product.user_id}`)}
-              >
-                {product.farmer_name}
-              </h3>
-              {product.user_verified && (
-                <span title="Perfil verificado pela OrbisLink">
-                  <BadgeCheck className="h-4 w-4 text-[#B8860B] flex-shrink-0" />
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-white/70 truncate">
-              {product.province_id}, {product.municipality_id}
-            </p>
-          </div>
-          <Badge className="text-xs shrink-0 font-bold bg-[#B8860B] text-white border-0 hover:bg-[#B8860B]/90">
-            {product.product_type}
-          </Badge>
+      <Card 
+        className="overflow-hidden bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 group relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Badges de destaque */}
+        <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+          {isNew && (
+            <Badge className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0a1628] border-0 shadow-lg text-xs font-bold px-3 py-1">
+              ✨ NOVO
+            </Badge>
+          )}
+          {discount > 0 && (
+            <Badge className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0a1628] border-0 shadow-lg text-xs font-bold px-3 py-1 animate-pulse">
+              -{discount}% OFF
+            </Badge>
+          )}
         </div>
 
+        {/* Share button */}
+        <button
+          onClick={handleShare}
+          className="absolute top-3 right-3 z-20 bg-white/90 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+          aria-label="Compartilhar"
+        >
+          <Share2 className="h-4 w-4 text-gray-700" />
+        </button>
+
         {/* Images */}
-        <div className="relative bg-muted aspect-[4/3]">
+        <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3] overflow-hidden">
           {product.photos && product.photos.length > 0 ? (
             <Slider {...sliderSettings}>
               {product.photos.map((photo, i) => (
                 <div key={i} className="relative aspect-[4/3]">
                   <img 
                     src={photo} 
-                    className="w-full h-full object-cover" 
-                    alt={product.product_type}
+                    className={`w-full h-full object-cover transition-all duration-700 ${
+                      imageLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
+                    } ${isHovered ? 'scale-105' : 'scale-100'}`}
+                    alt={`${product.product_type} - imagem ${i + 1}`}
                     loading="lazy"
+                    onLoad={() => setImageLoaded(true)}
                   />
                 </div>
               ))}
             </Slider>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
-              <span className="text-muted-foreground text-sm">Sem imagem</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-6xl mb-2">📦</div>
+                <span className="text-gray-400 text-sm font-medium">Produto sem imagem</span>
+              </div>
             </div>
           )}
+          
+          {/* Overlay gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </div>
 
-        <CardContent className="p-4 space-y-3 bg-white">
-          {/* Price and Info */}
-          <div className="flex justify-between items-start gap-3">
-            <div className="min-w-0">
-              <h4 className="font-bold text-base leading-tight text-[#0a1628]">{product.product_type}</h4>
-              <p className="text-sm text-[#0a1628]/60 mt-0.5 font-medium">
-                {product.quantity.toLocaleString()} kg disponíveis
-              </p>
+        <CardContent className="p-5 space-y-4 bg-white">
+          {/* Header com Avatar e Info */}
+          <div className="flex items-start gap-3">
+            <Avatar 
+              className="h-12 w-12 ring-2 ring-[#FFD700] cursor-pointer hover:ring-[#FFA500] transition-all hover:scale-105 shadow-md"
+              onClick={() => navigate(`/perfil/${product.user_id}`)}
+            >
+              <AvatarFallback className="bg-gradient-to-br from-[#0a1628] to-[#1e3a5f] text-white font-bold">
+                {product.farmer_name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 
+                  className="font-bold text-base text-gray-900 cursor-pointer hover:text-emerald-600 transition-colors truncate"
+                  onClick={() => navigate(`/perfil/${product.user_id}`)}
+                >
+                  {product.farmer_name}
+                </h3>
+                {product.user_verified && (
+                  <BadgeCheck className="h-5 w-5 text-blue-500 flex-shrink-0" title="Vendedor verificado" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="truncate">{product.province_id}, {product.municipality_id}</span>
+              </div>
             </div>
-            <span className="text-lg font-black text-[#B8860B] whitespace-nowrap bg-[#B8860B]/10 px-3 py-1 rounded-lg">
-              {formatPrice(product.price)}
-            </span>
+
+            <Badge className="shrink-0 bg-[#FFD700] text-[#0a1628] border-[#FFA500] font-semibold text-xs px-2.5 py-1">
+              {product.product_type}
+            </Badge>
           </div>
 
+          {/* Título e Preço - DESTAQUE PRINCIPAL */}
+          <div className="space-y-3">
+            <h4 className="font-extrabold text-xl text-[#0a1628] leading-tight">
+              {product.product_type}
+            </h4>
+            
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-[#FFD700] tracking-tight">
+                    {formatPrice(product.price)}
+                  </span>
+                  {discount > 0 && (
+                    <span className="text-sm text-gray-400 line-through font-medium">
+                      {formatPrice(originalPrice)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-[#0a1628]/70 font-medium mt-1 flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-[#FFD700]" />
+                  {product.quantity.toLocaleString()} kg em estoque
+                </p>
+              </div>
+
+              {/* CTA Principal - REDESENHADO */}
+              {onOpenPreOrder && (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    size="lg"
+                    onClick={() => onOpenPreOrder(product)}
+                    className="relative bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700] hover:from-[#FFA500] hover:via-[#FFD700] hover:to-[#FFA500] text-[#0a1628] font-extrabold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 px-8 py-7 rounded-2xl border-2 border-[#0a1628]/10 group overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                    <ShoppingCart className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
+                    <span className="relative z-10">COMPRAR</span>
+                  </Button>
+                  <span className="text-[10px] text-center text-[#0a1628]/50 font-medium">Entrega rápida</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Descrição */}
           {product.description && (
-            <p className="text-sm text-[#0a1628]/70 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
               {product.description}
             </p>
           )}
 
-          {/* Date and Location */}
-          <div className="flex items-center gap-3 text-sm text-[#0a1628]/60 flex-wrap font-medium">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-[#0a1628]" /> {formatDate(product.harvest_date)}
+          {/* Info adicional */}
+          <div className="flex items-center gap-4 text-xs text-[#0a1628]/60 flex-wrap pt-2 border-t border-gray-100">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Calendar className="h-4 w-4 text-[#FFD700]" /> 
+              Colheita: {formatDate(product.harvest_date)}
             </span>
             {product.location_lat && product.location_lng && (
               <button
-                onClick={handleOpenMap}
-                className="flex items-center gap-1.5 text-[#B8860B] hover:underline font-bold transition-colors"
+                onClick={() => setMapModalOpen(true)}
+                className="flex items-center gap-1.5 text-[#FFD700] hover:text-[#FFA500] font-semibold transition-colors"
               >
-                <MapPin className="h-4 w-4" /> Ver no Mapa
+                <MapPin className="h-4 w-4" /> 
+                Ver Localização
               </button>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#0a1628]/10">
+          {/* Social Actions */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleLike}
-                className={`h-9 px-2.5 rounded-xl ${
+                className={`h-10 px-3 rounded-xl transition-all hover:scale-105 ${
                   product.is_liked 
-                    ? 'text-red-500 hover:text-red-600' 
-                    : 'text-[#0a1628]/50 hover:text-red-500'
+                    ? 'text-red-500 bg-red-50 hover:bg-red-100' 
+                    : 'text-[#0a1628]/50 hover:text-red-500 hover:bg-red-50'
                 }`}
               >
                 <Heart className={`h-5 w-5 ${product.is_liked ? 'fill-current' : ''}`} />
                 {product.likes_count ? (
-                  <span className="ml-1 text-sm font-bold">{product.likes_count}</span>
+                  <span className="ml-1.5 text-sm font-bold">{product.likes_count}</span>
                 ) : null}
               </Button>
 
@@ -389,105 +490,118 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setCommentVisible(!commentVisible)}
-                className="h-9 px-2.5 rounded-xl text-[#0a1628]/50 hover:text-[#0a1628]"
+                className={`h-10 px-3 rounded-xl transition-all hover:scale-105 ${
+                  commentVisible 
+                    ? 'text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20' 
+                    : 'text-[#0a1628]/50 hover:text-[#FFD700] hover:bg-[#FFD700]/10'
+                }`}
               >
                 <MessageCircle className="h-5 w-5" />
                 {product.comments?.length ? (
-                  <span className="ml-1 text-sm font-bold">{product.comments.length}</span>
+                  <span className="ml-1.5 text-sm font-bold">{product.comments.length}</span>
                 ) : null}
               </Button>
             </div>
 
-            {onOpenPreOrder && (
-              <Button
-                size="sm"
-                onClick={() => onOpenPreOrder(product)}
-                className="h-9 px-4 rounded-xl shadow-md bg-[#0a1628] hover:bg-[#0a1628]/90 text-white font-bold"
-              >
-                <ShoppingCart className="h-4 w-4 mr-1.5" />
-                Pré-Compra
-              </Button>
-            )}
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" />
+              <Clock className="h-3.5 w-3.5 ml-2" />
+              {formatDate(product.created_at)}
+            </span>
           </div>
 
           {/* Comments Section */}
           {commentVisible && (
-            <div className="pt-3 space-y-3 border-t border-[#0a1628]/10">
+            <div className="pt-4 space-y-3 border-t border-gray-100 animate-in slide-in-from-top duration-300">
               <div className="flex gap-2">
                 <Input
-                  placeholder="Escreva um comentário..."
+                  placeholder="Adicione um comentário..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  onKeyPress={(e) => { if (e.key === 'Enter') addComment() }}
-                  className="flex-1 h-10 text-sm rounded-xl border-[#0a1628]/20 focus:border-[#B8860B] focus:ring-[#B8860B]/20"
+                  onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment() } }}
+                  className="flex-1 h-11 text-sm rounded-xl border-gray-200 focus:border-[#FFD700] focus:ring-[#FFD700]/20 transition-all"
                 />
-                <Button size="sm" onClick={addComment} className="h-10 w-10 p-0 rounded-xl bg-[#B8860B] hover:bg-[#B8860B]/90">
+                <Button 
+                  size="sm" 
+                  onClick={addComment} 
+                  disabled={!comment.trim()}
+                  className="h-11 w-11 p-0 rounded-xl bg-[#0a1628] hover:bg-[#0a1628]/90 disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
+                >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
 
               {product.comments?.length ? (
-                <div className="space-y-2.5 max-h-72 overflow-y-auto scrollbar-hide">
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   {product.comments.map(c => (
-                    <div key={c.id} className="bg-[#0a1628]/5 rounded-xl p-3 border border-[#0a1628]/10">
-                      <div className="flex items-start gap-2">
-                        <Avatar className="h-7 w-7">
+                    <div key={c.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-[#FFD700]/30 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-9 w-9 shadow-sm">
                           {c.user_avatar ? (
-                            <img src={c.user_avatar} alt={c.user_name} className="h-full w-full object-cover rounded-full" />
+                            <img src={c.user_avatar} alt={c.user_name} className="h-full w-full object-cover" />
                           ) : (
-                            <AvatarFallback className="text-xs bg-primary/10 text-primary">{c.user_name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback className="text-xs bg-[#0a1628] text-white font-semibold">
+                              {c.user_name.charAt(0)}
+                            </AvatarFallback>
                           )}
                         </Avatar>
+                        
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-medium text-sm">{c.user_name}</span>
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{c.user_type}</Badge>
+                            <span className="font-semibold text-sm text-gray-900">{c.user_name}</span>
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-white">
+                              {c.user_type}
+                            </Badge>
                             <span className="text-xs text-gray-400">{formatDate(c.created_at)}</span>
                           </div>
-                          <p className="text-sm mt-1">{c.comment_text}</p>
+                          <p className="text-sm mt-1.5 text-gray-700 leading-relaxed">{c.comment_text}</p>
                           
-                          {/* Ações do comentário */}
-                          <div className="flex items-center gap-3 mt-2">
+                          <div className="flex items-center gap-4 mt-3">
                             <button
                               onClick={() => toggleCommentLike(c.id, c.is_liked || false)}
-                              className={`flex items-center gap-1 text-xs transition-colors ${c.is_liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                              className={`flex items-center gap-1.5 text-xs font-medium transition-all hover:scale-105 ${
+                                c.is_liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
+                              }`}
                             >
                               <ThumbsUp className={`h-3.5 w-3.5 ${c.is_liked ? 'fill-current' : ''}`} />
-                              {c.likes_count ? c.likes_count : 'Curtir'}
+                              {c.likes_count || 'Curtir'}
                             </button>
                             <button
                               onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary"
+                              className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-[#FFD700] transition-colors"
                             >
                               <Reply className="h-3.5 w-3.5" />
                               Responder
                             </button>
                           </div>
 
-                          {/* Campo de resposta */}
                           {replyingTo === c.id && (
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex gap-2 mt-3 animate-in slide-in-from-top duration-200">
                               <Input
-                                placeholder="Escreva uma resposta..."
+                                placeholder="Sua resposta..."
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
-                                onKeyPress={(e) => { if (e.key === 'Enter') addReply(c.id) }}
-                                className="flex-1 h-8 text-xs"
+                                onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(c.id) } }}
+                                className="flex-1 h-9 text-xs rounded-lg"
+                                autoFocus
                               />
-                              <Button size="sm" onClick={() => addReply(c.id)} className="h-8 w-8 p-0">
-                                <Send className="h-3 w-3" />
+                              <Button 
+                                size="sm" 
+                                onClick={() => addReply(c.id)} 
+                                className="h-9 w-9 p-0 rounded-lg bg-[#0a1628] hover:bg-[#0a1628]/90"
+                              >
+                                <Send className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           )}
 
-                          {/* Respostas */}
                           {c.replies && c.replies.length > 0 && (
-                            <div className="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
+                            <div className="mt-3 pl-4 border-l-2 border-[#FFD700]/30 space-y-2">
                               {c.replies.map(reply => (
-                                <div key={reply.id} className="text-xs">
-                                  <span className="font-medium">{reply.user_name}</span>
-                                  <span className="text-gray-400 mx-1">·</span>
-                                  <span className="text-gray-500">{reply.reply_text}</span>
+                                <div key={reply.id} className="text-xs bg-white rounded-lg p-2">
+                                  <span className="font-semibold text-gray-900">{reply.user_name}</span>
+                                  <span className="text-gray-400 mx-1.5">·</span>
+                                  <span className="text-gray-600">{reply.reply_text}</span>
                                 </div>
                               ))}
                             </div>
@@ -498,7 +612,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400 text-center py-4">Seja o primeiro a comentar!</p>
+                <div className="text-center py-8">
+                  <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400 font-medium">Seja o primeiro a comentar!</p>
+                </div>
               )}
             </div>
           )}
@@ -507,23 +624,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Modal do Mapa */}
       <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-2">
-            <DialogTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              Localização: {product.product_type}
+        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-3xl">
+          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-[#0a1628] to-[#1e3a5f]">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white">
+              <MapPin className="h-6 w-6 text-[#FFD700]" />
+              Localização do Produto
             </DialogTitle>
           </DialogHeader>
-          <div ref={mapContainerRef} className="w-full h-[400px]" />
-          <div className="p-4 pt-2 bg-gray-50 flex items-center justify-between">
+          <div ref={mapContainerRef} className="w-full h-[450px]" />
+          <div className="p-6 pt-4 bg-gray-50 flex items-center justify-between border-t">
             <div>
-              <p className="font-medium">{product.farmer_name}</p>
-              <p className="text-sm text-gray-500">{product.province_id}, {product.municipality_id}</p>
+              <p className="font-bold text-[#0a1628] text-lg">{product.product_type}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                <span className="font-medium">{product.farmer_name}</span> · {product.province_id}, {product.municipality_id}
+              </p>
             </div>
-            <Button variant="outline" onClick={() => setMapModalOpen(false)}>Fechar</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setMapModalOpen(false)}
+              className="rounded-xl border-2 hover:border-[#FFD700] hover:text-[#0a1628] hover:bg-[#FFD700]/10"
+            >
+              Fechar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </>
   )
-}
+})
+
+ProductCard.displayName = 'ProductCard'

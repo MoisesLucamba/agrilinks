@@ -18,6 +18,8 @@ import {
   Zap,
   ArrowLeft,
 } from 'lucide-react';
+import orbisLinkLogo from '@/assets/orbislink-logo.png';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -275,6 +277,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
 const Notifications = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [toastNotifications, setToastNotifications] = useState<ToastNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -519,7 +522,7 @@ const Notifications = () => {
   }
 
   return (
-    <div className="pb-20 bg-background min-h-screen">
+    <div className="pb-20 bg-[#0a1628] min-h-screen">
       {/* Toasts de Notificação */}
       <AnimatePresence>
         {toastNotifications.map((toast) => (
@@ -533,20 +536,21 @@ const Notifications = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-[#0a1628]/95 backdrop-blur-sm border-b border-[#B8860B]/30">
         <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <img src={orbisLinkLogo} alt="OrbisLink" className="h-10" />
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.history.back()}
-              className="hover:bg-gray-100"
+              onClick={() => navigate(-1)}
+              className="hover:bg-white/10 text-white"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">Notificações</h1>
+            <h1 className="text-2xl font-bold text-white">Notificações</h1>
             {unreadCount > 0 && (
-              <Badge className="bg-red-500 text-white text-sm">{unreadCount}</Badge>
+              <Badge className="bg-[#B8860B] text-white text-sm">{unreadCount}</Badge>
             )}
           </div>
 
@@ -557,12 +561,12 @@ const Notifications = () => {
               size="icon"
               onClick={() => setSoundEnabled(!soundEnabled)}
               title={soundEnabled ? 'Som ativado' : 'Som desativado'}
-              className="hover:bg-gray-100"
+              className="hover:bg-white/10"
             >
               {soundEnabled ? (
-                <Volume2 className="h-5 w-5 text-green-600" />
+                <Volume2 className="h-5 w-5 text-[#B8860B]" />
               ) : (
-                <VolumeX className="h-5 w-5 text-gray-400" />
+                <VolumeX className="h-5 w-5 text-white/50" />
               )}
             </Button>
 
@@ -572,7 +576,7 @@ const Notifications = () => {
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-xs"
+                className="text-xs text-[#B8860B] hover:bg-white/10"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Marcar todas
@@ -580,15 +584,15 @@ const Notifications = () => {
             )}
 
             {/* Botão de Configurações */}
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-              <Settings className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="hover:bg-white/10 text-white">
+              <Settings className="h-5 w-5 text-white" />
             </Button>
           </div>
         </div>
 
         {/* Status de Push */}
         {pushEnabled && (
-          <div className="px-4 py-2 bg-green-50 border-t border-green-200 flex items-center gap-2 text-sm text-green-700">
+          <div className="px-4 py-2 bg-[#B8860B]/20 border-t border-[#B8860B]/30 flex items-center gap-2 text-sm text-[#B8860B]">
             <CheckCircle className="h-4 w-4" />
             Push Notifications ativadas
           </div>
@@ -666,9 +670,9 @@ const Notifications = () => {
 
         {notifications.length === 0 && (
           <div className="text-center py-16">
-            <Bell className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-600 font-medium">Nenhuma notificação</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <Bell className="h-16 w-16 mx-auto mb-4 text-[#B8860B]/50" />
+            <p className="text-white font-medium">Nenhuma notificação</p>
+            <p className="text-sm text-white/60 mt-2">
               Você receberá alertas sobre atividades importantes
             </p>
           </div>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import agrilinkLogo from '@/assets/agrilink-logo.png';
+import orbisLinkLogo from '@/assets/orbislink-logo.png';
 
 mapboxgl.accessToken = "pk.eyJ1IjoibHVjYW1iYSIsImEiOiJjbWdqY293Z2QwaGRwMmlyNGlwNW4xYXhwIn0.qOjQNe8kbbfmdK5G0MHWDA";
 
@@ -148,20 +149,27 @@ const FichaRecebimento = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="fixed top-0 left-0 right-0 bg-white/60 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center">
+    <div className="min-h-screen bg-[#0a1628]">
+      <div className="fixed top-0 left-0 right-0 bg-[#0a1628]/95 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center border-b border-[#B8860B]/30">
         <div className="flex items-center gap-2">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-12" />
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-12" />
         </div>
-        <h1 className="font-semibold text-lg">📦 Ficha de Recebimento</h1>
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>Voltar</Button>
+        <h1 className="font-semibold text-lg text-white">📦 Ficha de Recebimento</h1>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => navigate(-1)}
+          className="border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white"
+        >
+          Voltar
+        </Button>
       </div>
 
       <div className="pt-20 p-4 md:p-8">
-        <Card className="max-w-4xl mx-auto shadow-md border-0 mt-20">
+        <Card className="max-w-4xl mx-auto shadow-md border border-[#B8860B]/30 mt-20 bg-white">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">Criar nova Ficha Técnica de Recebimento</CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
+            <CardTitle className="text-xl font-bold text-[#0a1628]">Criar nova Ficha Técnica de Recebimento</CardTitle>
+            <p className="text-sm text-[#0a1628]/70 mt-2">
               Personalize como e onde deseja receber seus produtos. Defina qualidade, embalagem e locais de entrega exatos no mapa.
             </p>
           </CardHeader>
@@ -307,7 +315,7 @@ const FichaRecebimento = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+              <Button type="submit" className="w-full bg-[#B8860B] hover:bg-[#B8860B]/90 text-white font-bold" disabled={loading}>
                 {loading ? 'Salvando...' : 'Salvar Ficha de Recebimento'}
               </Button>
             </form>

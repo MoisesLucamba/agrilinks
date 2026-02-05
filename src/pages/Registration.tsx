@@ -140,7 +140,7 @@ const Registration = () => {
     availableProvinces.find((p) => p.id === selectedProvince)?.municipalities || [];
 
   return (
-    <div className="min-h-screen bg-[#0a1628] p-3 sm:p-4 flex items-center justify-center safe-bottom">
+    <div className="min-h-screen bg-white p-3 sm:p-4 flex items-center justify-center safe-bottom">
       <div className="w-full max-w-2xl relative">
 
        {/* Overlay de carregamento */}
@@ -157,13 +157,13 @@ const Registration = () => {
 
         <div className="text-center mb-6 sm:mb-8">
           <img src={orbisLinkLogo} alt="OrbisLink" className="h-12 sm:h-16 mx-auto mb-2 drop-shadow-glow" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('registration.title')}</h1>
-          <p className="text-white/60 text-sm sm:text-base">{t('registration.subtitle')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0a1628]">{t('registration.title')}</h1>
+          <p className="text-[#0a1628]/60 text-sm sm:text-base">{t('registration.subtitle')}</p>
         </div>
 
-        <Card className="border border-border/50 shadow-strong rounded-2xl bg-card">
+        <Card className="border border-[#B8860B]/30 shadow-strong rounded-2xl bg-white">
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-primary">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-[#0a1628]">
               <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               {t('registration.infoTitle')}
             </CardTitle>

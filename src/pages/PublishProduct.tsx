@@ -198,14 +198,14 @@ const PublishProduct = () => {
   const availableMunicipalities = angolaProvinces.find(p => p.id === formData.province_id)?.municipalities || [];
 
   return (
-    <div className="min-h-screen bg-[#0a1628] p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-2xl mx-auto">
-       <div className="fixed top-0 left-0 right-0 bg-[#0a1628]/95 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center border-b border-[#B8860B]/30">
+       <div className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center border-b border-[#B8860B]/30">
       <div className="flex items-center gap-2">
           <img src={orbisLinkLogo} alt="OrbisLink" className="h-12" />
 
           </div>
-        <h1 className="font-semibold text-lg text-white">📦 Publicar Produto</h1>
+        <h1 className="font-semibold text-lg text-[#0a1628]">📦 Publicar Produto</h1>
         <Button
           variant="outline"
           size="sm"

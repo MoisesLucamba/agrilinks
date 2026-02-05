@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import agrilinkLogo from '@/assets/agrilink-logo.png'
+import orbisLinkLogo from '@/assets/orbislink-logo.png'
 
 import mapboxgl from 'mapbox-gl';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
@@ -197,30 +198,30 @@ const PublishProduct = () => {
   const availableMunicipalities = angolaProvinces.find(p => p.id === formData.province_id)?.municipalities || [];
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-[#0a1628] p-4">
       <div className="max-w-2xl mx-auto">
-       <div className="fixed top-0 left-0 right-0 bg-white/60 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center">
+       <div className="fixed top-0 left-0 right-0 bg-[#0a1628]/95 backdrop-blur-md shadow-md z-50 p-4 flex justify-between items-center border-b border-[#B8860B]/30">
       <div className="flex items-center gap-2">
-          <img src={agrilinkLogo} alt="AgriLink" className="h-12" />
+          <img src={orbisLinkLogo} alt="OrbisLink" className="h-12" />
 
           </div>
-        <h1 className="font-semibold text-lg">📦 Publicar Produto</h1>
-       <Button
-  variant="ghost"
-  size="sm"
-  className="border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100"
-  onClick={() => navigate(-1)}
->
-  Voltar
-</Button>
+        <h1 className="font-semibold text-lg text-white">📦 Publicar Produto</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] hover:text-white"
+          onClick={() => navigate(-1)}
+        >
+          Voltar
+        </Button>
 
       </div>
          
         
 
-<Card className="shadow-strong border-0 mt-20">
-          <CardHeader className="bg-background">
-            <CardTitle className="text-xl text-primary flex items-center gap-3">
+<Card className="shadow-strong border border-[#B8860B]/30 mt-20 bg-white">
+          <CardHeader className="bg-white">
+            <CardTitle className="text-xl text-[#0a1628] flex items-center gap-3">
               <Package className="h-6 w-6" />
               Informações do Produto
             </CardTitle>
@@ -518,7 +519,7 @@ const PublishProduct = () => {
         e.preventDefault();
         handleSubmit(e);
       }}
-      className="w-full bg-primary hover:bg-primary-hover"
+      className="w-full bg-[#B8860B] hover:bg-[#B8860B]/90 text-white font-bold"
       size="lg"
       disabled={loading}
     >

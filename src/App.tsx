@@ -31,6 +31,7 @@ import SearchPage from "./pages/SearchPage";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import ResetPassword from "./pages/ResetPassword";
 import UserProfile from "./pages/UserProfile";
+ import B2BProfile from "./pages/B2BProfile";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+       <Route
+         path="/empresa/:id"
+         element={
+           <ProtectedRoute>
+             <AppLayout>
+               <B2BProfile />
+             </AppLayout>
+           </ProtectedRoute>
+         }
+       />
       <Route
         path="/suporte"
         element={

@@ -74,7 +74,7 @@ interface ProductCardProps {
 const CustomPrevArrow = memo(({ onClick }: { onClick?: () => void }) => (
   <button 
     onClick={onClick} 
-    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
+    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-blue-600 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
     aria-label="Imagem anterior"
   >
     <ChevronLeft className="h-5 w-5" />
@@ -84,7 +84,7 @@ const CustomPrevArrow = memo(({ onClick }: { onClick?: () => void }) => (
 const CustomNextArrow = memo(({ onClick }: { onClick?: () => void }) => (
   <button 
     onClick={onClick} 
-    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-blue-600 p-2 rounded-full z-10 transition-all shadow-lg hover:scale-110 active:scale-95"
     aria-label="Próxima imagem"
   >
     <ChevronRight className="h-5 w-5" />
@@ -135,7 +135,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
         zoom: 13,
       })
 
-      new mapboxgl.Marker({ color: '#22c55e' })
+      new mapboxgl.Marker({ color: '#FBBF24' })
         .setLngLat([product.location_lng, product.location_lat])
         .setPopup(new mapboxgl.Popup().setHTML(`<strong>${product.product_type}</strong><br/>${product.farmer_name}`))
         .addTo(mapRef.current)
@@ -308,19 +308,19 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   return (
     <>
       <Card 
-        className="overflow-hidden bg-white border border-gray-200 rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 group relative"
+        className="overflow-hidden bg-white border border-blue-100 rounded-3xl shadow-sm hover:shadow-2xl hover:shadow-blue-200/50 transition-all duration-500 group relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Badges de destaque */}
         <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
           {isNew && (
-            <Badge className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0a1628] border-0 shadow-lg text-xs font-bold px-3 py-1">
+            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white border-0 shadow-lg text-xs font-bold px-3 py-1">
               ✨ NOVO
             </Badge>
           )}
           {discount > 0 && (
-            <Badge className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0a1628] border-0 shadow-lg text-xs font-bold px-3 py-1 animate-pulse">
+            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white border-0 shadow-lg text-xs font-bold px-3 py-1 animate-pulse">
               -{discount}% OFF
             </Badge>
           )}
@@ -332,11 +332,11 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           className="absolute top-3 right-3 z-20 bg-white/90 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
           aria-label="Compartilhar"
         >
-          <Share2 className="h-4 w-4 text-gray-700" />
+          <Share2 className="h-4 w-4 text-blue-500 hover:text-yellow-500 transition-colors" />
         </button>
 
         {/* Images */}
-        <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3] overflow-hidden">
+        <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 aspect-[4/3] overflow-hidden">
           {product.photos && product.photos.length > 0 ? (
             <Slider {...sliderSettings}>
               {product.photos.map((photo, i) => (
@@ -363,17 +363,17 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           )}
           
           {/* Overlay gradient */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-blue-900/40 to-transparent pointer-events-none" />
         </div>
 
         <CardContent className="p-5 space-y-4 bg-white">
           {/* Header com Avatar e Info */}
           <div className="flex items-start gap-3">
             <Avatar 
-              className="h-12 w-12 ring-2 ring-[#FFD700] cursor-pointer hover:ring-[#FFA500] transition-all hover:scale-105 shadow-md"
+              className="h-12 w-12 ring-2 ring-yellow-400 cursor-pointer hover:ring-yellow-500 transition-all hover:scale-105 shadow-md"
               onClick={() => navigate(`/perfil/${product.user_id}`)}
             >
-              <AvatarFallback className="bg-gradient-to-br from-[#0a1628] to-[#1e3a5f] text-white font-bold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-500 text-white font-bold">
                 {product.farmer_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -381,7 +381,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 
-                  className="font-bold text-base text-gray-900 cursor-pointer hover:text-emerald-600 transition-colors truncate"
+                  className="font-bold text-base text-gray-900 cursor-pointer hover:text-blue-500 transition-colors truncate"
                   onClick={() => navigate(`/perfil/${product.user_id}`)}
                 >
                   {product.farmer_name}
@@ -391,54 +391,50 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                <MapPin className="h-3.5 w-3.5" />
+                <MapPin className="h-3.5 w-3.5 text-blue-400" />
                 <span className="truncate">{product.province_id}, {product.municipality_id}</span>
               </div>
             </div>
 
-            <Badge className="shrink-0 bg-[#FFD700] text-[#0a1628] border-[#FFA500] font-semibold text-xs px-2.5 py-1">
+            <Badge className="shrink-0 bg-yellow-400 text-white border-0 font-semibold text-xs px-2.5 py-1">
               {product.product_type}
             </Badge>
           </div>
 
           {/* Título e Preço - DESTAQUE PRINCIPAL */}
           <div className="space-y-3">
-            <h4 className="font-extrabold text-xl text-[#0a1628] leading-tight">
+            <h4 className="font-extrabold text-xl text-blue-600 leading-tight">
               {product.product_type}
             </h4>
             
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-[#FFD700] tracking-tight">
-                    {formatPrice(product.price)}
+            <div className="space-y-3">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-3xl font-black text-yellow-500 tracking-tight">
+                  {formatPrice(product.price)}
+                </span>
+                {discount > 0 && (
+                  <span className="text-sm text-gray-400 line-through font-medium">
+                    {formatPrice(originalPrice)}
                   </span>
-                  {discount > 0 && (
-                    <span className="text-sm text-gray-400 line-through font-medium">
-                      {formatPrice(originalPrice)}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-[#0a1628]/70 font-medium mt-1 flex items-center gap-1.5">
-                  <TrendingUp className="h-4 w-4 text-[#FFD700]" />
-                  {product.quantity.toLocaleString()} kg em estoque
-                </p>
+                )}
               </div>
+              
+              <p className="text-sm text-blue-600/70 font-medium flex items-center gap-1.5">
+                <TrendingUp className="h-4 w-4 text-yellow-500" />
+                {product.quantity.toLocaleString()} kg em estoque
+              </p>
 
-              {/* CTA Principal - REDESENHADO */}
+              {/* CTA Principal - CORRIGIDO */}
               {onOpenPreOrder && (
-                <div className="flex flex-col gap-2">
-                  <Button
-                    size="lg"
-                    onClick={() => onOpenPreOrder(product)}
-                    className="relative bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700] hover:from-[#FFA500] hover:via-[#FFD700] hover:to-[#FFA500] text-[#0a1628] font-extrabold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 px-8 py-7 rounded-2xl border-2 border-[#0a1628]/10 group overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-                    <ShoppingCart className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-                    <span className="relative z-10">COMPRAR</span>
-                  </Button>
-                  <span className="text-[10px] text-center text-[#0a1628]/50 font-medium">Entrega rápida</span>
-                </div>
+                <Button
+                  size="lg"
+                  onClick={() => onOpenPreOrder(product)}
+                  className="relative w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-500 text-white font-extrabold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 h-12 rounded-xl border-2 border-blue-100 group overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                  <ShoppingCart className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
+                  <span className="relative z-10">COMPRAR AGORA</span>
+                </Button>
               )}
             </div>
           </div>
@@ -451,15 +447,15 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           )}
 
           {/* Info adicional */}
-          <div className="flex items-center gap-4 text-xs text-[#0a1628]/60 flex-wrap pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-4 text-xs text-blue-600/60 flex-wrap pt-2 border-t border-blue-50">
             <span className="flex items-center gap-1.5 font-medium">
-              <Calendar className="h-4 w-4 text-[#FFD700]" /> 
+              <Calendar className="h-4 w-4 text-yellow-500" /> 
               Colheita: {formatDate(product.harvest_date)}
             </span>
             {product.location_lat && product.location_lng && (
               <button
                 onClick={() => setMapModalOpen(true)}
-                className="flex items-center gap-1.5 text-[#FFD700] hover:text-[#FFA500] font-semibold transition-colors"
+                className="flex items-center gap-1.5 text-yellow-500 hover:text-yellow-600 font-semibold transition-colors"
               >
                 <MapPin className="h-4 w-4" /> 
                 Ver Localização
@@ -468,7 +464,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           </div>
 
           {/* Social Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-3 border-t border-blue-50">
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -477,7 +473,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                 className={`h-10 px-3 rounded-xl transition-all hover:scale-105 ${
                   product.is_liked 
                     ? 'text-red-500 bg-red-50 hover:bg-red-100' 
-                    : 'text-[#0a1628]/50 hover:text-red-500 hover:bg-red-50'
+                    : 'text-blue-400 hover:text-red-500 hover:bg-red-50'
                 }`}
               >
                 <Heart className={`h-5 w-5 ${product.is_liked ? 'fill-current' : ''}`} />
@@ -492,8 +488,8 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                 onClick={() => setCommentVisible(!commentVisible)}
                 className={`h-10 px-3 rounded-xl transition-all hover:scale-105 ${
                   commentVisible 
-                    ? 'text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20' 
-                    : 'text-[#0a1628]/50 hover:text-[#FFD700] hover:bg-[#FFD700]/10'
+                    ? 'text-yellow-500 bg-yellow-50 border border-yellow-200' 
+                    : 'text-blue-400 hover:text-yellow-500 hover:bg-yellow-50'
                 }`}
               >
                 <MessageCircle className="h-5 w-5" />
@@ -512,35 +508,35 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
 
           {/* Comments Section */}
           {commentVisible && (
-            <div className="pt-4 space-y-3 border-t border-gray-100 animate-in slide-in-from-top duration-300">
+            <div className="pt-4 space-y-3 border-t border-blue-50 animate-in slide-in-from-top duration-300">
               <div className="flex gap-2">
                 <Input
                   placeholder="Adicione um comentário..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment() } }}
-                  className="flex-1 h-11 text-sm rounded-xl border-gray-200 focus:border-[#FFD700] focus:ring-[#FFD700]/20 transition-all"
+                  className="flex-1 h-11 text-sm rounded-xl border-blue-200 focus:border-yellow-400 focus:ring-yellow-400/20 transition-all"
                 />
                 <Button 
                   size="sm" 
                   onClick={addComment} 
                   disabled={!comment.trim()}
-                  className="h-11 w-11 p-0 rounded-xl bg-[#0a1628] hover:bg-[#0a1628]/90 disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
+                  className="h-11 w-11 p-0 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
 
               {product.comments?.length ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-50">
                   {product.comments.map(c => (
-                    <div key={c.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:border-[#FFD700]/30 transition-colors">
+                    <div key={c.id} className="bg-blue-50 rounded-2xl p-4 border border-blue-100 hover:border-yellow-300 transition-colors">
                       <div className="flex items-start gap-3">
-                        <Avatar className="h-9 w-9 shadow-sm">
+                        <Avatar className="h-9 w-9 shadow-sm ring-2 ring-white">
                           {c.user_avatar ? (
                             <img src={c.user_avatar} alt={c.user_name} className="h-full w-full object-cover" />
                           ) : (
-                            <AvatarFallback className="text-xs bg-[#0a1628] text-white font-semibold">
+                            <AvatarFallback className="text-xs bg-blue-500 text-white font-semibold">
                               {c.user_name.charAt(0)}
                             </AvatarFallback>
                           )}
@@ -549,7 +545,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm text-gray-900">{c.user_name}</span>
-                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-white">
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-white border-blue-200">
                               {c.user_type}
                             </Badge>
                             <span className="text-xs text-gray-400">{formatDate(c.created_at)}</span>
@@ -560,7 +556,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                             <button
                               onClick={() => toggleCommentLike(c.id, c.is_liked || false)}
                               className={`flex items-center gap-1.5 text-xs font-medium transition-all hover:scale-105 ${
-                                c.is_liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
+                                c.is_liked ? 'text-red-500' : 'text-blue-400 hover:text-red-500'
                               }`}
                             >
                               <ThumbsUp className={`h-3.5 w-3.5 ${c.is_liked ? 'fill-current' : ''}`} />
@@ -568,7 +564,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                             </button>
                             <button
                               onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                              className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-[#FFD700] transition-colors"
+                              className="flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-yellow-500 transition-colors"
                             >
                               <Reply className="h-3.5 w-3.5" />
                               Responder
@@ -582,13 +578,13 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
                                 onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(c.id) } }}
-                                className="flex-1 h-9 text-xs rounded-lg"
+                                className="flex-1 h-9 text-xs rounded-lg border-blue-200 focus:border-yellow-400"
                                 autoFocus
                               />
                               <Button 
                                 size="sm" 
                                 onClick={() => addReply(c.id)} 
-                                className="h-9 w-9 p-0 rounded-lg bg-[#0a1628] hover:bg-[#0a1628]/90"
+                                className="h-9 w-9 p-0 rounded-lg bg-blue-500 hover:bg-blue-600"
                               >
                                 <Send className="h-3.5 w-3.5" />
                               </Button>
@@ -596,9 +592,9 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                           )}
 
                           {c.replies && c.replies.length > 0 && (
-                            <div className="mt-3 pl-4 border-l-2 border-[#FFD700]/30 space-y-2">
+                            <div className="mt-3 pl-4 border-l-2 border-yellow-300 space-y-2">
                               {c.replies.map(reply => (
-                                <div key={reply.id} className="text-xs bg-white rounded-lg p-2">
+                                <div key={reply.id} className="text-xs bg-white rounded-lg p-2 border border-blue-100">
                                   <span className="font-semibold text-gray-900">{reply.user_name}</span>
                                   <span className="text-gray-400 mx-1.5">·</span>
                                   <span className="text-gray-600">{reply.reply_text}</span>
@@ -613,7 +609,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <MessageCircle className="h-12 w-12 text-blue-200 mx-auto mb-2" />
                   <p className="text-sm text-gray-400 font-medium">Seja o primeiro a comentar!</p>
                 </div>
               )}
@@ -624,17 +620,17 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
 
       {/* Modal do Mapa */}
       <Dialog open={mapModalOpen} onOpenChange={setMapModalOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-3xl">
-          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-[#0a1628] to-[#1e3a5f]">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-3xl border-2 border-blue-100">
+          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-blue-400 to-blue-500">
             <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white">
-              <MapPin className="h-6 w-6 text-[#FFD700]" />
+              <MapPin className="h-6 w-6 text-yellow-300" />
               Localização do Produto
             </DialogTitle>
           </DialogHeader>
           <div ref={mapContainerRef} className="w-full h-[450px]" />
-          <div className="p-6 pt-4 bg-gray-50 flex items-center justify-between border-t">
+          <div className="p-6 pt-4 bg-blue-50 flex items-center justify-between border-t border-blue-100">
             <div>
-              <p className="font-bold text-[#0a1628] text-lg">{product.product_type}</p>
+              <p className="font-bold text-blue-600 text-lg">{product.product_type}</p>
               <p className="text-sm text-gray-600 mt-1">
                 <span className="font-medium">{product.farmer_name}</span> · {product.province_id}, {product.municipality_id}
               </p>
@@ -642,7 +638,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
             <Button 
               variant="outline" 
               onClick={() => setMapModalOpen(false)}
-              className="rounded-xl border-2 hover:border-[#FFD700] hover:text-[#0a1628] hover:bg-[#FFD700]/10"
+              className="rounded-xl border-2 border-blue-200 hover:border-yellow-400 hover:text-blue-600 hover:bg-yellow-50"
             >
               Fechar
             </Button>

@@ -387,7 +387,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
                   {product.farmer_name}
                 </h3>
                 {product.user_verified && (
-                  <BadgeCheck className="h-5 w-5 text-blue-500 flex-shrink-0" title="Vendedor verificado" />
+                  <BadgeCheck className="h-5 w-5 text-blue-500 flex-shrink-0" />
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">

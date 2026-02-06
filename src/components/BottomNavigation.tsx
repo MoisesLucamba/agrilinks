@@ -97,7 +97,7 @@ const BottomNavigation = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-[#B8860B] border-t border-[#996B00] shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-[#5BA3D9] border-t border-[#4A93C9] shadow-lg"
       style={{ paddingBottom: 'var(--safe-area-inset-bottom, 0px)' }}
     >
       <div className="grid grid-cols-6 gap-0.5 px-1 py-1.5 max-w-lg mx-auto">
@@ -113,15 +113,15 @@ const BottomNavigation = () => {
                 relative flex flex-col items-center gap-0.5 h-auto py-2 px-1 rounded-xl
                 transition-all duration-200
                 ${active 
-                  ? 'text-black bg-black/10' 
-                  : 'text-black/80 hover:text-black hover:bg-black/10'
+                  ? 'text-white bg-white/20' 
+                  : 'text-white/80 hover:text-white hover:bg-white/15'
                 }
               `}
             >
               <div className="relative">
                 <item.icon className={`h-6 w-6 transition-transform stroke-[2.5] ${active ? 'scale-110' : ''}`} />
                 {item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-white text-[#B8860B] text-[9px] font-bold rounded-full px-1 animate-pulse-soft">
+                  <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full px-1 animate-pulse-soft">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}

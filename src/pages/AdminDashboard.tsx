@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -245,7 +246,8 @@ const AdminDashboard = () => {
   const [isSuperRoot, setIsSuperRoot] = useState(false);
   const [isSupportAgent, setIsSupportAgent] = useState(false);
   const [userPermissions, setUserPermissions] = useState<AdminPermission[]>([]);
-
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   // Work session tracking for support agents
   const {
     elapsedTimeFormatted,
@@ -409,6 +411,46 @@ const AdminDashboard = () => {
     } catch {
       toast.error("Erro ao apagar");
     }
+  }, []);
+
+  const handleBulkDelete = useCallback(async (table: string, ids: Set<string>, setter: Function, clearSelection: () => void) => {
+    if (ids.size === 0) { toast.error("Nenhum item selecionado"); return; }
+    if (!confirm(`Deseja realmente apagar ${ids.size} item(s)?`)) return;
+    try {
+      const idsArray = Array.from(ids);
+      const { error } = await supabase.from(table as any).delete().in("id", idsArray);
+      if (!error) {
+        setter((prev: any[]) => prev.filter((item: any) => !ids.has(item.id)));
+        clearSelection();
+        toast.success(`${idsArray.length} item(s) apagado(s) com sucesso`);
+      }
+    } catch {
+      toast.error("Erro ao apagar itens");
+    }
+  }, []);
+
+  const toggleSelectUser = useCallback((id: string) => {
+    setSelectedUsers(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectProduct = useCallback((id: string) => {
+    setSelectedProducts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAllUsers = useCallback((allUsers: User[]) => {
+    setSelectedUsers(prev => prev.size === allUsers.length ? new Set() : new Set(allUsers.map(u => u.id)));
+  }, []);
+
+  const toggleSelectAllProducts = useCallback((allProducts: Product[]) => {
+    setSelectedProducts(prev => prev.size === allProducts.length ? new Set() : new Set(allProducts.map(p => p.id)));
   }, []);
 
   const markNotificationAsRead = useCallback(async (id: string) => {
@@ -849,19 +891,32 @@ const AdminDashboard = () => {
         {/* PRODUTOS */}
         {activeTab === "products" && (
           <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" /> Produtos ({filteredProducts.length})
               </CardTitle>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-48 h-9" />
+              <div className="flex items-center gap-2">
+                {selectedProducts.size > 0 && (
+                  <Button size="sm" variant="destructive" className="gap-1" onClick={() => handleBulkDelete("products", selectedProducts, setProducts, () => setSelectedProducts(new Set()))}>
+                    <Trash2 className="h-4 w-4" /> Apagar ({selectedProducts.size})
+                  </Button>
+                )}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-48 h-9" />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50/80">
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={filteredProducts.length > 0 && selectedProducts.size === filteredProducts.length}
+                        onCheckedChange={() => toggleSelectAllProducts(filteredProducts)}
+                      />
+                    </TableHead>
                     <TableHead>Produto</TableHead>
                     <TableHead>Qtd</TableHead>
                     <TableHead>Preço</TableHead>
@@ -874,7 +929,13 @@ const AdminDashboard = () => {
                   {filteredProducts.map((product) => {
                     const user = users.find((u) => u.id === product.user_id);
                     return (
-                      <TableRow key={product.id} className="hover:bg-gray-50/50">
+                      <TableRow key={product.id} className={`hover:bg-gray-50/50 ${selectedProducts.has(product.id) ? "bg-primary/5" : ""}`}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedProducts.has(product.id)}
+                            onCheckedChange={() => toggleSelectProduct(product.id)}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">{product.product_type}</TableCell>
                         <TableCell>{product.quantity} kg</TableCell>
                         <TableCell>{product.price?.toFixed(2)} Kz</TableCell>
@@ -907,19 +968,32 @@ const AdminDashboard = () => {
         {/* USUÁRIOS */}
         {activeTab === "users" && (
           <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" /> Usuários ({filteredUsers.length})
               </CardTitle>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-48 h-9" />
+              <div className="flex items-center gap-2">
+                {selectedUsers.size > 0 && (
+                  <Button size="sm" variant="destructive" className="gap-1" onClick={() => handleBulkDelete("users", selectedUsers, setUsers, () => setSelectedUsers(new Set()))}>
+                    <Trash2 className="h-4 w-4" /> Apagar ({selectedUsers.size})
+                  </Button>
+                )}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 w-48 h-9" />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50/80">
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={filteredUsers.length > 0 && selectedUsers.size === filteredUsers.length}
+                        onCheckedChange={() => toggleSelectAllUsers(filteredUsers)}
+                      />
+                    </TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Telefone</TableHead>
@@ -931,7 +1005,13 @@ const AdminDashboard = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-gray-50/50">
+                    <TableRow key={user.id} className={`hover:bg-gray-50/50 ${selectedUsers.has(user.id) ? "bg-primary/5" : ""}`}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUsers.has(user.id)}
+                          onCheckedChange={() => toggleSelectUser(user.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {user.full_name}

@@ -89,18 +89,19 @@ Deno.serve(async (req) => {
         try {
           await webpush.sendNotification(pushSubscription, payload);
           return { success: true, subscription: sub.id };
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error sending to subscription:', sub.id, error);
           
+          const err = error as any;
           // If subscription is invalid/expired, delete it
-          if (error.statusCode === 410 || error.statusCode === 404) {
+          if (err?.statusCode === 410 || err?.statusCode === 404) {
             await supabaseClient
               .from('push_subscriptions')
               .delete()
               .eq('id', sub.id);
           }
           
-          return { success: false, subscription: sub.id, error: error.message };
+          return { success: false, subscription: sub.id, error: err?.message || "Unknown error" };
         }
       })
     );
@@ -117,10 +118,10 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in send-push-notification:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

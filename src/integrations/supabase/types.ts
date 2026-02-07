@@ -1498,6 +1498,11 @@ export type Database = {
       }
     }
     Functions: {
+      admin_bulk_delete_users: {
+        Args: { p_user_ids: string[] }
+        Returns: number
+      }
+      admin_delete_user: { Args: { p_user_id: string }; Returns: boolean }
       block_funds: {
         Args: {
           p_amount: number

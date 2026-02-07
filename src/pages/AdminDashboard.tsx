@@ -404,10 +404,9 @@ const AdminDashboard = () => {
   }, [targetUser, notificationMessage, notificationTitle, notificationType]);
 
   const handleDelete = useCallback(async (table: string, id: string, setter: Function) => {
-    if (!confirm("Deseja realmente apagar?")) return;
+    if (!confirm("Deseja realmente apagar? Esta ação não pode ser desfeita.")) return;
     try {
       if (table === "users") {
-        // Use cascade delete function for users
         const { error } = await supabase.rpc("admin_delete_user", { p_user_id: id });
         if (error) {
           console.error("Erro ao apagar usuário:", error);
@@ -415,9 +414,17 @@ const AdminDashboard = () => {
           return;
         }
         setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
-        // Also remove related products from state
         setProducts((prev) => prev.filter((p) => p.user_id !== id));
         toast.success("Usuário e dados relacionados apagados com sucesso");
+      } else if (table === "products") {
+        const { error } = await supabase.rpc("admin_delete_product", { p_product_id: id });
+        if (error) {
+          console.error("Erro ao apagar produto:", error);
+          toast.error("Erro ao apagar produto: " + error.message);
+          return;
+        }
+        setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
+        toast.success("Produto e dados relacionados apagados com sucesso");
       } else {
         const { error } = await supabase.from(table as any).delete().eq("id", id);
         if (error) {
@@ -440,7 +447,6 @@ const AdminDashboard = () => {
     try {
       const idsArray = Array.from(ids);
       if (table === "users") {
-        // Use bulk cascade delete function for users
         const { data, error } = await supabase.rpc("admin_bulk_delete_users", { p_user_ids: idsArray });
         if (error) {
           console.error("Erro ao apagar usuários:", error);
@@ -448,10 +454,19 @@ const AdminDashboard = () => {
           return;
         }
         setter((prev: any[]) => prev.filter((item: any) => !ids.has(item.id)));
-        // Also remove related products from state
         setProducts((prev) => prev.filter((p) => !ids.has(p.user_id)));
         clearSelection();
         toast.success(`${data || idsArray.length} usuário(s) e dados relacionados apagados com sucesso`);
+      } else if (table === "products") {
+        const { data, error } = await supabase.rpc("admin_bulk_delete_products", { p_product_ids: idsArray });
+        if (error) {
+          console.error("Erro ao apagar produtos:", error);
+          toast.error("Erro ao apagar produtos: " + error.message);
+          return;
+        }
+        setter((prev: any[]) => prev.filter((item: any) => !ids.has(item.id)));
+        clearSelection();
+        toast.success(`${data || idsArray.length} produto(s) e dados relacionados apagados com sucesso`);
       } else {
         const { error } = await supabase.from(table as any).delete().in("id", idsArray);
         if (error) {

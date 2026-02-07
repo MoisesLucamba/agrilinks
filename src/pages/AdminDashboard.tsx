@@ -406,25 +406,65 @@ const AdminDashboard = () => {
   const handleDelete = useCallback(async (table: string, id: string, setter: Function) => {
     if (!confirm("Deseja realmente apagar?")) return;
     try {
-      const { error } = await supabase.from(table as any).delete().eq("id", id);
-      if (!error) setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
-    } catch {
+      if (table === "users") {
+        // Use cascade delete function for users
+        const { error } = await supabase.rpc("admin_delete_user", { p_user_id: id });
+        if (error) {
+          console.error("Erro ao apagar usuário:", error);
+          toast.error("Erro ao apagar usuário: " + error.message);
+          return;
+        }
+        setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
+        // Also remove related products from state
+        setProducts((prev) => prev.filter((p) => p.user_id !== id));
+        toast.success("Usuário e dados relacionados apagados com sucesso");
+      } else {
+        const { error } = await supabase.from(table as any).delete().eq("id", id);
+        if (error) {
+          console.error("Erro ao apagar:", error);
+          toast.error("Erro ao apagar: " + error.message);
+          return;
+        }
+        setter((prev: any[]) => prev.filter((item: any) => item.id !== id));
+        toast.success("Item apagado com sucesso");
+      }
+    } catch (err) {
+      console.error("Erro ao apagar:", err);
       toast.error("Erro ao apagar");
     }
   }, []);
 
   const handleBulkDelete = useCallback(async (table: string, ids: Set<string>, setter: Function, clearSelection: () => void) => {
     if (ids.size === 0) { toast.error("Nenhum item selecionado"); return; }
-    if (!confirm(`Deseja realmente apagar ${ids.size} item(s)?`)) return;
+    if (!confirm(`Deseja realmente apagar ${ids.size} item(s)? Esta ação não pode ser desfeita.`)) return;
     try {
       const idsArray = Array.from(ids);
-      const { error } = await supabase.from(table as any).delete().in("id", idsArray);
-      if (!error) {
+      if (table === "users") {
+        // Use bulk cascade delete function for users
+        const { data, error } = await supabase.rpc("admin_bulk_delete_users", { p_user_ids: idsArray });
+        if (error) {
+          console.error("Erro ao apagar usuários:", error);
+          toast.error("Erro ao apagar usuários: " + error.message);
+          return;
+        }
+        setter((prev: any[]) => prev.filter((item: any) => !ids.has(item.id)));
+        // Also remove related products from state
+        setProducts((prev) => prev.filter((p) => !ids.has(p.user_id)));
+        clearSelection();
+        toast.success(`${data || idsArray.length} usuário(s) e dados relacionados apagados com sucesso`);
+      } else {
+        const { error } = await supabase.from(table as any).delete().in("id", idsArray);
+        if (error) {
+          console.error("Erro ao apagar itens:", error);
+          toast.error("Erro ao apagar itens: " + error.message);
+          return;
+        }
         setter((prev: any[]) => prev.filter((item: any) => !ids.has(item.id)));
         clearSelection();
         toast.success(`${idsArray.length} item(s) apagado(s) com sucesso`);
       }
-    } catch {
+    } catch (err) {
+      console.error("Erro ao apagar itens:", err);
       toast.error("Erro ao apagar itens");
     }
   }, []);
